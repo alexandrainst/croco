@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import collections.abc as c
 
+# Skip vLLM modules when vLLM is not available (GPU-only)
+import importlib.util
+
 import pytest
 
 from croco.data_models import ScoredCandidate
 from croco.engines import GenerationEngine, ScoringEngine
-
-# Skip vLLM modules when vLLM is not available (GPU-only)
-import importlib.util
 
 collect_ignore_glob: list[str] = []
 if importlib.util.find_spec("vllm") is None:

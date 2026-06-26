@@ -6,12 +6,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-# Skip all tests in this module if euroeval is not available
-euroeval_available = importlib.util.find_spec("euroeval") is not None
-pytestmark = pytest.mark.skipif(
-    not euroeval_available, reason="euroeval not installed (optional dependency)"
-)
-
 from croco.config import (
     DataConfig,
     DPOTrainConfig,
@@ -22,6 +16,12 @@ from croco.config import (
     RewardModelConfig,
 )
 from croco.evaluation import evaluate_model, extract_scores
+
+# Skip all tests in this module if euroeval is not available
+euroeval_available = importlib.util.find_spec("euroeval") is not None
+pytestmark = pytest.mark.skipif(
+    not euroeval_available, reason="euroeval not installed (optional dependency)"
+)
 
 
 class TestEvaluateModel:

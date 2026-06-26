@@ -5,16 +5,14 @@ from pathlib import Path
 from .config import PipelineConfig
 
 
-def _get_benchmarker():
+def _get_benchmarker() -> type:
     """Lazily import Benchmarker to avoid hard dependency on euroeval.
 
     Returns:
         The Benchmarker class from euroeval.
-
-    Raises:
-        ImportError: If euroeval is not installed.
     """
-    from euroeval import Benchmarker
+    from euroeval import Benchmarker  # ty: ignore[unresolved-import]
+
     return Benchmarker
 
 

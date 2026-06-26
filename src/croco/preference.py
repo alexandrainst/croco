@@ -1,8 +1,12 @@
 """Construction of contrastive preference pairs (CroCo, Eq. 2)."""
 
+import logging
+
 import numpy as np
 
 from .data_models import PreferencePair, ScoredCandidate
+
+logger = logging.getLogger(__name__)
 
 
 def build_pair_generated(

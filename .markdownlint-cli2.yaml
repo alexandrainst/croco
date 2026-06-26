@@ -1,0 +1,11 @@
+# Rule configuration
+# https://github.com/DavidAnson/markdownlint/blob/main/README.md#rules
+
+# MD013 - Line length
+# Disable for PLAN.md since it contains many code snippets
+MD013:
+  line_length: 88
+  tables: false
+  headings: false
+  code_blocks: false
+  strict: false

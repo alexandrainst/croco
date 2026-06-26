@@ -89,7 +89,16 @@ def build_pair_gold_chosen(
         return None
     rejected = _select_rejected(pool=candidates, upper_bound=gold_score, exclude=None)
     if rejected is None:
-        return None
+        # Fallback: if no candidate is below gold_score, pick lowest-scoring candidate
+        # This can happen when the policy generates outputs the RM prefers over gold
+        rejected = _select_rejected(pool=candidates, upper_bound=None, exclude=None)
+        if rejected is None:
+            return None
+        logger.debug(
+            "No candidate below gold_score=%.2f, using lowest-scoring candidate=%.2f",
+            gold_score or 0.0,
+            rejected.reward_score,
+        )
     return PreferencePair(
         prompt=prompt,
         chosen=gold_output,

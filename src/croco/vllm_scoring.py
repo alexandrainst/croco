@@ -56,7 +56,6 @@ class VLLMScoringEngine:
             trust_remote_code=trust_remote_code,
             gpu_memory_utilization=gpu_memory_utilization,
             enable_chunked_prefill=False,
-            fast_safetensors=True,
         )
 
     def score(self, *, prompts: list[str], responses: list[str]) -> list[float]:

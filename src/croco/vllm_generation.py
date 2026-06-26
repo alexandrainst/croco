@@ -54,7 +54,6 @@ class VLLMGenerationEngine:
             max_model_len=max_model_len,
             trust_remote_code=trust_remote_code,
             enable_prefix_caching=True,
-            fast_safetensors=True,
         )
 
         self._config = config

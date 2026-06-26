@@ -6,7 +6,10 @@ import logging
 from typing import TYPE_CHECKING
 
 from transformers import AutoTokenizer
-from vllm import LLM, PoolingParams  # type: ignore[unresolved-import]  # vllm is GPU-only
+from vllm import (  # ty: ignore[unresolved-import]
+    LLM,
+    PoolingParams,
+)  # vllm is GPU-only, not installed on Mac
 
 from .utils import build_conversation
 

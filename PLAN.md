@@ -37,9 +37,9 @@ helpers below; protected helpers prefixed with `_`).
 - **DPO via `trl`** (`DPOTrainer`/`DPOConfig`). DPO only; no SFT.
 - **Data: `danish-foundation-models/laerebogen`, config `evolved`.** No translation.
 - **Two construction modes** (`construction_mode` config field):
-  - `generated`: prompt = `instruction`; policy generates K candidates; RM scores
+    - `generated`: prompt = `instruction`; policy generates K candidates; RM scores
       them; chosen/rejected via Eq. (2). Dataset `output` unused.
-  - `gold_chosen`: prompt = `instruction`; **chosen = dataset `output`**; policy
+    - `gold_chosen`: prompt = `instruction`; **chosen = dataset `output`**; policy
       generates K candidates, RM scores them; **rejected** = generation nearest
       `mu - 2*sigma`; the gold `output` is RM-scored too so we can require
       `rejected_score < chosen_score`.
@@ -598,7 +598,3 @@ verbatim plus the python-skill conventions:
 - README updated: pipeline overview, the two modes, the curriculum, gated-dataset access
   (`HUGGINGFACE_API_KEY` + accept terms), `make install-vllm` on the DGX, and a
   placeholder section for the later remote-execution work.
-
-```
-
-```

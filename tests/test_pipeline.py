@@ -290,7 +290,7 @@ def _make_config(
             stratify_by_evolution=False,
             evolution_min=None,
             evolution_max=None,
-            max_prompt_tokens=4096,
+            max_prompt_tokens=2048,
             seed=42,
         ),
         dpo=DPOTrainConfig(

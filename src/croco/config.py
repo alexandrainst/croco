@@ -6,7 +6,7 @@ import pathlib
 import typing as t
 
 import yaml
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 def load_config(*, path: pathlib.Path) -> PipelineConfig:
@@ -114,3 +114,25 @@ class PipelineConfig(BaseModel):
     data: DataConfig
     dpo: DPOTrainConfig
     eval: EvalConfig
+
+    @model_validator(mode="after")
+    def _check_length_budget(self) -> PipelineConfig:
+        """Ensure prompts plus generations fit within the policy context window.
+
+        Returns:
+            The validated configuration.
+
+        Raises:
+            ValueError:
+                If ``max_prompt_tokens + generation.max_tokens`` exceeds the
+                policy's ``max_model_len``, which would let vLLM reject prompts.
+        """
+        budget = self.data.max_prompt_tokens + self.generation.max_tokens
+        if budget > self.policy.max_model_len:
+            msg = (
+                f"max_prompt_tokens ({self.data.max_prompt_tokens}) + max_tokens "
+                f"({self.generation.max_tokens}) = {budget} exceeds policy "
+                f"max_model_len ({self.policy.max_model_len})"
+            )
+            raise ValueError(msg)
+        return self

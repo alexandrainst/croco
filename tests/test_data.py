@@ -6,8 +6,44 @@ import pytest
 from datasets import Dataset
 
 from croco.config import DataConfig
-from croco.data import load_examples, sort_by_evolution
+from croco.data import filter_by_prompt_length, load_examples, sort_by_evolution
 from croco.data_models import DataExample, PreferencePair
+
+
+class TestFilterByPromptLength:
+    """Tests for filter_by_prompt_length."""
+
+    def test_drops_over_long_prompts(self) -> None:
+        """Examples whose prompt exceeds the budget are removed."""
+        examples = [
+            DataExample(instruction="short", output="o", hash="a"),
+            DataExample(
+                instruction="this is a much longer prompt", output="o", hash="b"
+            ),
+        ]
+
+        kept = filter_by_prompt_length(
+            examples=examples,
+            count_tokens=lambda text: len(text.split()),
+            max_prompt_tokens=3,
+        )
+
+        assert [example.hash for example in kept] == ["a"]
+
+    def test_keeps_all_within_budget(self) -> None:
+        """Nothing is dropped when every prompt fits."""
+        examples = [
+            DataExample(instruction="a b", output="o", hash="a"),
+            DataExample(instruction="c d", output="o", hash="b"),
+        ]
+
+        kept = filter_by_prompt_length(
+            examples=examples,
+            count_tokens=lambda text: len(text.split()),
+            max_prompt_tokens=2,
+        )
+
+        assert len(kept) == 2
 
 
 class TestLoadExamples:

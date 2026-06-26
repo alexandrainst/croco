@@ -1,5 +1,6 @@
 """Laerebogen data loader with stratified subsampling."""
 
+import collections.abc as c
 import logging
 import random
 import typing as t
@@ -76,6 +77,44 @@ def load_examples(*, config: DataConfig) -> list[DataExample]:
     logger.info("Subsampled to %d examples", len(examples))
 
     return examples
+
+
+def filter_by_prompt_length(
+    *,
+    examples: list[DataExample],
+    count_tokens: c.Callable[[str], int],
+    max_prompt_tokens: int,
+) -> list[DataExample]:
+    """Drop examples whose prompt exceeds the token budget.
+
+    Over-long prompts leave no room for generation within the model's context
+    window and would otherwise be rejected by vLLM at generation time.
+
+    Args:
+        examples:
+          The examples to filter.
+        count_tokens:
+          Callable returning the token count of an instruction's rendered prompt.
+        max_prompt_tokens:
+          Maximum allowed prompt length in tokens.
+
+    Returns:
+        The examples whose prompt fits within the budget.
+    """
+    kept = [
+        example
+        for example in examples
+        if count_tokens(example.instruction) <= max_prompt_tokens
+    ]
+    n_dropped = len(examples) - len(kept)
+    if n_dropped:
+        logger.info(
+            "Dropped %d/%d examples exceeding max_prompt_tokens=%d",
+            n_dropped,
+            len(examples),
+            max_prompt_tokens,
+        )
+    return kept
 
 
 def sort_by_evolution(*, pairs: list[PreferencePair]) -> list[PreferencePair]:

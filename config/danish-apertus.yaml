@@ -17,7 +17,10 @@ language: da
 policy:
   model_id: danish-foundation-models/munin-apertus-8b
   attn_implementation: sdpa
-  max_model_len: 2048
+  # The model supports 65536 tokens, but max_model_len drives vLLM's KV-cache
+  # allocation, so we size it to cover the longest prompt (~1742 tokens) plus the
+  # generation budget with margin rather than the full context.
+  max_model_len: 4096
 
 reward:
   model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
@@ -47,7 +50,9 @@ data:
   stratify_by_evolution: true
   evolution_min: null
   evolution_max: null
-  max_prompt_tokens: 2048
+  # Prompts longer than this are dropped (max_prompt_tokens + max_tokens must be
+  # <= policy.max_model_len). Covers all observed prompts (longest ~1742 tokens).
+  max_prompt_tokens: 3072
   seed: 42
 
 dpo:
@@ -60,7 +65,7 @@ dpo:
   per_device_train_batch_size: 1
   gradient_accumulation_steps: 8
   num_train_epochs: 1
-  max_length: 2048
+  max_length: 4096
   bf16: true
   gradient_checkpointing: true
   curriculum: true

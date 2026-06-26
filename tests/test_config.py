@@ -468,3 +468,86 @@ class TestLoadConfig:
         assert config.data.stratify_by_evolution is True
         assert config.dpo.curriculum is True
         assert config.eval.tasks == ["mmlu", "hellaswag"]
+
+
+class TestLengthBudgetValidator:
+    """Tests for the prompt + generation length budget validator."""
+
+    def _build(
+        self, *, max_model_len: int, max_prompt_tokens: int, max_tokens: int
+    ) -> PipelineConfig:
+        """Build a pipeline config with the given length settings.
+
+        Args:
+            max_model_len:
+              Policy context window.
+            max_prompt_tokens:
+              Maximum allowed prompt length.
+            max_tokens:
+              Generation length budget.
+
+        Returns:
+            The constructed pipeline configuration.
+        """
+        return PipelineConfig(
+            construction_mode="generated",
+            score_gold_output=False,
+            language="da",
+            policy=PolicyModelConfig(
+                model_id="test/policy",
+                attn_implementation="sdpa",
+                max_model_len=max_model_len,
+            ),
+            reward=RewardModelConfig(model_id="test/reward", max_model_len=8192),
+            generation=GenerationConfig(
+                num_candidates=4,
+                max_tokens=max_tokens,
+                temperature=0.7,
+                top_p=0.9,
+                tensor_parallel_size=1,
+                gpu_memory_utilization=0.9,
+            ),
+            data=DataConfig(
+                dataset_id="test/dataset",
+                subset="test",
+                split="train",
+                num_samples=10,
+                stratify_by_evolution=False,
+                evolution_min=None,
+                evolution_max=None,
+                max_prompt_tokens=max_prompt_tokens,
+                seed=42,
+            ),
+            dpo=DPOTrainConfig(
+                output_dir=Path("output"),
+                learning_rate=5e-6,
+                lr_scheduler_type="cosine",
+                warmup_ratio=0.05,
+                weight_decay=0.01,
+                beta=0.1,
+                per_device_train_batch_size=1,
+                gradient_accumulation_steps=1,
+                num_train_epochs=1,
+                max_length=4096,
+                bf16=False,
+                gradient_checkpointing=False,
+                curriculum=False,
+                lora_r=8,
+                lora_alpha=16,
+                lora_dropout=0.05,
+                seed=42,
+            ),
+            eval=EvalConfig(language="da", tasks=None, num_iterations=1),
+        )
+
+    def test_within_budget_is_valid(self) -> None:
+        """A prompt + generation budget within max_model_len is accepted."""
+        config = self._build(
+            max_model_len=4096, max_prompt_tokens=3072, max_tokens=1024
+        )
+        assert config.policy.max_model_len == 4096
+
+    def test_over_budget_raises(self) -> None:
+        """Exceeding max_model_len raises a ValueError."""
+        with pytest.raises(ValueError, match="exceeds policy"):
+            self._build(max_model_len=2048, max_prompt_tokens=2048, max_tokens=1024)

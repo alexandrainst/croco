@@ -13,7 +13,7 @@ language: da
 policy:
   model_id: danish-foundation-models/munin-apertus-8b
   attn_implementation: sdpa
-  max_model_len: 2048
+  max_model_len: 4096
 
 reward:
   model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
@@ -38,7 +38,7 @@ data:
   stratify_by_evolution: true
   evolution_min: null
   evolution_max: null
-  max_prompt_tokens: 2048
+  max_prompt_tokens: 3072
   seed: 42
 
 dpo:

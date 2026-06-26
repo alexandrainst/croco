@@ -5,11 +5,12 @@ import logging
 from pathlib import Path
 
 import click
+from transformers import AutoTokenizer
 
 from croco.config import load_config
-from croco.data import load_examples
+from croco.data import filter_by_prompt_length, load_examples
 from croco.pipeline import build_preference_dataset
-from croco.utils import set_seed
+from croco.utils import build_user_message, set_seed
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -50,6 +51,24 @@ def main(*, config: Path, output: Path) -> None:
     logger.info("Loading examples from dataset")
     examples = load_examples(config=cfg.data)
     logger.info(f"Loaded {len(examples)} examples")
+
+    # Drop prompts that would not leave room for generation in the context window.
+    tokenizer = AutoTokenizer.from_pretrained(cfg.policy.model_id)
+
+    def count_prompt_tokens(instruction: str) -> int:
+        rendered = tokenizer.apply_chat_template(  # ty: ignore[unresolved-attribute]
+            build_user_message(instruction=instruction),
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+        return len(tokenizer(str(rendered))["input_ids"])  # ty: ignore[call-non-callable]
+
+    examples = filter_by_prompt_length(
+        examples=examples,
+        count_tokens=count_prompt_tokens,
+        max_prompt_tokens=cfg.data.max_prompt_tokens,
+    )
+    logger.info(f"{len(examples)} examples within prompt-length budget")
 
     # Import vLLM engines here to avoid module-level imports
     from croco.vllm_generation import VLLMGenerationEngine  # noqa: PLC0415, I001

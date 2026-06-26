@@ -57,6 +57,8 @@ class VLLMScoringEngine:
             gpu_memory_utilization=gpu_memory_utilization,
             enable_chunked_prefill=False,
             load_format="fastsafetensors",
+            # Minimize memory footprint for pooling models
+            max_num_batched_tokens=config.max_model_len,
         )
 
     def score(self, *, prompts: list[str], responses: list[str]) -> list[float]:

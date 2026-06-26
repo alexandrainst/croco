@@ -26,7 +26,7 @@ generation:
   temperature: 0.7
   top_p: 1.0
   tensor_parallel_size: 1
-  gpu_memory_utilization: 0.55  # Leave room for 8B reward model
+  gpu_memory_utilization: 0.50  # Leave room for 8B reward model
 
 data:
   dataset_id: danish-foundation-models/laerebogen

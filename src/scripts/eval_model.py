@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Evaluate a trained model using EuroEval."""
+"""Evaluate a trained or base model using EuroEval."""
 
 import logging
 from pathlib import Path
@@ -27,23 +27,32 @@ logger = logging.getLogger(__name__)
     "--model",
     "-m",
     "model_path",
-    type=click.Path(exists=True, path_type=Path),
-    required=True,
-    help="Path to the trained model directory.",
+    type=click.Path(path_type=Path),
+    default=None,
+    help=(
+        "Path to the trained model directory. "
+        "If not provided, evaluates the base policy model from config."
+    ),
 )
-def main(*, config: Path, model_path: Path) -> None:
-    """Evaluate a trained model using the EuroEval benchmark suite.
+def main(*, config: Path, model_path: Path | None) -> None:
+    """Evaluate a model using the EuroEval benchmark suite.
 
-    This script benchmarks a trained model on tasks configured for the target
-    language and reports aggregated scores for each dataset.
+    This script benchmarks a model on tasks configured for the target
+    language and reports aggregated scores for each dataset. If no model
+    path is provided, evaluates the base policy model from the config.
     """
     # Load configuration
     logger.info(f"Loading configuration from {config}")
     cfg = load_config(path=config)
 
+    # Determine model to evaluate
+    model_id_or_path: str | Path = (
+        model_path if model_path is not None else cfg.policy.model_id
+    )
+    logger.info(f"Evaluating model: {model_id_or_path}")
+
     # Evaluate
-    logger.info(f"Evaluating model at {model_path}")
-    results = evaluate_model(model_id_or_path=model_path, config=cfg)
+    results = evaluate_model(model_id_or_path=model_id_or_path, config=cfg)
 
     # Extract and display scores
     scores = extract_scores(results=results)

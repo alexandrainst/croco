@@ -10,7 +10,7 @@ from croco.config import load_config
 from croco.data import load_examples
 from croco.dpo import train_dpo
 from croco.evaluation import evaluate_model, extract_scores
-from croco.pipeline import build_preference_dataset
+from croco.pipeline import build_preference_dataset, upload_to_huggingface
 from croco.utils import set_seed
 
 logging.basicConfig(
@@ -127,6 +127,16 @@ def main(
         model_output = cfg.dpo.output_dir
         if not model_output.exists():
             logger.warning(f"Model output directory {model_output} does not exist")
+
+    # Step 2b: Upload to Hugging Face Hub (if configured)
+    if cfg.dpo.hf_repo_id and model_output:
+        logger.info("=== Uploading to Hugging Face Hub ===")
+        upload_to_huggingface(
+            dataset_path=dataset_output,
+            model_path=model_output,
+            repo_id=cfg.dpo.hf_repo_id,
+            private=False,
+        )
 
     # Step 3: Evaluate
     if not skip_eval and not cfg.eval.skip:

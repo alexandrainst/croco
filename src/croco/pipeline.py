@@ -218,3 +218,73 @@ def _construct_pair(
     else:
         logger.error("Unknown construction mode: %s", construction_mode)
         return None
+
+
+def upload_to_huggingface(
+    *,
+    dataset_path: Path,
+    model_path: Path,
+    repo_id: str,
+    config_repo_id: str | None = None,
+    private: bool = False,
+) -> None:
+    """Upload dataset and model to Hugging Face Hub.
+
+    Args:
+        dataset_path:
+            Path to the preference dataset JSONL file.
+        model_path:
+            Path to the trained model directory.
+        repo_id:
+            HuggingFace repo ID for the model (e.g., "user/repo-name").
+        config_repo_id:
+            Optional separate repo ID for the dataset. If None, uses same repo.
+        private:
+            Whether to make repos private. Defaults to False.
+    """
+    try:
+        from huggingface_hub import HfApi, hf_hub_download
+    except ImportError as e:
+        logger.warning(
+            "huggingface_hub not installed, skipping upload: %s",
+            e,
+        )
+        return
+
+    api = HfApi()
+    dataset_repo = config_repo_id or repo_id
+
+    # Create repos if they don't exist
+    try:
+        api.create_repo(repo_id=dataset_repo, repo_type="dataset", private=private, exist_ok=True)
+    except Exception as e:
+        logger.warning("Failed to create dataset repo: %s", e)
+
+    try:
+        api.create_repo(repo_id=repo_id, private=private, exist_ok=True)
+    except Exception as e:
+        logger.warning("Failed to create model repo: %s", e)
+
+    # Upload dataset
+    logger.info(f"Uploading dataset to {dataset_repo}")
+    try:
+        api.upload_file(
+            path_or_fileobj=str(dataset_path),
+            path_in_repo="preference_pairs.jsonl",
+            repo_id=dataset_repo,
+            repo_type="dataset",
+        )
+        logger.info(f"Dataset uploaded to https://huggingface.co/datasets/{dataset_repo}")
+    except Exception as e:
+        logger.error(f"Failed to upload dataset: %s", e)
+
+    # Upload model
+    logger.info(f"Uploading model to {repo_id}")
+    try:
+        api.upload_folder(
+            folder_path=str(model_path),
+            repo_id=repo_id,
+        )
+        logger.info(f"Model uploaded to https://huggingface.co/{repo_id}")
+    except Exception as e:
+        logger.error(f"Failed to upload model: %s", e)

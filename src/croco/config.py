@@ -83,6 +83,7 @@ class DPOTrainConfig(BaseModel):
     lora_alpha: int
     lora_dropout: float
     seed: int
+    hf_repo_id: str | None = None  # HuggingFace repo ID for uploading model and dataset
 
 
 class EvalConfig(BaseModel):

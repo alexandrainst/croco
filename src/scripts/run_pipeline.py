@@ -93,8 +93,8 @@ def main(
         )
 
         # Scoring engine uses lower GPU memory since generation engine already loaded
-        # Hardcode to 0.2 (20% of GPU) which fits after 12B generation model
-        scoring_gpu_util = 0.2
+        # On unified memory systems (GB10), we need to be more conservative
+        scoring_gpu_util = 0.35
         logger.info(f"Initialising vLLM scoring engine (GPU util: {scoring_gpu_util:.2f})")
         scoring_engine = VLLMScoringEngine(
             config=cfg.reward,

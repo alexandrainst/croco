@@ -12,6 +12,9 @@ import click
 DESIRED_ENVIRONMENT_VARIABLES = dict(
     GIT_NAME="Enter your full name, to be shown in Git commits:\n> ",
     GIT_EMAIL="Enter your email, as registered on your Github account:\n> ",
+    HUGGINGFACE_API_KEY=(
+        "Enter your Hugging Face access token (for gated models/datasets):\n> "
+    ),
 )
 
 

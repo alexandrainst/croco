@@ -28,7 +28,7 @@ class VLLMScoringEngine:
         *,
         config: RewardModelConfig,
         tensor_parallel_size: int = 1,
-        gpu_memory_utilization: float = 0.95,
+        gpu_memory_utilization: float = 0.15,  # Lower default for unified memory systems
         trust_remote_code: bool = False,
     ) -> None:
         """Initialise the vLLM scoring engine.
@@ -57,8 +57,6 @@ class VLLMScoringEngine:
             gpu_memory_utilization=gpu_memory_utilization,
             enable_chunked_prefill=False,
             load_format="fastsafetensors",
-            # Minimize memory footprint for pooling models
-            max_num_batched_tokens=config.max_model_len,
         )
 
     def score(self, *, prompts: list[str], responses: list[str]) -> list[float]:

@@ -93,8 +93,8 @@ def main(
         )
 
         # Scoring engine uses lower GPU memory since generation engine already loaded
-        # Use 40% of remaining GPU memory after generation engine
-        scoring_gpu_util = min(0.4, 1.0 - cfg.generation.gpu_memory_utilization)
+        # Hardcode to 0.2 (20% of GPU) which fits after 12B generation model
+        scoring_gpu_util = 0.2
         logger.info(f"Initialising vLLM scoring engine (GPU util: {scoring_gpu_util:.2f})")
         scoring_engine = VLLMScoringEngine(
             config=cfg.reward,

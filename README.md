@@ -32,6 +32,14 @@ Developer:
    therein.
 2. Run `source .venv/bin/activate` to activate the virtual environment.
 
+#### Dependency Notes
+
+- **vLLM** is an optional dependency for GPU-based generation and scoring. It is NOT
+  installed by default on macOS (requires CUDA). To install on a DGX/CUDA host, run
+  `make install-vllm`.
+- **EuroEval** is installed by default. Do NOT add `flash_attn` as it causes EuroEval to
+  hard-exit on import.
+
 ### Adding and Removing Packages
 
 To install new PyPI packages, run:

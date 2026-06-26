@@ -6,10 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from transformers import AutoTokenizer
-from vllm import (  # ty: ignore[unresolved-import]
-    LLM,
-    PoolingParams,
-)  # vllm is GPU-only, not installed on Mac
+from vllm import LLM, PoolingParams
 
 from .utils import build_conversation
 
@@ -74,18 +71,21 @@ class VLLMScoringEngine:
             List of reward scores, one for each (prompt, response) pair.
             On failure, returns -999.0 for the failed item.
         """
-        rendered = [
-            self.tokenizer.apply_chat_template(  # ty: ignore[unresolved-attribute]
-                build_conversation(instruction=p, response=r),
-                tokenize=False,
-                add_generation_prompt=False,
+        rendered: list[str] = [
+            str(
+                self.tokenizer.apply_chat_template(  # ty: ignore[unresolved-attribute]
+                    build_conversation(instruction=p, response=r),
+                    tokenize=False,
+                    add_generation_prompt=False,
+                )
             )
             for p, r in zip(prompts, responses, strict=True)
         ]
 
+        # use_activation=False yields raw reward logits (no sigmoid/softmax).
         outputs = self.llm.encode(
             rendered,
-            pooling_params=PoolingParams(activation=False),
+            pooling_params=PoolingParams(use_activation=False),
             pooling_task="classify",
         )
 

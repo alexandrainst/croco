@@ -2,18 +2,9 @@
 
 from pathlib import Path
 
+from euroeval import Benchmarker
+
 from .config import PipelineConfig
-
-
-def _get_benchmarker() -> type:
-    """Lazily import Benchmarker to avoid hard dependency on euroeval.
-
-    Returns:
-        The Benchmarker class from euroeval.
-    """
-    from euroeval import Benchmarker  # ty: ignore[unresolved-import]
-
-    return Benchmarker
 
 
 def evaluate_model(*, model_id_or_path: str | Path, config: PipelineConfig) -> list:
@@ -28,7 +19,6 @@ def evaluate_model(*, model_id_or_path: str | Path, config: PipelineConfig) -> l
     Returns:
         List of BenchmarkResult objects from EuroEval.
     """
-    Benchmarker = _get_benchmarker()
     benchmarker = Benchmarker(
         language=config.eval.language,
         progress_bar=True,

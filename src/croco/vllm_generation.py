@@ -6,10 +6,7 @@ import logging
 from typing import TYPE_CHECKING
 
 from transformers import AutoTokenizer
-from vllm import (  # ty: ignore[unresolved-import]
-    LLM,
-    SamplingParams,
-)  # vllm is GPU-only, not installed on Mac
+from vllm import LLM, SamplingParams
 
 from .utils import build_user_message
 
@@ -74,11 +71,13 @@ class VLLMGenerationEngine:
             A list of lists, where each inner list contains the generated
             responses for the corresponding prompt.
         """
-        rendered_prompts = [
-            self.tokenizer.apply_chat_template(  # ty: ignore[unresolved-attribute]
-                build_user_message(instruction=p),
-                tokenize=False,
-                add_generation_prompt=True,
+        rendered_prompts: list[str] = [
+            str(
+                self.tokenizer.apply_chat_template(  # ty: ignore[unresolved-attribute]
+                    build_user_message(instruction=p),
+                    tokenize=False,
+                    add_generation_prompt=True,
+                )
             )
             for p in prompts
         ]

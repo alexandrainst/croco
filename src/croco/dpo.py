@@ -122,7 +122,7 @@ def train_dpo(*, config: PipelineConfig, dataset_path: Path) -> Path:
     model = AutoModelForCausalLM.from_pretrained(
         config.policy.model_id,
         attn_implementation=config.policy.attn_implementation,
-        torch_dtype="auto",
+        dtype="auto",
         use_cache=not dpo_config.gradient_checkpointing,
     )
 

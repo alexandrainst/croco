@@ -34,11 +34,13 @@ Developer:
 
 #### Dependency Notes
 
-- **vLLM** is an optional dependency for GPU-based generation and scoring. It is NOT
-  installed by default on macOS (requires CUDA). To install on a DGX/CUDA host, run
-  `make install-vllm`.
-- **EuroEval** is installed by default. Do NOT add `flash_attn` as it causes EuroEval to
-  hard-exit on import.
+- **vLLM** (used for candidate generation and reward scoring) is a core dependency,
+  pulled in via `euroeval[generative]`. On Linux/CUDA hosts the PyPI wheels are used; on
+  Apple-silicon macOS it is built from the `vllm`/`vllm-metal` git sources pinned in
+  `pyproject.toml` (the first `make install` therefore compiles vLLM and can take a
+  while).
+- **EuroEval** is installed by default with its `generative` extra. Do NOT add
+  `flash_attn` as it causes EuroEval to hard-exit on import.
 
 ### Adding and Removing Packages
 
@@ -169,16 +171,14 @@ The default configuration is `config/danish.yaml`. Key sections:
 
 ### GPU Requirements
 
-The `generated` mode requires **vLLM** for candidate generation and reward scoring,
-which needs CUDA. On macOS (no CUDA), vLLM is excluded and only `existing` mode works.
+Both construction modes (`generated` and `gold_chosen`) use **vLLM** for candidate
+generation and reward scoring, and DPO training needs a CUDA GPU. The heavy steps
+(generation, scoring, DPO) are intended to run on the DGX/CUDA host; the Mac is used for
+development and the test suite (which exercises the pipeline with in-memory fake engines,
+so no GPU is required).
 
-To install vLLM on a DGX/CUDA host:
-
-```bash
-make install-vllm
-```
-
-This installs the `vllm` extra with the correct CUDA dependencies for Python 3.12.
+vLLM itself installs on both platforms via `make install` (CUDA wheels on Linux,
+`vllm-metal` built from git on Apple silicon), so the library is importable everywhere.
 
 ## Features
 

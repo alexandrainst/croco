@@ -64,9 +64,6 @@ install-dependencies:
 	@uv python install 3.12
 	@uv sync --all-groups --python 3.12
 
-install-vllm: ## Install the vLLM extra (run on the DGX/CUDA host only)
-	@uv sync --all-groups --extra vllm --python 3.12
-
 setup-environment-variables:
 	@uv run python src/scripts/fix_dot_env_file.py
 

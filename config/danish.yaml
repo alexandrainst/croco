@@ -1,7 +1,12 @@
 # CroCo Pipeline Configuration - Danish Laerebogen
 #
-# Pipeline modes: generated (vLLM required) or existing (CPU-only)
-# Curriculum learning: enabled via dpo.curriculum with gated access by evolution score
+# construction_mode:
+#   generated   - policy self-generates all candidates; chosen/rejected are picked
+#                 from them via the reward model (CroCo Eq. 2).
+#   gold_chosen - the dataset's gold `output` is the chosen response and only the
+#                 rejected response is generated and reward-scored.
+# Curriculum learning (dpo.curriculum): when true, training pairs are ordered by
+# ascending `evolution` (easy -> hard) and consumed without shuffling.
 
 construction_mode: generated
 score_gold_output: true
@@ -48,7 +53,7 @@ dpo:
   max_length: 4096
   bf16: true
   gradient_checkpointing: true
-  curriculum: true  # Enables gated access curriculum learning
+  curriculum: true  # Order pairs easy -> hard by evolution; no shuffling
   lora_r: 16
   lora_alpha: 32
   lora_dropout: 0.05

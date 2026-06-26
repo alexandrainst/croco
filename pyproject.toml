@@ -14,18 +14,20 @@ dependencies = [
     "accelerate>=1.14.0",
     "click>=8.4.2",
     "datasets>=5.0.0",
+    "euroeval[generative]>=17.5.0",
     "huggingface-hub>=1.21.0",
-    "numpy>=2.5.0",
+    "numpy>=1.26.0",
     "peft>=0.19.1",
     "pydantic>=2.13.4",
     "pyyaml>=6.0.3",
-    "torch>=2.12.1",
+    "torch>=2.6.0",
     "transformers>=5.12.1",
     "trl>=1.7.0",
+    # vLLM (pulled transitively via euroeval[generative]) is declared directly on
+    # Darwin so the git sources below apply; on Linux euroeval's PyPI wheel is used.
+    "vllm; platform_system == 'Darwin'",
+    "vllm-metal; platform_system == 'Darwin'",
 ]
-
-[project.optional-dependencies]
-eval = ["euroeval>=17.5.0"]
 
 [project.urls]
 Repository = "https://github.com/alexandrainst/croco"
@@ -33,6 +35,24 @@ Issues = "https://github.com/alexandrainst/croco/issues"
 
 [project.license]
 file = "LICENSE"
+
+[tool.uv.sources]
+# vLLM has no official wheels for macOS arm64, so we build the Apple-silicon port
+# (vllm-metal) and the matching vLLM tag from git on Darwin. On Linux the PyPI
+# wheels are used as normal (via euroeval's generative extra).
+vllm-metal = { git = "https://github.com/vllm-project/vllm-metal.git", tag = "v0.2.0-20260531-071330", marker = "platform_system == 'Darwin'" }
+vllm = { git = "https://github.com/vllm-project/vllm.git", tag = "v0.22.0", marker = "platform_system == 'Darwin'" }
+
+[tool.uv]
+# transformers' mistral-common tokeniser needs mistral-common>=1.10 (for
+# ReasoningEffort); pulling it via the extra keeps euroeval importable.
+override-dependencies = ["transformers[mistral-common]>=5.10.1"]
+environments = [
+  # Only resolve arm64 macOS (vLLM's cpu requirements break on Darwin x86_64)
+  # and any non-Darwin platform (e.g. the Linux/CUDA DGX host).
+  "platform_system == 'Darwin' and platform_machine == 'arm64'",
+  "platform_system != 'Darwin'",
+]
 
 [dependency-groups]
 dev = [

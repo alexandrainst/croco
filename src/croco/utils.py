@@ -8,17 +8,7 @@ import typing as t
 from pathlib import Path
 
 import numpy as np
-
-# torch is optional but imports fine on Mac
-_torch: t.Any | None = None
-_HAS_TORCH: bool = False
-try:
-    import torch as _torch_typed
-
-    _torch = _torch_typed
-    _HAS_TORCH = True
-except ImportError:
-    pass
+import torch
 
 
 def setup_logging(*, level: int = logging.INFO) -> None:
@@ -46,8 +36,7 @@ def set_seed(*, seed: int) -> None:
     """
     random.seed(seed)
     np.random.seed(seed)
-    if _HAS_TORCH and _torch is not None:
-        _torch.manual_seed(seed)
+    torch.manual_seed(seed)
 
 
 def read_jsonl(*, path: Path) -> list[dict[str, t.Any]]:

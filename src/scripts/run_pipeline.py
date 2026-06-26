@@ -92,10 +92,13 @@ def main(
             max_model_len=cfg.policy.max_model_len,
         )
 
-        logger.info("Initialising vLLM scoring engine")
+        # Scoring engine uses lower GPU memory since generation engine already loaded
+        # Use 40% of remaining GPU memory after generation engine
+        scoring_gpu_util = min(0.4, 1.0 - cfg.generation.gpu_memory_utilization)
+        logger.info(f"Initialising vLLM scoring engine (GPU util: {scoring_gpu_util:.2f})")
         scoring_engine = VLLMScoringEngine(
             config=cfg.reward,
-            gpu_memory_utilization=cfg.generation.gpu_memory_utilization,
+            gpu_memory_utilization=scoring_gpu_util,
         )
 
         # Build dataset

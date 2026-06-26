@@ -56,6 +56,7 @@ dpo:
   lora_alpha: 32
   lora_dropout: 0.05
   seed: 42
+  hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da-micro
 
 eval:
   language: da

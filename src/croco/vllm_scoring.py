@@ -28,7 +28,7 @@ class VLLMScoringEngine:
         *,
         config: RewardModelConfig,
         tensor_parallel_size: int = 1,
-        gpu_memory_utilization: float = 0.15,  # Lower default for unified memory systems
+        gpu_memory_utilization: float = 0.35,
         trust_remote_code: bool = False,
     ) -> None:
         """Initialise the vLLM scoring engine.

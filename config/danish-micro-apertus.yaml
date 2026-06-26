@@ -18,6 +18,9 @@ policy:
 reward:
   model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
   max_model_len: 32768
+  # Fraction of the (unified) memory pool for the reward engine. Coexists with the
+  # generation engine during the build phase, so gen + reward should stay well under 1.0.
+  gpu_memory_utilization: 0.35
 
 generation:
   num_candidates: 4

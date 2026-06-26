@@ -64,7 +64,9 @@ def main(*, config: Path, output: Path) -> None:
     )
 
     logger.info("Initialising vLLM scoring engine")
-    scoring_engine = VLLMScoringEngine(config=cfg.reward)
+    scoring_engine = VLLMScoringEngine(
+        config=cfg.reward, gpu_memory_utilization=cfg.reward.gpu_memory_utilization
+    )
 
     # Build dataset
     logger.info("Building preference dataset")

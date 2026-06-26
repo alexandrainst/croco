@@ -93,16 +93,10 @@ def build_pair_gold_chosen(
         return None
     rejected = _select_rejected(pool=candidates, upper_bound=gold_score, exclude=None)
     if rejected is None:
-        # Fallback: if no candidate is below gold_score, pick lowest-scoring candidate
-        # This can happen when the policy generates outputs the RM prefers over gold
-        rejected = _select_rejected(pool=candidates, upper_bound=None, exclude=None)
-        if rejected is None:
-            return None
-        logger.debug(
-            "No candidate below gold_score=%.2f, using lowest-scoring candidate=%.2f",
-            gold_score or 0.0,
-            rejected.reward_score,
-        )
+        # No generation scores strictly below the gold output, so there is no valid
+        # contrastive pair: skip rather than invert the preference (which would train
+        # the policy towards the RM-preferred generation over the gold chosen).
+        return None
     return PreferencePair(
         prompt=prompt,
         chosen=gold_output,

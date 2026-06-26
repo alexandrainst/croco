@@ -243,12 +243,9 @@ def upload_to_huggingface(
             Whether to make repos private. Defaults to False.
     """
     try:
-        from huggingface_hub import HfApi, hf_hub_download
+        from huggingface_hub import HfApi
     except ImportError as e:
-        logger.warning(
-            "huggingface_hub not installed, skipping upload: %s",
-            e,
-        )
+        logger.warning("huggingface_hub not installed, skipping upload: %s", e)
         return
 
     api = HfApi()
@@ -256,7 +253,9 @@ def upload_to_huggingface(
 
     # Create repos if they don't exist
     try:
-        api.create_repo(repo_id=dataset_repo, repo_type="dataset", private=private, exist_ok=True)
+        api.create_repo(
+            repo_id=dataset_repo, repo_type="dataset", private=private, exist_ok=True
+        )
     except Exception as e:
         logger.warning("Failed to create dataset repo: %s", e)
 
@@ -274,17 +273,16 @@ def upload_to_huggingface(
             repo_id=dataset_repo,
             repo_type="dataset",
         )
-        logger.info(f"Dataset uploaded to https://huggingface.co/datasets/{dataset_repo}")
+        logger.info(
+            f"Dataset uploaded to https://huggingface.co/datasets/{dataset_repo}"
+        )
     except Exception as e:
-        logger.error(f"Failed to upload dataset: %s", e)
+        logger.error("Failed to upload dataset: %s", e)
 
     # Upload model
     logger.info(f"Uploading model to {repo_id}")
     try:
-        api.upload_folder(
-            folder_path=str(model_path),
-            repo_id=repo_id,
-        )
+        api.upload_folder(folder_path=str(model_path), repo_id=repo_id)
         logger.info(f"Model uploaded to https://huggingface.co/{repo_id}")
     except Exception as e:
-        logger.error(f"Failed to upload model: %s", e)
+        logger.error("Failed to upload model: %s", e)

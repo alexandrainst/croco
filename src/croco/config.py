@@ -36,6 +36,7 @@ class RewardModelConfig(BaseModel):
 
     model_id: str
     max_model_len: int
+    gpu_memory_utilization: float = 0.35
 
 
 class GenerationConfig(BaseModel):

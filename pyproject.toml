@@ -14,7 +14,6 @@ dependencies = [
     "accelerate>=1.14.0",
     "click>=8.4.2",
     "datasets>=5.0.0",
-    "euroeval>=17.5.0",
     "huggingface-hub>=1.21.0",
     "numpy>=2.5.0",
     "peft>=0.19.1",
@@ -24,6 +23,9 @@ dependencies = [
     "transformers>=5.12.1",
     "trl>=1.7.0",
 ]
+
+[project.optional-dependencies]
+eval = ["euroeval>=17.5.0"]
 
 [project.urls]
 Repository = "https://github.com/alexandrainst/croco"
@@ -115,7 +117,6 @@ minversion = "8.4.1"
 addopts = [
   '--durations=10',
   '--color=yes',
-  '--doctest-modules',
   '--cov=src/croco',
 ]
 xfail_strict = true

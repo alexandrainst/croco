@@ -9,7 +9,13 @@ import pytest
 from croco.data_models import ScoredCandidate
 from croco.engines import GenerationEngine, ScoringEngine
 
-# Skip vLLM tests when vLLM is not available (GPU-only)
+# Skip vLLM modules when vLLM is not available (GPU-only)
+import importlib.util
+
+collect_ignore_glob: list[str] = []
+if importlib.util.find_spec("vllm") is None:
+    collect_ignore_glob.append("src/croco/vllm_*.py")
+
 pytest_plugins = []
 
 

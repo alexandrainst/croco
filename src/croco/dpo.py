@@ -6,7 +6,6 @@ import logging
 import typing as t
 from pathlib import Path
 
-import torch
 from datasets import Dataset
 from peft import LoraConfig
 from torch.utils.data import Sampler, SequentialSampler
@@ -28,10 +27,6 @@ class CurriculumDPOTrainer(DPOTrainer):
 
     def _get_train_sampler(self, *args, **kwargs) -> Sampler | None:
         """Return a sequential sampler for curriculum learning.
-
-        Args:
-            train_dataset (optional):
-              The training dataset (ignored, uses self.train_dataset).
 
         Returns:
             SequentialSampler that iterates through the dataset in order.

@@ -166,9 +166,11 @@ def _stratified_subsample(
     """
     rng = random.Random(seed)
 
+    # Read the evolution column directly: per-row iteration over the full dataset
+    # materialises every row as a dict and is prohibitively slow on millions of rows.
+    evolutions = ds["evolution"]
     grouped_indices: dict[t.Any, list[int]] = {}
-    for idx, row in enumerate(ds):
-        evolution = row.get("evolution")
+    for idx, evolution in enumerate(evolutions):
         if evolution not in grouped_indices:
             grouped_indices[evolution] = []
         grouped_indices[evolution].append(idx)

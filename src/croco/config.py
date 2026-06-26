@@ -48,6 +48,11 @@ class GenerationConfig(BaseModel):
     top_p: float
     tensor_parallel_size: int
     gpu_memory_utilization: float
+    batch_size: int = 64
+    enable_prefix_caching: bool = True
+    enable_chunked_prefill: bool = True
+    # Skip the vision tower on multimodal policy models (no-op on text-only models).
+    language_model_only: bool = False
 
 
 class DataConfig(BaseModel):
@@ -100,7 +105,7 @@ class EvalConfig(BaseModel):
 class PipelineConfig(BaseModel):
     """Top-level pipeline configuration."""
 
-    construction_mode: t.Literal["generated", "gold_chosen"]
+    construction_mode: t.Literal["generated", "gold_chosen", "max_reward"]
     score_gold_output: bool
     language: str
     policy: PolicyModelConfig

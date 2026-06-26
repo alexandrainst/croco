@@ -3,11 +3,14 @@
 import logging
 from pathlib import Path
 
-from .data import sort_by_evolution
 from .data_models import DataExample, PreferencePair, ScoredCandidate
-from .dataset import save_pairs
+from .dataset import append_pairs, load_pairs
 from .engines import GenerationEngine, ScoringEngine
-from .preference import build_pair_generated, build_pair_gold_chosen
+from .preference import (
+    build_pair_generated,
+    build_pair_gold_chosen,
+    build_pair_max_reward,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -21,17 +24,21 @@ def build_preference_dataset(
     score_gold_output: bool,
     output_path: Path,
     examples: list[DataExample] | None = None,
+    batch_size: int = 64,
+    resume: bool = True,
 ) -> list[PreferencePair]:
     """Build a preference dataset.
 
-    Orchestrates generation, scoring, pair construction, sorting, and saving.
+    This function runs the full CroCo pipeline in prompt batches:
+    1. Generate multiple candidate responses for a batch of instructions
+    2. Score all candidates (and the gold outputs, where needed) in bulk
+    3. Construct preference pairs (chosen vs rejected) per example
+    4. Append the batch's pairs to disk before moving on
 
-    This function runs the full CroCo pipeline:
-    1. Generate multiple candidate responses per instruction
-    2. Score all candidates using a reward model
-    3. Construct preference pairs (chosen vs rejected)
-    4. Sort pairs by difficulty (evolution level)
-    5. Save to disk
+    Batching lets vLLM saturate the GPU with its own request queue, and the
+    per-batch append provides incremental checkpointing: an interrupted build
+    leaves a usable dataset and can be resumed. Pairs are written in processing
+    order; curriculum ordering is applied at training time.
 
     Args:
         generation_engine:
@@ -41,135 +48,205 @@ def build_preference_dataset(
         num_candidates:
             Number of candidate responses to generate per instruction.
         construction_mode:
-            Either "generated" (both chosen/rejected are generated) or
-            "gold_chosen" (chosen is the dataset's gold output).
+            One of "generated", "gold_chosen", or "max_reward".
         score_gold_output:
-            Whether to score the gold output when using "gold_chosen" mode.
+            Whether to score the gold output in "gold_chosen" mode (always scored
+            in "max_reward" mode, which requires it).
         output_path:
             Path to save the resulting preference dataset (JSONL).
         examples (optional):
-            List of data examples to process. If None, loads from configured source.
+            List of data examples to process. If None, returns an empty dataset.
             Defaults to None.
+        batch_size (optional):
+            Number of prompts handed to the engines per batch. Defaults to 64.
+        resume (optional):
+            If True and the output file exists, skip examples whose hash already
+            has a pair on disk and append to it. Defaults to True.
 
     Returns:
-        List of constructed preference pairs, sorted by evolution level.
+        List of all constructed preference pairs (including any pre-existing ones
+        when resuming), in processing order.
     """
     if examples is None:
         logger.warning("No examples provided, returning empty dataset")
-        pairs: list[PreferencePair] = []
-        save_pairs(pairs=pairs, path=output_path)
-        return pairs
+        return []
 
-    logger.info("Starting preference dataset construction")
+    done_hashes: set[str] = set()
+    n_existing = 0
+    if resume and output_path.exists():
+        existing = load_pairs(path=output_path)
+        done_hashes = {pair.hash for pair in existing if pair.hash is not None}
+        n_existing = len(existing)
+        logger.info(
+            "Resuming from %s: %d pairs already present", output_path, n_existing
+        )
+
+    todo = [
+        example
+        for example in examples
+        if example.hash is None or example.hash not in done_hashes
+    ]
     logger.info(
-        "Mode: %s, Candidates per prompt: %d", construction_mode, num_candidates
+        "Building dataset: mode=%s, K=%d, batch_size=%d, %d examples to process",
+        construction_mode,
+        num_candidates,
+        batch_size,
+        len(todo),
     )
 
-    all_pairs: list[PreferencePair] = []
-
-    for idx, example in enumerate(examples):
-        logger.debug(
-            "Processing example %d/%d: %s", idx + 1, len(examples), example.hash
-        )
-
-        prompt = example.instruction
-
-        candidates = _generate_and_score_candidates(
+    n_built = 0
+    for batch_start in range(0, len(todo), batch_size):
+        batch = todo[batch_start : batch_start + batch_size]
+        candidates_per_example = _generate_and_score_batch(
             generation_engine=generation_engine,
             scoring_engine=scoring_engine,
-            prompt=prompt,
+            prompts=[example.instruction for example in batch],
             num_candidates=num_candidates,
         )
-
-        if len(candidates) < 1:
-            logger.warning("No candidates generated for example %d, skipping", idx + 1)
-            continue
-
-        pair = _construct_pair(
+        gold_scores = _maybe_score_gold(
             construction_mode=construction_mode,
             score_gold_output=score_gold_output,
-            prompt=prompt,
-            gold_output=example.output,
-            candidates=candidates,
             scoring_engine=scoring_engine,
-            evolution=example.evolution,
-            hash=example.hash,
+            batch=batch,
         )
 
-        if pair is None:
-            logger.warning("Failed to construct pair for example %d, skipping", idx + 1)
-            continue
+        batch_pairs: list[PreferencePair] = []
+        for example, candidates, gold_score in zip(
+            batch, candidates_per_example, gold_scores, strict=True
+        ):
+            if len(candidates) < 1:
+                continue
+            pair = _construct_pair(
+                construction_mode=construction_mode,
+                prompt=example.instruction,
+                gold_output=example.output,
+                gold_score=gold_score,
+                candidates=candidates,
+                evolution=example.evolution,
+                hash=example.hash,
+            )
+            if pair is not None:
+                batch_pairs.append(pair)
 
-        all_pairs.append(pair)
+        append_pairs(pairs=batch_pairs, path=output_path)
+        n_built += len(batch_pairs)
+        logger.info(
+            "Processed %d/%d examples, %d pairs built this run",
+            min(batch_start + batch_size, len(todo)),
+            len(todo),
+            n_built,
+        )
 
-    sorted_pairs = sort_by_evolution(pairs=all_pairs)
+    logger.info(
+        "Constructed %d new preference pairs (%d total in %s)",
+        n_built,
+        n_existing + n_built,
+        output_path,
+    )
 
-    logger.info("Constructed %d preference pairs", len(sorted_pairs))
-
-    save_pairs(pairs=sorted_pairs, path=output_path)
-    logger.info("Saved preference dataset to %s", output_path)
-
-    return sorted_pairs
+    return load_pairs(path=output_path)
 
 
-def _generate_and_score_candidates(
+def _generate_and_score_batch(
     *,
     generation_engine: GenerationEngine,
     scoring_engine: ScoringEngine,
-    prompt: str,
+    prompts: list[str],
     num_candidates: int,
-) -> list[ScoredCandidate]:
-    """Generate and score candidate responses for a single prompt.
+) -> list[list[ScoredCandidate]]:
+    """Generate and score candidates for a batch of prompts.
+
+    All prompts are generated in one call and all (prompt, candidate) pairs are
+    scored in one call, so vLLM can batch the work internally.
 
     Args:
         generation_engine:
             Engine for generating candidate responses.
         scoring_engine:
             Engine for scoring (prompt, response) pairs.
-        prompt:
-            The instruction prompt.
+        prompts:
+            The instruction prompts in the batch.
         num_candidates:
-            Number of candidates to generate.
+            Number of candidates to generate per prompt.
 
     Returns:
-        List of scored candidates.
+        For each prompt, its list of scored candidates (parallel to ``prompts``).
     """
     generated = generation_engine.generate(
-        prompts=[prompt], num_candidates=num_candidates
+        prompts=prompts, num_candidates=num_candidates
     )
 
-    candidates_text = generated[0] if generated else []
+    flat_prompts: list[str] = []
+    flat_responses: list[str] = []
+    for prompt, responses in zip(prompts, generated, strict=True):
+        for response in responses:
+            flat_prompts.append(prompt)
+            flat_responses.append(response)
 
-    if not candidates_text:
-        return []
+    flat_scores = (
+        scoring_engine.score(prompts=flat_prompts, responses=flat_responses)
+        if flat_responses
+        else []
+    )
+
+    candidates_per_example: list[list[ScoredCandidate]] = []
+    cursor = 0
+    for responses in generated:
+        chunk_scores = flat_scores[cursor : cursor + len(responses)]
+        cursor += len(responses)
+        candidates_per_example.append(
+            [
+                ScoredCandidate(response=response, reward_score=score)
+                for response, score in zip(responses, chunk_scores, strict=True)
+            ]
+        )
+
+    return candidates_per_example
+
+
+def _maybe_score_gold(
+    *,
+    construction_mode: str,
+    score_gold_output: bool,
+    scoring_engine: ScoringEngine,
+    batch: list[DataExample],
+) -> list[float | None]:
+    """Score the gold outputs for a batch where the mode requires it.
+
+    Args:
+        construction_mode:
+            One of "generated", "gold_chosen", or "max_reward".
+        score_gold_output:
+            Whether to score the gold output in "gold_chosen" mode.
+        scoring_engine:
+            Engine for scoring (prompt, response) pairs.
+        batch:
+            The examples in the batch.
+
+    Returns:
+        A gold score per example (parallel to ``batch``), or None where the gold
+        output is not scored.
+    """
+    needs_gold = construction_mode == "max_reward" or (
+        construction_mode == "gold_chosen" and score_gold_output
+    )
+    if not needs_gold:
+        return [None] * len(batch)
 
     scores = scoring_engine.score(
-        prompts=[prompt] * len(candidates_text), responses=candidates_text
+        prompts=[example.instruction for example in batch],
+        responses=[example.output for example in batch],
     )
-
-    scored_candidates = [
-        ScoredCandidate(response=response, reward_score=score)
-        for response, score in zip(candidates_text, scores, strict=True)
-    ]
-
-    logger.debug(
-        "Generated %d candidates, scores range: [%.2f, %.2f]",
-        len(scored_candidates),
-        min(c.reward_score for c in scored_candidates),
-        max(c.reward_score for c in scored_candidates),
-    )
-
-    return scored_candidates
+    return list(scores)
 
 
 def _construct_pair(
     *,
     construction_mode: str,
-    score_gold_output: bool,
     prompt: str,
     gold_output: str,
+    gold_score: float | None,
     candidates: list[ScoredCandidate],
-    scoring_engine: ScoringEngine,
     evolution: int | None,
     hash: str | None,
 ) -> PreferencePair | None:
@@ -177,17 +254,15 @@ def _construct_pair(
 
     Args:
         construction_mode:
-            Either "generated" or "gold_chosen".
-        score_gold_output:
-            Whether to score the gold output in "gold_chosen" mode.
+            One of "generated", "gold_chosen", or "max_reward".
         prompt:
             The instruction prompt.
         gold_output:
-            The dataset's gold output (used in "gold_chosen" mode).
+            The dataset's gold output (used in the gold-based modes).
+        gold_score:
+            Reward-model score of the gold output, or None if not scored.
         candidates:
             Scored candidate responses.
-        scoring_engine:
-            Engine for scoring the gold output if needed.
         evolution:
             Source difficulty level.
         hash:
@@ -201,17 +276,23 @@ def _construct_pair(
             prompt=prompt, candidates=candidates, evolution=evolution, hash=hash
         )
     elif construction_mode == "gold_chosen":
-        gold_score: float | None = None
-        if score_gold_output:
-            scored = scoring_engine.score(prompts=[prompt], responses=[gold_output])
-            gold_score = scored[0] if scored else None
-            logger.debug("Gold output score: %.2f", gold_score)
-
         return build_pair_gold_chosen(
             prompt=prompt,
             gold_output=gold_output,
             candidates=candidates,
             gold_score=gold_score,
+            evolution=evolution,
+            hash=hash,
+        )
+    elif construction_mode == "max_reward":
+        if gold_score is None:
+            logger.error("max_reward mode requires a gold score; skipping example")
+            return None
+        return build_pair_max_reward(
+            prompt=prompt,
+            gold_output=gold_output,
+            gold_score=gold_score,
+            candidates=candidates,
             evolution=evolution,
             hash=hash,
         )

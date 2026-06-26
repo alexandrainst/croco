@@ -31,5 +31,5 @@ class PreferencePair(BaseModel):
     chosen_score: float | None = None
     evolution: int | None = None
     pool_size: int
-    mode: t.Literal["generated", "gold_chosen"]
+    mode: t.Literal["generated", "gold_chosen", "max_reward"]
     hash: str | None = None

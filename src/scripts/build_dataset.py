@@ -78,6 +78,7 @@ def main(*, config: Path, output: Path) -> None:
         score_gold_output=cfg.score_gold_output,
         output_path=output,
         examples=examples,
+        batch_size=cfg.generation.batch_size,
     )
 
     logger.info(f"Successfully built dataset with {len(pairs)} pairs")

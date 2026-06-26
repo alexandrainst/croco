@@ -9,7 +9,78 @@ from croco.preference import (
     _select_rejected,
     build_pair_generated,
     build_pair_gold_chosen,
+    build_pair_max_reward,
 )
+
+
+class TestBuildPairMaxReward:
+    """Tests for build_pair_max_reward (chosen = best of gold + generations)."""
+
+    def test_gold_wins(self) -> None:
+        """When gold outscores every generation, gold is the chosen response."""
+        candidates = [
+            ScoredCandidate(response="gen_a", reward_score=0.7),
+            ScoredCandidate(response="gen_b", reward_score=0.5),
+        ]
+
+        pair = build_pair_max_reward(
+            prompt="Test",
+            gold_output="Gold output",
+            gold_score=0.9,
+            candidates=candidates,
+            evolution=2,
+            hash="h1",
+        )
+
+        assert pair is not None
+        assert pair.chosen == "Gold output"
+        assert pair.chosen_score == 0.9
+        assert pair.mode == "max_reward"
+        assert pair.evolution == 2
+        assert pair.hash == "h1"
+        assert pair.pool_size == 3
+        assert pair.rejected_score < pair.chosen_score
+
+    def test_generation_wins(self) -> None:
+        """When a generation outscores gold, that generation is the chosen."""
+        candidates = [
+            ScoredCandidate(response="gen_high", reward_score=0.95),
+            ScoredCandidate(response="gen_low", reward_score=0.2),
+        ]
+
+        pair = build_pair_max_reward(
+            prompt="Test",
+            gold_output="Gold output",
+            gold_score=0.6,
+            candidates=candidates,
+            evolution=1,
+        )
+
+        assert pair is not None
+        assert pair.chosen == "gen_high"
+        assert pair.chosen_score == 0.95
+        assert pair.rejected_score < 0.95
+
+    def test_single_generation_still_pairs_against_gold(self) -> None:
+        """A lone generation plus gold forms a valid two-element pool."""
+        candidates = [ScoredCandidate(response="gen", reward_score=0.3)]
+
+        pair = build_pair_max_reward(
+            prompt="Test", gold_output="Gold", gold_score=0.8, candidates=candidates
+        )
+
+        assert pair is not None
+        assert pair.chosen == "Gold"
+        assert pair.rejected == "gen"
+        assert pair.pool_size == 2
+
+    def test_no_candidates_returns_none(self) -> None:
+        """With no generations the pool is just gold, so no pair exists."""
+        pair = build_pair_max_reward(
+            prompt="Test", gold_output="Gold", gold_score=0.8, candidates=[]
+        )
+
+        assert pair is None
 
 
 class TestSelectRejected:

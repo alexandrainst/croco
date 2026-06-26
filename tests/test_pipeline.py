@@ -1,5 +1,7 @@
 """Integration tests for the pipeline with fake engines."""
 
+from pathlib import Path
+
 from croco.config import (
     DataConfig,
     DPOTrainConfig,
@@ -11,8 +13,189 @@ from croco.config import (
 )
 from croco.data import sort_by_evolution
 from croco.data_models import DataExample, PreferencePair, ScoredCandidate
+from croco.dataset import load_pairs
 from croco.engines import GenerationEngine, ScoringEngine
+from croco.pipeline import build_preference_dataset
 from croco.preference import build_pair_generated, build_pair_gold_chosen
+
+
+class DictGenerationEngine(GenerationEngine):
+    """Generation engine returning predefined responses keyed by prompt."""
+
+    def __init__(self, responses_by_prompt: dict[str, list[str]]) -> None:
+        """Initialise with a prompt-to-responses mapping.
+
+        Args:
+            responses_by_prompt:
+                Mapping from each prompt to its list of candidate responses.
+        """
+        self._responses_by_prompt = responses_by_prompt
+
+    def generate(self, *, prompts: list[str], num_candidates: int) -> list[list[str]]:
+        """Return the predefined responses for each prompt.
+
+        Args:
+            prompts:
+                The prompts in the batch.
+            num_candidates:
+                Number of candidates (ignored).
+
+        Returns:
+            The predefined responses per prompt.
+        """
+        return [self._responses_by_prompt[prompt] for prompt in prompts]
+
+
+class DictScoringEngine(ScoringEngine):
+    """Scoring engine returning predefined scores keyed by response text."""
+
+    def __init__(self, scores_by_response: dict[str, float]) -> None:
+        """Initialise with a response-to-score mapping.
+
+        Args:
+            scores_by_response:
+                Mapping from each response (generation or gold) to its score.
+        """
+        self._scores_by_response = scores_by_response
+
+    def score(self, *, prompts: list[str], responses: list[str]) -> list[float]:
+        """Return the predefined score for each response.
+
+        Args:
+            prompts:
+                The prompts (ignored).
+            responses:
+                The responses to score.
+
+        Returns:
+            The predefined score per response.
+        """
+        return [self._scores_by_response[response] for response in responses]
+
+
+class TestBuildPreferenceDataset:
+    """Integration tests calling the real build_preference_dataset."""
+
+    def test_generated_mode_batches_and_checkpoints(self, tmp_path: Path) -> None:
+        """Should process all examples across batches and write them to disk."""
+        examples = [
+            DataExample(
+                instruction=f"Prompt {i}", output=f"Gold {i}", evolution=i, hash=f"h{i}"
+            )
+            for i in range(3)
+        ]
+        gen_engine = DictGenerationEngine(
+            responses_by_prompt={
+                f"Prompt {i}": [f"P{i}-A", f"P{i}-B", f"P{i}-C"] for i in range(3)
+            }
+        )
+        score_engine = DictScoringEngine(
+            scores_by_response={
+                response: score
+                for i in range(3)
+                for response, score in zip(
+                    [f"P{i}-A", f"P{i}-B", f"P{i}-C"], [9.0, 5.0, 1.0], strict=True
+                )
+            }
+        )
+        output_path = tmp_path / "pairs.jsonl"
+
+        pairs = build_preference_dataset(
+            generation_engine=gen_engine,
+            scoring_engine=score_engine,
+            num_candidates=3,
+            construction_mode="generated",
+            score_gold_output=False,
+            output_path=output_path,
+            examples=examples,
+            batch_size=2,
+        )
+
+        assert len(pairs) == 3
+        assert all(pair.mode == "generated" for pair in pairs)
+        assert output_path.exists()
+        assert len(load_pairs(path=output_path)) == 3
+
+    def test_max_reward_mode_picks_best_of_gold_and_generations(
+        self, tmp_path: Path
+    ) -> None:
+        """Should choose gold or generation by reward across the combined pool."""
+        examples = [
+            DataExample(
+                instruction="P0", output="Gold0", evolution=1, hash="a"
+            ),  # gold best
+            DataExample(
+                instruction="P1", output="Gold1", evolution=2, hash="b"
+            ),  # gen best
+        ]
+        gen_engine = DictGenerationEngine(
+            responses_by_prompt={"P0": ["g0a", "g0b"], "P1": ["g1a", "g1b"]}
+        )
+        score_engine = DictScoringEngine(
+            scores_by_response={
+                "g0a": 0.4,
+                "g0b": 0.2,
+                "Gold0": 0.9,
+                "g1a": 0.95,
+                "g1b": 0.1,
+                "Gold1": 0.5,
+            }
+        )
+        output_path = tmp_path / "pairs.jsonl"
+
+        pairs = build_preference_dataset(
+            generation_engine=gen_engine,
+            scoring_engine=score_engine,
+            num_candidates=2,
+            construction_mode="max_reward",
+            score_gold_output=True,
+            output_path=output_path,
+            examples=examples,
+        )
+
+        by_hash = {pair.hash: pair for pair in pairs}
+        assert by_hash["a"].chosen == "Gold0"
+        assert by_hash["b"].chosen == "g1a"
+        assert all(pair.mode == "max_reward" for pair in pairs)
+
+    def test_resume_skips_already_built_examples(self, tmp_path: Path) -> None:
+        """A second run with resume should skip examples already on disk."""
+        examples = [
+            DataExample(instruction="P0", output="G0", evolution=1, hash="a"),
+            DataExample(instruction="P1", output="G1", evolution=2, hash="b"),
+        ]
+        gen_engine = DictGenerationEngine(
+            responses_by_prompt={"P0": ["g0a", "g0b"], "P1": ["g1a", "g1b"]}
+        )
+        score_engine = DictScoringEngine(
+            scores_by_response={"g0a": 0.9, "g0b": 0.1, "g1a": 0.8, "g1b": 0.2}
+        )
+        output_path = tmp_path / "pairs.jsonl"
+
+        first = build_preference_dataset(
+            generation_engine=gen_engine,
+            scoring_engine=score_engine,
+            num_candidates=2,
+            construction_mode="generated",
+            score_gold_output=False,
+            output_path=output_path,
+            examples=examples[:1],
+        )
+        assert len(first) == 1
+
+        second = build_preference_dataset(
+            generation_engine=gen_engine,
+            scoring_engine=score_engine,
+            num_candidates=2,
+            construction_mode="generated",
+            score_gold_output=False,
+            output_path=output_path,
+            examples=examples,
+            resume=True,
+        )
+
+        assert len(second) == 2
+        assert {pair.hash for pair in second} == {"a", "b"}
 
 
 class FakeGenerationEngine(GenerationEngine):

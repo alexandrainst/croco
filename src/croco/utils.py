@@ -72,6 +72,21 @@ def write_jsonl(*, path: Path, rows: c.Iterable[dict[str, t.Any]]) -> None:
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
+def append_jsonl(*, path: Path, rows: c.Iterable[dict[str, t.Any]]) -> None:
+    """Append dictionaries to a JSONL file, creating it and parents if needed.
+
+    Args:
+        path:
+          Path to the JSONL file to append to.
+        rows:
+          Iterable of dictionaries to append, one per line.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        for row in rows:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+
 def build_conversation(*, instruction: str, response: str) -> list[dict[str, str]]:
     """Build a chat conversation with user instruction and assistant response.
 

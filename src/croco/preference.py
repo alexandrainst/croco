@@ -110,6 +110,64 @@ def build_pair_gold_chosen(
     )
 
 
+def build_pair_max_reward(
+    *,
+    prompt: str,
+    gold_output: str,
+    gold_score: float,
+    candidates: list[ScoredCandidate],
+    evolution: int | None = None,
+    hash: str | None = None,
+) -> PreferencePair | None:
+    """Build a pair where chosen is the highest-reward of gold and generations.
+
+    The gold output is treated as one more candidate: the chosen response is the
+    argmax-reward over ``{gold} + generations``, and the rejected is the candidate
+    nearest to ``mu - 2*sigma`` (statistics over the combined pool) that lies
+    strictly below the chosen reward. Unlike ``gold_chosen``, this never skips an
+    example just because the policy beat gold; it simply prefers whichever scored
+    highest.
+
+    Args:
+        prompt:
+          The instruction prompt.
+        gold_output:
+          The dataset's reference completion, scored alongside the generations.
+        gold_score:
+          Reward-model score of ``gold_output``.
+        candidates:
+          The scored self-generations for this prompt.
+        evolution (optional):
+          The source difficulty level. Defaults to None.
+        hash (optional):
+          The source row hash. Defaults to None.
+
+    Returns:
+        The preference pair, or None if the combined pool has fewer than two
+        candidates or no candidate lies strictly below the chosen reward.
+    """
+    pool = [*candidates, ScoredCandidate(response=gold_output, reward_score=gold_score)]
+    if len(pool) < 2:
+        return None
+    chosen = max(pool, key=lambda candidate: candidate.reward_score)
+    rejected = _select_rejected(
+        pool=pool, upper_bound=chosen.reward_score, exclude=chosen
+    )
+    if rejected is None:
+        return None
+    return PreferencePair(
+        prompt=prompt,
+        chosen=chosen.response,
+        rejected=rejected.response,
+        chosen_score=chosen.reward_score,
+        rejected_score=rejected.reward_score,
+        evolution=evolution,
+        pool_size=len(pool),
+        mode="max_reward",
+        hash=hash,
+    )
+
+
 def _select_rejected(
     *,
     pool: list[ScoredCandidate],

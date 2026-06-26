@@ -13,6 +13,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import DPOConfig, DPOTrainer
 
 from .config import DPOTrainConfig, PipelineConfig
+from .data import sort_by_evolution
 from .dataset import load_pairs, to_trl_records
 
 logger = logging.getLogger(__name__)
@@ -111,6 +112,10 @@ def train_dpo(*, config: PipelineConfig, dataset_path: Path) -> Path:
     # Load and convert dataset
     logger.info(f"Loading preference pairs from {dataset_path}")
     pairs = load_pairs(path=dataset_path)
+    if dpo_config.curriculum:
+        # The checkpointed dataset is in processing order; impose the easy-to-hard
+        # curriculum here so the SequentialSampler trains on ascending difficulty.
+        pairs = sort_by_evolution(pairs=pairs)
     records = to_trl_records(pairs=pairs)
     dataset = Dataset.from_list(records)
     logger.info(f"Loaded {len(dataset)} preference pairs")

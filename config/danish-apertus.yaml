@@ -1,0 +1,78 @@
+# CroCo overnight run - Munin-Apertus-8B (Danish)
+#
+# Self-generation + reward scoring -> max_reward preference pairs -> DPO.
+# The dataset build batches prompts through vLLM and checkpoints incrementally,
+# so an interrupted run leaves a usable dataset and can be resumed.
+#
+# Usage:
+#   uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml
+
+# max_reward: chosen is the highest-reward of {gold output} + generations, so the
+# example is kept whether the policy or the gold answer scores best (unlike
+# gold_chosen, which skips when the policy beats gold).
+construction_mode: max_reward
+score_gold_output: true
+language: da
+
+policy:
+  model_id: danish-foundation-models/munin-apertus-8b
+  attn_implementation: sdpa
+  max_model_len: 2048
+
+reward:
+  model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
+  max_model_len: 32768
+  gpu_memory_utilization: 0.35
+
+generation:
+  num_candidates: 4
+  max_tokens: 1024
+  temperature: 0.7
+  top_p: 1.0
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.45
+  # Prompts handed to vLLM per batch; larger batches saturate the GPU better.
+  batch_size: 64
+  enable_prefix_caching: true
+  enable_chunked_prefill: true
+  # Set true for multimodal policy models (e.g. gemma-3) to skip the vision tower.
+  language_model_only: false
+
+data:
+  dataset_id: danish-foundation-models/laerebogen
+  subset: evolved
+  split: train
+  # Generous target: checkpointing means whatever completes overnight is saved.
+  num_samples: 5000
+  stratify_by_evolution: true
+  evolution_min: null
+  evolution_max: null
+  max_prompt_tokens: 2048
+  seed: 42
+
+dpo:
+  output_dir: models/croco-munin-apertus-8b-da
+  learning_rate: 5.0e-6
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  beta: 0.1
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  num_train_epochs: 1
+  max_length: 2048
+  bf16: true
+  gradient_checkpointing: true
+  curriculum: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  seed: 42
+  hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da
+
+eval:
+  language: da
+  tasks: null
+  num_iterations: 1
+  skip: true
+  gpu_memory_utilization: 0.5

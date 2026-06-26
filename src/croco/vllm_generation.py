@@ -53,7 +53,9 @@ class VLLMGenerationEngine:
             gpu_memory_utilization=config.gpu_memory_utilization,
             max_model_len=max_model_len,
             trust_remote_code=trust_remote_code,
-            enable_prefix_caching=True,
+            enable_prefix_caching=config.enable_prefix_caching,
+            enable_chunked_prefill=config.enable_chunked_prefill,
+            language_model_only=config.language_model_only,
             load_format="fastsafetensors",
         )
 

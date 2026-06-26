@@ -10,7 +10,20 @@ maintainers = [
   {name = "Dan Saattrup Smart", email = "dan.smart@alexandra.dk"},
 ]
 requires-python = ">=3.12,<4.0"
-dependencies = []
+dependencies = [
+    "accelerate>=1.14.0",
+    "click>=8.4.2",
+    "datasets>=5.0.0",
+    "euroeval>=17.5.0",
+    "huggingface-hub>=1.21.0",
+    "numpy>=2.5.0",
+    "peft>=0.19.1",
+    "pydantic>=2.13.4",
+    "pyyaml>=6.0.3",
+    "torch>=2.12.1",
+    "transformers>=5.12.1",
+    "trl>=1.7.0",
+]
 
 [project.urls]
 Repository = "https://github.com/alexandrainst/croco"

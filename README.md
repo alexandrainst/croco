@@ -109,6 +109,77 @@ from croco import some_function
 Note that this is also how we import functions/classes in tests, since each test Python
 file is also a Python script, rather than a module.
 
+## Pipeline Overview
+
+The CroCo pipeline implements the **Contrastive Preference Optimization** post-training
+method. It consists of three stages: **build**, **train**, and **evaluate**.
+
+### Pipeline Modes
+
+The pipeline supports two operational modes, configured via `construction_mode` in the
+YAML config:
+
+- **`generated`**: Generate candidate responses using a policy model, then score them
+  using a reward model to construct preference pairs.
+- **`existing`**: Use pre-existing candidate responses from the dataset (no generation
+  or scoring required).
+
+### Curriculum Learning
+
+When `dpo.curriculum: true`, the pipeline implements **gated access** curriculum
+learning:
+
+1. Examples are sorted by their evolution score (difficulty)
+2. Training starts with only the easiest examples
+3. As the model improves, harder examples are gradually unlocked
+4. This stabilises training and improves convergence on challenging examples
+
+Gating is controlled by the `evolution_threshold` parameter, which increases over
+training steps.
+
+### Scripts
+
+All scripts are run with `uv run` from the project root:
+
+```bash
+# Build the preference dataset (generation + scoring)
+uv run src/scripts/build_dataset.py --config config/danish.yaml
+
+# Train using DPO with curriculum learning
+uv run src/scripts/train.py --config config/danish.yaml
+
+# Evaluate the trained model
+uv run src/scripts/eval_model.py --config config/danish.yaml --model path/to/model
+
+# Run the full pipeline (build -> train -> evaluate)
+uv run src/scripts/run_pipeline.py --config config/danish.yaml
+```
+
+### Configuration
+
+The default configuration is `config/danish.yaml`. Key sections:
+
+- **`construction_mode`**: `generated` or `existing`
+- **`policy`**: Policy model settings (Gemma-3-12B-IT default)
+- **`reward`**: Reward model settings (Skywork-Reward-V2-Qwen3-8B default)
+- **`generation`**: vLLM generation parameters (candidates, temperature, etc.)
+- **`data`**: Dataset configuration (Laerebogen, stratification, sample count)
+- **`dpo`**: Training hyperparameters, curriculum settings, LoRA config
+- **`eval`**: Evaluation tasks and iterations
+
+### GPU Requirements
+
+The `generated` mode requires **vLLM** for candidate generation and reward scoring,
+which needs CUDA. On macOS (no CUDA), vLLM is excluded and only `existing` mode works.
+
+To install vLLM on a DGX/CUDA host:
+
+```bash
+make install-vllm
+```
+
+This installs the `vllm` extra with the correct CUDA dependencies for Python 3.12.
+
 ## Features
 
 ### Docker Setup

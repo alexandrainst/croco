@@ -1,3 +1,8 @@
+# CroCo Pipeline Configuration - Danish Laerebogen
+#
+# Pipeline modes: generated (vLLM required) or existing (CPU-only)
+# Curriculum learning: enabled via dpo.curriculum with gated access by evolution score
+
 construction_mode: generated
 score_gold_output: true
 language: da
@@ -43,7 +48,7 @@ dpo:
   max_length: 4096
   bf16: true
   gradient_checkpointing: true
-  curriculum: true
+  curriculum: true  # Enables gated access curriculum learning
   lora_r: 16
   lora_alpha: 32
   lora_dropout: 0.05
@@ -51,5 +56,5 @@ dpo:
 
 eval:
   language: da
-  tasks: null
+  tasks: null  # null = all available tasks for this language
   num_iterations: 10

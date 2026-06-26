@@ -85,6 +85,8 @@ select = [
 ignore = [
   # Type annotations for "self" arguments
   "ANN101",
+  # Imports inside functions (vLLM engines in CLI scripts)
+  "PLC0415",
   # Type annotations for "cls" arguments
   "ANN102",
   # Type annotations for *args

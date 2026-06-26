@@ -7,11 +7,7 @@ from euroeval import Benchmarker
 from .config import PipelineConfig
 
 
-def evaluate_model(
-    *,
-    model_id_or_path: str | Path,
-    config: PipelineConfig,
-) -> list:
+def evaluate_model(*, model_id_or_path: str | Path, config: PipelineConfig) -> list:
     """Benchmark a model with EuroEval, restricted to the configured language.
 
     Args:
@@ -29,17 +25,11 @@ def evaluate_model(
         save_results=True,
         num_iterations=config.eval.num_iterations,
     )
-    results = benchmarker.benchmark(
-        model=str(model_id_or_path),
-        task=config.eval.tasks,
-    )
+    results = benchmarker.benchmark(model=str(model_id_or_path), task=config.eval.tasks)
     return list(results)
 
 
-def extract_scores(
-    *,
-    results: list,
-) -> dict[str, dict[str, float]]:
+def extract_scores(*, results: list) -> dict[str, dict[str, float]]:
     """Extract aggregated scores from EuroEval benchmark results.
 
     Maps each result's dataset name to its aggregated results['total'] dict.

@@ -4,10 +4,7 @@ Tests include worked numerical examples to verify the pair construction
 logic matches the reference implementation (CroCo, Eq. 2).
 """
 
-import numpy as np
-import pytest
-
-from croco.data_models import PreferencePair, ScoredCandidate
+from croco.data_models import ScoredCandidate
 from croco.preference import (
     _select_rejected,
     build_pair_generated,
@@ -85,9 +82,7 @@ class TestSelectRejected:
 
     def test_select_rejected_all_excluded(self) -> None:
         """Test when all candidates are excluded."""
-        candidates = [
-            ScoredCandidate(response="resp_a", reward_score=0.9),
-        ]
+        candidates = [ScoredCandidate(response="resp_a", reward_score=0.9)]
 
         # All candidates are excluded, should return None
         result = _select_rejected(
@@ -150,22 +145,14 @@ class TestBuildPairGenerated:
 
     def test_build_pair_generated_insufficient_candidates(self) -> None:
         """Test building pair with fewer than 2 candidates."""
-        candidates = [
-            ScoredCandidate(response="only_one", reward_score=0.8),
-        ]
+        candidates = [ScoredCandidate(response="only_one", reward_score=0.8)]
 
-        result = build_pair_generated(
-            prompt="Test instruction",
-            candidates=candidates,
-        )
+        result = build_pair_generated(prompt="Test instruction", candidates=candidates)
         assert result is None
 
     def test_build_pair_generated_empty_candidates(self) -> None:
         """Test building pair with no candidates."""
-        result = build_pair_generated(
-            prompt="Test instruction",
-            candidates=[],
-        )
+        result = build_pair_generated(prompt="Test instruction", candidates=[])
         assert result is None
 
     def test_build_pair_generated_no_valid_rejected(self) -> None:
@@ -179,10 +166,7 @@ class TestBuildPairGenerated:
         # Both candidates have score 0.8, chosen is one of them
         # No candidate strictly below chosen, so rejected selection fails
 
-        result = build_pair_generated(
-            prompt="Test instruction",
-            candidates=candidates,
-        )
+        result = build_pair_generated(prompt="Test instruction", candidates=candidates)
         assert result is None
 
     def test_build_pair_generated_three_candidates(self) -> None:
@@ -202,10 +186,7 @@ class TestBuildPairGenerated:
         # Chosen is "high" (0.9)
         # Rejected is "low" (0.1)
 
-        result = build_pair_generated(
-            prompt="Test prompt",
-            candidates=candidates,
-        )
+        result = build_pair_generated(prompt="Test prompt", candidates=candidates)
 
         assert result is not None
         assert result.chosen == "high"
@@ -279,9 +260,7 @@ class TestBuildPairGoldChosen:
         # Closest to 0.174 is "gen_c" (0.3)
 
         result = build_pair_gold_chosen(
-            prompt="Test prompt",
-            gold_output=gold_output,
-            candidates=candidates,
+            prompt="Test prompt", gold_output=gold_output, candidates=candidates
         )
 
         assert result is not None
@@ -295,9 +274,7 @@ class TestBuildPairGoldChosen:
     def test_build_pair_gold_chosen_empty_candidates(self) -> None:
         """Test building pair with no candidates."""
         result = build_pair_gold_chosen(
-            prompt="Test prompt",
-            gold_output="Gold output",
-            candidates=[],
+            prompt="Test prompt", gold_output="Gold output", candidates=[]
         )
         assert result is None
 

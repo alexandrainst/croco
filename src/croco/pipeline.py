@@ -62,19 +62,14 @@ def build_preference_dataset(
 
     logger.info("Starting preference dataset construction")
     logger.info(
-        "Mode: %s, Candidates per prompt: %d",
-        construction_mode,
-        num_candidates,
+        "Mode: %s, Candidates per prompt: %d", construction_mode, num_candidates
     )
 
     all_pairs: list[PreferencePair] = []
 
     for idx, example in enumerate(examples):
         logger.debug(
-            "Processing example %d/%d: %s",
-            idx + 1,
-            len(examples),
-            example.hash,
+            "Processing example %d/%d: %s", idx + 1, len(examples), example.hash
         )
 
         prompt = example.instruction
@@ -140,8 +135,7 @@ def _generate_and_score_candidates(
         List of scored candidates.
     """
     generated = generation_engine.generate(
-        prompts=[prompt],
-        num_candidates=num_candidates,
+        prompts=[prompt], num_candidates=num_candidates
     )
 
     candidates_text = generated[0] if generated else []
@@ -150,8 +144,7 @@ def _generate_and_score_candidates(
         return []
 
     scores = scoring_engine.score(
-        prompts=[prompt] * len(candidates_text),
-        responses=candidates_text,
+        prompts=[prompt] * len(candidates_text), responses=candidates_text
     )
 
     scored_candidates = [
@@ -205,18 +198,12 @@ def _construct_pair(
     """
     if construction_mode == "generated":
         return build_pair_generated(
-            prompt=prompt,
-            candidates=candidates,
-            evolution=evolution,
-            hash=hash,
+            prompt=prompt, candidates=candidates, evolution=evolution, hash=hash
         )
     elif construction_mode == "gold_chosen":
         gold_score: float | None = None
         if score_gold_output:
-            scored = scoring_engine.score(
-                prompts=[prompt],
-                responses=[gold_output],
-            )
+            scored = scoring_engine.score(prompts=[prompt], responses=[gold_output])
             gold_score = scored[0] if scored else None
             logger.debug("Gold output score: %.2f", gold_score)
 

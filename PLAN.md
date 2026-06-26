@@ -27,6 +27,7 @@ absolute imports in `src/scripts` and `tests`; max line length 88; high-level fu
 first, helpers below; protected helpers prefixed with `_`).
 
 ### Decisions (confirmed with user — do not revisit)
+
 - **Inference engine: vLLM only.** The two `vllm_*.py` modules are the only GPU-only code
   and are excluded from Mac test collection (see `conftest.py`). All other modules import
   cleanly on the Mac and are fully tested there.
@@ -60,10 +61,12 @@ uv add --optional vllm vllm        # DGX-only extra; NOT installed on the Mac
   `uv sync --all-extras --all-groups --python 3.12` to
   `uv sync --all-groups --python 3.12` (so the `vllm` extra is not pulled on the Mac). Add a
   new target:
+
   ```make
   install-vllm: ## Install the vLLM extra (run on the DGX/CUDA host only)
-  	@uv sync --all-groups --extra vllm --python 3.12
+   @uv sync --all-groups --extra vllm --python 3.12
   ```
+
 - `.env.example`: append a line `HUGGINGFACE_API_KEY=`. In
   `src/scripts/fix_dot_env_file.py`, add to `DESIRED_ENVIRONMENT_VARIABLES`:
   `HUGGINGFACE_API_KEY="Enter your Hugging Face access token (for gated models/datasets):\n> "`.
@@ -82,6 +85,7 @@ All modules live in `src/croco/`. Each begins with a one-line module docstring a
 `logger = logging.getLogger(__name__)` where it logs.
 
 ### `src/croco/data_models.py`
+
 Pydantic v2 `BaseModel`s (frozen where natural). No heavy imports.
 
 ```python
@@ -114,6 +118,7 @@ class PreferencePair(BaseModel):
 ```
 
 ### `src/croco/preference.py` — CroCo Eq. (2), pure (MOST IMPORTANT)
+
 Full implementation (copy verbatim, adjust docstrings):
 
 ```python
@@ -238,6 +243,7 @@ def _select_rejected(
 ```
 
 ### `src/croco/engines.py` — backend Protocols (pure)
+
 ```python
 import typing as t
 
@@ -255,7 +261,9 @@ class ScoringEngine(t.Protocol):
 ```
 
 ### `src/croco/utils.py` — small helpers (pure)
+
 Public functions:
+
 - `setup_logging(*, level: int = logging.INFO) -> None`
 - `set_seed(*, seed: int) -> None` (seeds `random`, `numpy`; torch optional but import torch
   at top — torch imports fine on the Mac).
@@ -267,7 +275,9 @@ Public functions:
   returns `[{"role": "user", "content": instruction}]`.
 
 ### `src/croco/data.py` — laerebogen loader & curriculum (uses `datasets`)
+
 Public functions (import `datasets` at top — fine on the Mac):
+
 - `load_examples(*, config: "DataConfig") -> list[DataExample]`
   1. `ds = datasets.load_dataset(config.dataset_id, name=config.subset, split=config.split)`
   2. apply `evolution_min`/`evolution_max` filter if set;
@@ -283,6 +293,7 @@ Public functions (import `datasets` at top — fine on the Mac):
   If `num_samples >= len(ds)`, return all rows.
 
 ### `src/croco/dataset.py` — preference dataset IO + TRL formatting (pure-ish)
+
 - `save_pairs(*, pairs: list[PreferencePair], path: Path) -> None` — writes jsonl via
   `utils.write_jsonl` using `pair.model_dump()`.
 - `load_pairs(*, path: Path) -> list[PreferencePair]` — reads jsonl and validates each row
@@ -294,13 +305,16 @@ Public functions (import `datasets` at top — fine on the Mac):
     "rejected": [{"role":"assistant","content": pair.rejected}]}`.
 
 ### `src/croco/pipeline.py` — orchestration (DI; pure logic, no vLLM import)
+
 ```python
 def build_preference_dataset(
     *, config: PipelineConfig, examples: list[DataExample],
     generation_engine: GenerationEngine, scoring_engine: ScoringEngine,
 ) -> list[PreferencePair]:
 ```
+
 Logic:
+
 1. `prompts = [ex.instruction for ex in examples]`.
 2. `generations = generation_engine.generate(prompts=prompts, num_candidates=config.generation.num_candidates)`
    (a `list[list[str]]`, one inner list per prompt).
@@ -317,8 +331,10 @@ Logic:
    (unsorted — the build script sorts for curriculum before saving).
 
 ### `src/croco/dpo.py` — TRL DPO training + curriculum (uses transformers/trl/peft)
+
 Imports at top: `torch`, `transformers` (`AutoModelForCausalLM`, `AutoTokenizer`), `datasets`,
 `trl` (`DPOTrainer`, `DPOConfig`), `peft` (`LoraConfig`), `torch.utils.data.SequentialSampler`.
+
 - `class CurriculumDPOTrainer(DPOTrainer)`: override `_get_train_sampler` to return
   `SequentialSampler(self.train_dataset)` (accept and ignore any args for cross-version
   compatibility: `def _get_train_sampler(self, *args, **kwargs)`).
@@ -336,6 +352,7 @@ Imports at top: `torch`, `transformers` (`AutoModelForCausalLM`, `AutoTokenizer`
   `trainer.train()`; `trainer.save_model(config.dpo.output_dir)`; return the output dir.
 
 ### `src/croco/evaluation.py` — EuroEval wrapper (uses `euroeval`)
+
 ```python
 from euroeval import Benchmarker
 
@@ -353,15 +370,18 @@ def extract_scores(*, results: list) -> dict[str, dict[str, float]]:
     """Map each result's dataset name to its aggregated ``results['total']`` dict."""
     return {r.dataset: dict(r.results["total"]) for r in results}
 ```
+
 Notes: `Benchmarker` has **no** `model` or `batch_size` ctor arg — model goes to
 `benchmark(model=...)`. `task=None` evaluates all datasets for the language; pass a list of
 task-name strings to restrict. Language code is `"da"` (not `"danish"`).
 
 ### `src/croco/vllm_generation.py` — `VLLMGenerationEngine` (GPU only, excluded on Mac)
+
 Top-level `import vllm` and `from vllm import LLM, SamplingParams`; `from transformers import
 AutoTokenizer`. Constructor builds the `LLM` once
 (`tensor_parallel_size`, `gpu_memory_utilization=0.95`, `max_model_len`, `trust_remote_code=True`,
 `enable_prefix_caching=True`) and loads the tokenizer. `generate(...)`:
+
 - render each prompt: `tokenizer.apply_chat_template(build_user_message(instruction=p),
   tokenize=False, add_generation_prompt=True)`;
 - `params = SamplingParams(n=num_candidates, max_tokens=config.generation.max_tokens,
@@ -370,11 +390,13 @@ AutoTokenizer`. Constructor builds the `LLM` once
 - return `[[o.text for o in out.outputs] for out in outputs]`.
 
 ### `src/croco/vllm_scoring.py` — `VLLMScoringEngine` (GPU only, excluded on Mac)
+
 Top-level `import vllm`; `from vllm import LLM, PoolingParams`; `from transformers import
 AutoTokenizer`. Constructor:
 `LLM(model=reward.model_id, runner="pooling", enforce_eager=True,
 max_model_len=reward.max_model_len, tensor_parallel_size=..., trust_remote_code=True,
 gpu_memory_utilization=0.95, enable_chunked_prefill=False)`. `score(...)`:
+
 - build `prompt_token_ids` per pair via
   `tokenizer.apply_chat_template(build_conversation(instruction=p, response=r),
   tokenize=False, add_generation_prompt=False)`;
@@ -472,17 +494,20 @@ are not collected by pytest), so the Mac test run never imports vLLM.
 ## Tests (`tests/`, absolute imports, pytest)
 
 ### `conftest.py` (repo root)
+
 ```python
 import importlib.util
 collect_ignore_glob: list[str] = []
 if importlib.util.find_spec("vllm") is None:
     collect_ignore_glob.append("src/croco/vllm_*.py")
 ```
+
 Plus shared fixtures: `make_scored(scores: list[float]) -> list[ScoredCandidate]`, a
 `fake_generation_engine`, and a `fake_scoring_engine` (deterministic: e.g. score = response
 length, or a lookup keyed on response text) for the integration test.
 
 ### `test_preference.py` (worked numbers — must assert these exactly)
+
 - Scores `[1, 2, 3, 10]`: `mean=4.0`, population `std=sqrt(12.5)≈3.5355`,
   `target≈-3.0711`. `build_pair_generated` -> chosen score `10`, **rejected score `1`**.
 - All-equal `[5, 5, 5]`: chosen score `5`; no candidate strictly below `5` -> returns
@@ -495,6 +520,7 @@ length, or a lookup keyed on response text) for the integration test.
   -> returns `None`.
 
 ### `test_data.py`
+
 Build an in-memory `datasets.Dataset.from_dict({"instruction": [...], "output": [...],
 "evolution": [...], "hash": [...]})`, monkeypatch `datasets.load_dataset` to return it, and
 assert: uniform + stratified subsample sizes and determinism under a fixed seed; evolution
@@ -502,29 +528,35 @@ min/max filtering; empty-row dropping; `sort_by_evolution` orders ascending with
 first and is stable.
 
 ### `test_dataset.py`
+
 `save_pairs` then `load_pairs` round-trips identical objects; `to_trl_records` produces the
 exact chat-list schema above.
 
 ### `test_config.py`
+
 `load_config(path=Path("config/danish.yaml"))` parses; defaults match; an invalid
 `construction_mode` raises `pydantic.ValidationError`; `output_dir` is a `Path`.
 
 ### `test_data_models.py`
+
 Field validation and `model_dump`/round-trip for `PreferencePair`.
 
 ### `test_dpo.py`
+
 `build_lora_config` and `build_dpo_config` produce the exact hyperparameters from the config
 (no training run). `to_trl_records` + `CurriculumDPOTrainer._get_train_sampler` returns a
 `SequentialSampler` (can instantiate the trainer with a tiny dummy dataset, or test the
 sampler method in isolation against a stub with a `train_dataset` attribute).
 
 ### `test_evaluation.py`
+
 Monkeypatch `croco.evaluation.Benchmarker` with a fake whose `benchmark(...)` records kwargs
 and returns objects exposing `.dataset` and `.results`. Assert `evaluate_model` constructs
 `Benchmarker(language="da", ...)`, passes `model=<path>` and `task=config.eval.tasks` to
 `benchmark`, and that `extract_scores` maps dataset -> `results["total"]`.
 
 ### `test_pipeline.py` (integration, both modes, no GPU)
+
 Drive `build_preference_dataset` with the fake engines for `generated` and `gold_chosen`;
 assert the surviving pair count, that `chosen` equals the gold output in `gold_chosen` mode,
 and that rejected selection matches `preference.py` on the fake scores.
@@ -537,6 +569,7 @@ Keep the high-signal core in the main context (`config.py`, `data_models.py`,
 `preference.py`, `pipeline.py`, `conftest.py`, and final wiring). Delegate the rest to
 parallel subagents grouped to avoid file conflicts, each given this plan section verbatim
 plus the python-skill conventions:
+
 1. data layer — `data.py`, `dataset.py`, `utils.py` + `test_data.py`, `test_dataset.py`.
 2. training/eval — `dpo.py`, `evaluation.py` + `test_dpo.py`, `test_evaluation.py`.
 3. vLLM concretions — `vllm_generation.py`, `vllm_scoring.py` (no Mac tests).
@@ -558,4 +591,5 @@ Then wire `src/scripts/*`, run `make check` + `make test`, fix fallout.
 - README updated: pipeline overview, the two modes, the curriculum, gated-dataset access
   (`HUGGINGFACE_API_KEY` + accept terms), `make install-vllm` on the DGX, and a placeholder
   section for the later remote-execution work.
+
 ```

@@ -45,8 +45,7 @@ class VLLMScoringEngine:
                 Whether to trust remote code from the model repository.
         """
         self.tokenizer = AutoTokenizer.from_pretrained(
-            config.model_id,
-            trust_remote_code=trust_remote_code,
+            config.model_id, trust_remote_code=trust_remote_code
         )
 
         self.llm = LLM(
@@ -60,12 +59,7 @@ class VLLMScoringEngine:
             enable_chunked_prefill=False,
         )
 
-    def score(
-        self,
-        *,
-        prompts: list[str],
-        responses: list[str],
-    ) -> list[float]:
+    def score(self, *, prompts: list[str], responses: list[str]) -> list[float]:
         """Score each (prompt, response) pair using the reward model.
 
         Args:

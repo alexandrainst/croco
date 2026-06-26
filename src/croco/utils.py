@@ -14,6 +14,7 @@ _torch: t.Any | None = None
 _HAS_TORCH: bool = False
 try:
     import torch as _torch_typed
+
     _torch = _torch_typed
     _HAS_TORCH = True
 except ImportError:

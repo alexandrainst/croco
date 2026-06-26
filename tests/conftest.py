@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import collections.abc as c
-import typing as t
 
 import pytest
 
@@ -17,14 +16,12 @@ pytest_plugins = []
 def pytest_configure(config: pytest.Config) -> None:
     """Register custom markers."""
     config.addinivalue_line(
-        "markers",
-        "vllm: mark test to run only when vLLM is available (GPU required)",
+        "markers", "vllm: mark test to run only when vLLM is available (GPU required)"
     )
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config,
-    items: list[pytest.Item],
+    config: pytest.Config, items: list[pytest.Item]
 ) -> None:
     """Skip vLLM tests when vLLM is not available."""
     vllm_skip = pytest.mark.skip(reason="vLLM not available (GPU required)")
@@ -64,10 +61,7 @@ def fake_generation_engine() -> GenerationEngine:
         """Fake generation engine for testing."""
 
         def generate(
-            self,
-            *,
-            prompts: list[str],
-            num_candidates: int,
+            self, *, prompts: list[str], num_candidates: int
         ) -> list[list[str]]:
             """Generate fake responses for testing."""
             results: list[list[str]] = []
@@ -93,12 +87,7 @@ def fake_scoring_engine() -> ScoringEngine:
     class FakeScoringEngine:
         """Fake scoring engine for testing."""
 
-        def score(
-            self,
-            *,
-            prompts: list[str],
-            responses: list[str],
-        ) -> list[float]:
+        def score(self, *, prompts: list[str], responses: list[str]) -> list[float]:
             """Score responses based on their length for testing."""
             scores: list[float] = []
             for prompt, response in zip(prompts, responses):

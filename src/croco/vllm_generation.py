@@ -45,8 +45,7 @@ class VLLMGenerationEngine:
                 Whether to trust remote code from the model repository.
         """
         self.tokenizer = AutoTokenizer.from_pretrained(
-            model_id,
-            trust_remote_code=trust_remote_code,
+            model_id, trust_remote_code=trust_remote_code
         )
 
         self.llm = LLM(
@@ -60,12 +59,7 @@ class VLLMGenerationEngine:
 
         self._config = config
 
-    def generate(
-        self,
-        *,
-        prompts: list[str],
-        num_candidates: int,
-    ) -> list[list[str]]:
+    def generate(self, *, prompts: list[str], num_candidates: int) -> list[list[str]]:
         """Generate candidate responses for each instruction prompt.
 
         Args:

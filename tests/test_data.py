@@ -39,9 +39,7 @@ class TestLoadExamples:
 
     def test_load_examples_with_num_samples(self, mock_dataset: Dataset) -> None:
         """Test loading a limited number of examples."""
-        with mock.patch(
-            "croco.data.datasets.load_dataset", return_value=mock_dataset
-        ):
+        with mock.patch("croco.data.datasets.load_dataset", return_value=mock_dataset):
             config = DataConfig(
                 dataset_id="laerebogen",
                 subset="danish",
@@ -63,9 +61,7 @@ class TestLoadExamples:
 
     def test_load_examples_without_stratification(self, mock_dataset: Dataset) -> None:
         """Test loading examples without stratification."""
-        with mock.patch(
-            "croco.data.datasets.load_dataset", return_value=mock_dataset
-        ):
+        with mock.patch("croco.data.datasets.load_dataset", return_value=mock_dataset):
             config = DataConfig(
                 dataset_id="laerebogen",
                 subset="danish",
@@ -85,9 +81,7 @@ class TestLoadExamples:
 
     def test_load_examples_preserves_fields(self, mock_dataset: Dataset) -> None:
         """Test that all fields are loaded correctly."""
-        with mock.patch(
-            "croco.data.datasets.load_dataset", return_value=mock_dataset
-        ):
+        with mock.patch("croco.data.datasets.load_dataset", return_value=mock_dataset):
             config = DataConfig(
                 dataset_id="laerebogen",
                 subset="danish",

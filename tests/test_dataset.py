@@ -202,9 +202,15 @@ class TestToTlrRecords:
 
         assert len(records) == 1
         record = records[0]
-        assert record["prompt"] == [{"role": "user", "content": "What is the capital of Denmark?"}]
-        assert record["chosen"] == [{"role": "assistant", "content": "Copenhagen is the capital."}]
-        assert record["rejected"] == [{"role": "assistant", "content": "Aarhus is the capital."}]
+        assert record["prompt"] == [
+            {"role": "user", "content": "What is the capital of Denmark?"}
+        ]
+        assert record["chosen"] == [
+            {"role": "assistant", "content": "Copenhagen is the capital."}
+        ]
+        assert record["rejected"] == [
+            {"role": "assistant", "content": "Aarhus is the capital."}
+        ]
 
     def test_to_trl_records_multiple_pairs(self) -> None:
         """Test converting multiple pairs to TRL format."""
@@ -235,11 +241,15 @@ class TestToTlrRecords:
 
         assert records[0]["prompt"] == [{"role": "user", "content": "Prompt 1"}]
         assert records[0]["chosen"] == [{"role": "assistant", "content": "Chosen 1"}]
-        assert records[0]["rejected"] == [{"role": "assistant", "content": "Rejected 1"}]
+        assert records[0]["rejected"] == [
+            {"role": "assistant", "content": "Rejected 1"}
+        ]
 
         assert records[1]["prompt"] == [{"role": "user", "content": "Prompt 2"}]
         assert records[1]["chosen"] == [{"role": "assistant", "content": "Chosen 2"}]
-        assert records[1]["rejected"] == [{"role": "assistant", "content": "Rejected 2"}]
+        assert records[1]["rejected"] == [
+            {"role": "assistant", "content": "Rejected 2"}
+        ]
 
     def test_to_trl_records_empty_list(self) -> None:
         """Test converting empty list to TRL format."""

@@ -11,57 +11,40 @@ class TestScoredCandidate:
     def test_create_scored_candidate(self) -> None:
         """Test creating a ScoredCandidate instance."""
         candidate = ScoredCandidate(
-            response="This is a test response",
-            reward_score=0.75,
+            response="This is a test response", reward_score=0.75
         )
         assert candidate.response == "This is a test response"
         assert candidate.reward_score == 0.75
 
     def test_scored_candidate_with_zero_score(self) -> None:
         """Test ScoredCandidate with zero score."""
-        candidate = ScoredCandidate(
-            response="Zero score response",
-            reward_score=0.0,
-        )
+        candidate = ScoredCandidate(response="Zero score response", reward_score=0.0)
         assert candidate.response == "Zero score response"
         assert candidate.reward_score == 0.0
 
     def test_scored_candidate_with_negative_score(self) -> None:
         """Test ScoredCandidate with negative score."""
         candidate = ScoredCandidate(
-            response="Negative score response",
-            reward_score=-0.5,
+            response="Negative score response", reward_score=-0.5
         )
         assert candidate.response == "Negative score response"
         assert candidate.reward_score == -0.5
 
     def test_scored_candidate_with_high_score(self) -> None:
         """Test ScoredCandidate with high score."""
-        candidate = ScoredCandidate(
-            response="High score response",
-            reward_score=0.99,
-        )
+        candidate = ScoredCandidate(response="High score response", reward_score=0.99)
         assert candidate.response == "High score response"
         assert candidate.reward_score == 0.99
 
     def test_model_dump(self) -> None:
         """Test serialising ScoredCandidate to dictionary."""
-        candidate = ScoredCandidate(
-            response="Test response",
-            reward_score=0.65,
-        )
+        candidate = ScoredCandidate(response="Test response", reward_score=0.65)
         dump = candidate.model_dump()
-        assert dump == {
-            "response": "Test response",
-            "reward_score": 0.65,
-        }
+        assert dump == {"response": "Test response", "reward_score": 0.65}
 
     def test_model_validate(self) -> None:
         """Test deserialising ScoredCandidate from dictionary."""
-        data = {
-            "response": "Test response",
-            "reward_score": 0.65,
-        }
+        data = {"response": "Test response", "reward_score": 0.65}
         candidate = ScoredCandidate.model_validate(data)
         assert candidate.response == "Test response"
         assert candidate.reward_score == 0.65
@@ -73,8 +56,7 @@ class TestDataExample:
     def test_create_minimal_data_example(self) -> None:
         """Test creating a minimal DataExample instance."""
         example = DataExample(
-            instruction="What is the capital of Denmark?",
-            output="Copenhagen",
+            instruction="What is the capital of Denmark?", output="Copenhagen"
         )
         assert example.instruction == "What is the capital of Denmark?"
         assert example.output == "Copenhagen"
@@ -97,9 +79,7 @@ class TestDataExample:
     def test_data_example_with_evolution_zero(self) -> None:
         """Test DataExample with evolution level 0."""
         example = DataExample(
-            instruction="Simple instruction",
-            output="Simple output",
-            evolution=0,
+            instruction="Simple instruction", output="Simple output", evolution=0
         )
         assert example.evolution == 0
 

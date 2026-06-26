@@ -23,9 +23,7 @@ class TestPolicyModelConfig:
     def test_create_policy_model_config(self) -> None:
         """Test creating a PolicyModelConfig instance."""
         config = PolicyModelConfig(
-            model_id="test/policy",
-            attn_implementation="sdpa",
-            max_model_len=1024,
+            model_id="test/policy", attn_implementation="sdpa", max_model_len=1024
         )
         assert config.model_id == "test/policy"
         assert config.attn_implementation == "sdpa"
@@ -42,10 +40,7 @@ class TestRewardModelConfig:
 
     def test_create_reward_model_config(self) -> None:
         """Test creating a RewardModelConfig instance."""
-        config = RewardModelConfig(
-            model_id="test/reward",
-            max_model_len=512,
-        )
+        config = RewardModelConfig(model_id="test/reward", max_model_len=512)
         assert config.model_id == "test/reward"
         assert config.max_model_len == 512
 
@@ -184,9 +179,7 @@ class TestEvalConfig:
     def test_create_eval_config(self) -> None:
         """Test creating an EvalConfig instance."""
         config = EvalConfig(
-            language="en",
-            tasks=["truthfulqa", "mmlu"],
-            num_iterations=3,
+            language="en", tasks=["truthfulqa", "mmlu"], num_iterations=3
         )
         assert config.language == "en"
         assert config.tasks == ["truthfulqa", "mmlu"]
@@ -194,11 +187,7 @@ class TestEvalConfig:
 
     def test_eval_config_with_none_tasks(self) -> None:
         """Test EvalConfig with None tasks."""
-        config = EvalConfig(
-            language="da",
-            tasks=None,
-            num_iterations=5,
-        )
+        config = EvalConfig(language="da", tasks=None, num_iterations=5)
         assert config.language == "da"
         assert config.tasks is None
         assert config.num_iterations == 5
@@ -219,14 +208,9 @@ class TestPipelineConfig:
             score_gold_output=False,
             language="en",
             policy=PolicyModelConfig(
-                model_id="test/policy",
-                attn_implementation="sdpa",
-                max_model_len=1024,
+                model_id="test/policy", attn_implementation="sdpa", max_model_len=1024
             ),
-            reward=RewardModelConfig(
-                model_id="test/reward",
-                max_model_len=512,
-            ),
+            reward=RewardModelConfig(model_id="test/reward", max_model_len=512),
             generation=GenerationConfig(
                 num_candidates=4,
                 max_tokens=256,
@@ -265,11 +249,7 @@ class TestPipelineConfig:
                 lora_dropout=0.05,
                 seed=42,
             ),
-            eval=EvalConfig(
-                language="en",
-                tasks=None,
-                num_iterations=3,
-            ),
+            eval=EvalConfig(language="en", tasks=None, num_iterations=3),
         )
         assert config.construction_mode == "generated"
         assert config.score_gold_output is False
@@ -292,10 +272,7 @@ class TestPipelineConfig:
                 attn_implementation="eager",
                 max_model_len=2048,
             ),
-            reward=RewardModelConfig(
-                model_id="danish/reward",
-                max_model_len=1024,
-            ),
+            reward=RewardModelConfig(model_id="danish/reward", max_model_len=1024),
             generation=GenerationConfig(
                 num_candidates=8,
                 max_tokens=512,
@@ -335,9 +312,7 @@ class TestPipelineConfig:
                 seed=123,
             ),
             eval=EvalConfig(
-                language="da",
-                tasks=["mmlu", "hellaswag"],
-                num_iterations=5,
+                language="da", tasks=["mmlu", "hellaswag"], num_iterations=5
             ),
         )
         assert config.construction_mode == "gold_chosen"
@@ -365,10 +340,7 @@ class TestLoadConfig:
                 "attn_implementation": "sdpa",
                 "max_model_len": 1024,
             },
-            "reward": {
-                "model_id": "test/reward",
-                "max_model_len": 512,
-            },
+            "reward": {"model_id": "test/reward", "max_model_len": 512},
             "generation": {
                 "num_candidates": 4,
                 "max_tokens": 256,
@@ -407,11 +379,7 @@ class TestLoadConfig:
                 "lora_dropout": 0.05,
                 "seed": 42,
             },
-            "eval": {
-                "language": "en",
-                "tasks": None,
-                "num_iterations": 3,
-            },
+            "eval": {"language": "en", "tasks": None, "num_iterations": 3},
         }
 
         config_path = tmp_path / "config.yaml"
@@ -440,10 +408,7 @@ class TestLoadConfig:
                 "attn_implementation": "eager",
                 "max_model_len": 2048,
             },
-            "reward": {
-                "model_id": "danish/reward",
-                "max_model_len": 1024,
-            },
+            "reward": {"model_id": "danish/reward", "max_model_len": 1024},
             "generation": {
                 "num_candidates": 8,
                 "max_tokens": 512,

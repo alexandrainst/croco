@@ -2,13 +2,13 @@
 
 import collections.abc as c
 
-import pytest
-
 from croco.data_models import ScoredCandidate
 from croco.engines import GenerationEngine, ScoringEngine
 
 
-def test_make_scored_fixture(make_scored: c.Callable[[str, float], ScoredCandidate]) -> None:
+def test_make_scored_fixture(
+    make_scored: c.Callable[[str, float], ScoredCandidate],
+) -> None:
     """Test the make_scored fixture creates ScoredCandidate instances."""
     candidate = make_scored("Test response", 0.75)
     assert isinstance(candidate, ScoredCandidate)

@@ -27,7 +27,7 @@ generation:
   temperature: 0.7
   top_p: 1.0
   tensor_parallel_size: 1
-  gpu_memory_utilization: 0.5
+  gpu_memory_utilization: 0.4  # Low to leave room for reward model
 
 data:
   dataset_id: danish-foundation-models/laerebogen
@@ -63,4 +63,5 @@ eval:
   language: da
   tasks: null
   num_iterations: 1
-  skip: true  # Skip eval for LoRA models (EuroEval doesn't support PEFT adapters)
+  skip: false
+  gpu_memory_utilization: 0.5  # Lower for eval with base model + LoRA

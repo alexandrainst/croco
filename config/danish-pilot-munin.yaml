@@ -14,7 +14,7 @@ language: da
 policy:
   model_id: danish-foundation-models/munin-qwen3.5-9B
   attn_implementation: sdpa
-  max_model_len: 4096
+  max_model_len: 2048  # Reduced for GB10 unified memory
 
 reward:
   model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
@@ -22,11 +22,11 @@ reward:
 
 generation:
   num_candidates: 8
-  max_tokens: 4096
+  max_tokens: 2048  # Reduced for GB10 unified memory
   temperature: 0.7
   top_p: 1.0
   tensor_parallel_size: 1
-  gpu_memory_utilization: 0.45  # Leave room for 8B reward model on GB10 unified memory
+  gpu_memory_utilization: 0.35  # Leave room for 8B reward model on GB10 unified memory
 
 data:
   dataset_id: danish-foundation-models/laerebogen

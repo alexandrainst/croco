@@ -63,3 +63,4 @@ eval:
   language: da
   tasks: null
   num_iterations: 1
+  skip: true  # Skip eval for LoRA models (EuroEval doesn't support PEFT adapters)

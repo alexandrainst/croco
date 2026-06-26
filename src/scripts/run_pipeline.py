@@ -129,7 +129,7 @@ def main(
             logger.warning(f"Model output directory {model_output} does not exist")
 
     # Step 3: Evaluate
-    if not skip_eval:
+    if not skip_eval and not cfg.eval.skip:
         if model_output is None:
             logger.error("Cannot evaluate: model_output is None")
             msg = (

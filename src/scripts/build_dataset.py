@@ -9,6 +9,7 @@ import click
 from croco.config import load_config
 from croco.data import load_examples
 from croco.pipeline import build_preference_dataset
+from croco.utils import set_seed
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -41,6 +42,9 @@ def main(*, config: Path, output: Path) -> None:
     # Load configuration
     logger.info(f"Loading configuration from {config}")
     cfg = load_config(path=config)
+
+    # Set random seed for reproducibility
+    set_seed(seed=cfg.data.seed)
 
     # Load examples
     logger.info("Loading examples from dataset")

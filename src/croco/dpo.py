@@ -26,9 +26,7 @@ class CurriculumDPOTrainer(DPOTrainer):
     respects the curriculum ordering of the dataset.
     """
 
-    def _get_train_sampler(
-        self, train_dataset: torch.utils.data.Dataset | None = None
-    ) -> Sampler | None:
+    def _get_train_sampler(self, *args, **kwargs) -> Sampler | None:
         """Return a sequential sampler for curriculum learning.
 
         Args:

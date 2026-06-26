@@ -63,7 +63,11 @@ def fake_generation_engine() -> GenerationEngine:
         def generate(
             self, *, prompts: list[str], num_candidates: int
         ) -> list[list[str]]:
-            """Generate fake responses for testing."""
+            """Generate fake responses for testing.
+
+            Returns:
+                Nested list of fake response strings, one list per prompt.
+            """
             results: list[list[str]] = []
             for i, prompt in enumerate(prompts):
                 candidates = [
@@ -88,7 +92,11 @@ def fake_scoring_engine() -> ScoringEngine:
         """Fake scoring engine for testing."""
 
         def score(self, *, prompts: list[str], responses: list[str]) -> list[float]:
-            """Score responses based on their length for testing."""
+            """Score responses based on their length for testing.
+
+            Returns:
+                List of float scores proportional to response length.
+            """
             scores: list[float] = []
             for prompt, response in zip(prompts, responses):
                 # Simple heuristic: longer responses get higher scores

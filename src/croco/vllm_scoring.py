@@ -5,9 +5,8 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-import vllm  # noqa: F401, ty: ignore[unresolved-import] (vllm is GPU-only)
 from transformers import AutoTokenizer
-from vllm import LLM, PoolingParams  # ty: ignore[unresolved-import]
+from vllm import LLM, PoolingParams  # type: ignore[unresolved-import]  # vllm is GPU-only
 
 from .utils import build_conversation
 

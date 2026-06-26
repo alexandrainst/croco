@@ -15,7 +15,12 @@ class TestLoadExamples:
 
     @pytest.fixture
     def mock_dataset(self) -> Dataset:
-        """Create a mock dataset for testing."""
+        """Create a mock dataset for testing.
+
+        Returns:
+            A datasets.Dataset instance with sample instruction/output/evolution
+            data for testing data loading functions.
+        """
         return Dataset.from_dict(
             {
                 "instruction": [

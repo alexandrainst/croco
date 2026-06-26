@@ -1,6 +1,9 @@
 """Unit tests for the DPO training module."""
 
 from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+from torch.utils.data import SequentialSampler
 
 from croco.config import DPOTrainConfig
 from croco.dpo import CurriculumDPOTrainer, build_dpo_config, build_lora_config
@@ -165,3 +168,20 @@ class TestCurriculumDPOTrainer:
     def test_curriculum_dpo_trainer_has_sampler_method(self) -> None:
         """The CurriculumDPOTrainer should have _get_train_sampler method."""
         assert hasattr(CurriculumDPOTrainer, "_get_train_sampler")
+
+    def test_curriculum_dpo_trainer_sampler_returns_sequential(self) -> None:
+        """The _get_train_sampler method should return a SequentialSampler."""
+        # Create a mock dataset with necessary attributes
+        mock_dataset = MagicMock()
+        mock_dataset.__len__ = MagicMock(return_value=10)
+
+        # Create trainer instance with mock data
+        with patch.object(CurriculumDPOTrainer, "__init__", return_value=None):
+            trainer = CurriculumDPOTrainer()
+            trainer.train_dataset = mock_dataset
+
+            # Get the sampler
+            sampler = trainer._get_train_sampler()
+
+            # Verify it's a SequentialSampler
+            assert isinstance(sampler, SequentialSampler)

@@ -41,6 +41,12 @@ SCRIPTS_DIR = Path(__file__).resolve().parent
     help="Output path for preference pairs. Default: data/preference_pairs.jsonl.",
 )
 @click.option(
+    "--candidate-cache",
+    type=click.Path(path_type=Path),
+    default=Path("data/candidates_cache.jsonl"),
+    help="Path to the raw-candidate cache shared across runs/modes.",
+)
+@click.option(
     "--skip-build",
     is_flag=True,
     help="Skip dataset building step (use existing dataset).",
@@ -51,6 +57,7 @@ def main(
     *,
     config: Path,
     dataset_output: Path,
+    candidate_cache: Path,
     skip_build: bool,
     skip_train: bool,
     skip_eval: bool,
@@ -74,6 +81,8 @@ def main(
           Path to the pipeline configuration YAML file.
         dataset_output:
           Path where preference pairs are written and read.
+        candidate_cache:
+          Path to the raw-candidate cache shared across runs and modes.
         skip_build:
           Whether to skip the dataset build step.
         skip_train:
@@ -90,7 +99,14 @@ def main(
         logger.info("=== Step 1: Building preference dataset ===")
         _run_script(
             script="build_dataset.py",
-            args=["--config", str(config), "--output", str(dataset_output)],
+            args=[
+                "--config",
+                str(config),
+                "--output",
+                str(dataset_output),
+                "--candidate-cache",
+                str(candidate_cache),
+            ],
         )
         logger.info(f"Dataset saved to {dataset_output}")
     else:

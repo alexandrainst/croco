@@ -89,14 +89,18 @@ class TestBuildPreferenceDataset:
                 f"Prompt {i}": [f"P{i}-A", f"P{i}-B", f"P{i}-C"] for i in range(3)
             }
         )
+        gen_scores = {
+            response: score
+            for i in range(3)
+            for response, score in zip(
+                [f"P{i}-A", f"P{i}-B", f"P{i}-C"], [9.0, 5.0, 1.0], strict=True
+            )
+        }
+        # Gold outputs are always scored now (for cache reusability), so they must
+        # be scoreable too.
+        gold_scores = {f"Gold {i}": 7.0 for i in range(3)}
         score_engine = DictScoringEngine(
-            scores_by_response={
-                response: score
-                for i in range(3)
-                for response, score in zip(
-                    [f"P{i}-A", f"P{i}-B", f"P{i}-C"], [9.0, 5.0, 1.0], strict=True
-                )
-            }
+            scores_by_response={**gen_scores, **gold_scores}
         )
         output_path = tmp_path / "pairs.jsonl"
 
@@ -168,7 +172,14 @@ class TestBuildPreferenceDataset:
             responses_by_prompt={"P0": ["g0a", "g0b"], "P1": ["g1a", "g1b"]}
         )
         score_engine = DictScoringEngine(
-            scores_by_response={"g0a": 0.9, "g0b": 0.1, "g1a": 0.8, "g1b": 0.2}
+            scores_by_response={
+                "g0a": 0.9,
+                "g0b": 0.1,
+                "g1a": 0.8,
+                "g1b": 0.2,
+                "G0": 0.5,
+                "G1": 0.5,
+            }
         )
         output_path = tmp_path / "pairs.jsonl"
 
@@ -196,6 +207,96 @@ class TestBuildPreferenceDataset:
 
         assert len(second) == 2
         assert {pair.hash for pair in second} == {"a", "b"}
+
+    def test_candidate_cache_reused_across_modes(self, tmp_path: Path) -> None:
+        """A second build with a matching signature reuses cached candidates."""
+        examples = [
+            DataExample(instruction="P0", output="Gold0", evolution=1, hash="a"),
+            DataExample(instruction="P1", output="Gold1", evolution=2, hash="b"),
+        ]
+        gen_engine = DictGenerationEngine(
+            responses_by_prompt={"P0": ["g0a", "g0b"], "P1": ["g1a", "g1b"]}
+        )
+        score_engine = DictScoringEngine(
+            scores_by_response={
+                "g0a": 0.4,
+                "g0b": 0.2,
+                "Gold0": 0.9,
+                "g1a": 0.95,
+                "g1b": 0.1,
+                "Gold1": 0.5,
+            }
+        )
+        cache_path = tmp_path / "cache.jsonl"
+
+        build_preference_dataset(
+            generation_engine=gen_engine,
+            scoring_engine=score_engine,
+            num_candidates=2,
+            construction_mode="generated",
+            score_gold_output=False,
+            output_path=tmp_path / "pairs_gen.jsonl",
+            examples=examples,
+            candidate_cache_path=cache_path,
+            generation_signature="sig-v1",
+        )
+        assert cache_path.exists()
+
+        # A different mode reusing the cache must not touch the engines at all.
+        pairs = build_preference_dataset(
+            generation_engine=_ExplodingGenerationEngine(),
+            scoring_engine=_ExplodingScoringEngine(),
+            num_candidates=2,
+            construction_mode="max_reward",
+            score_gold_output=True,
+            output_path=tmp_path / "pairs_max.jsonl",
+            examples=examples,
+            candidate_cache_path=cache_path,
+            generation_signature="sig-v1",
+        )
+
+        by_hash = {pair.hash: pair for pair in pairs}
+        assert by_hash["a"].chosen == "Gold0"
+        assert by_hash["b"].chosen == "g1a"
+        assert all(pair.mode == "max_reward" for pair in pairs)
+
+
+class _ExplodingGenerationEngine(GenerationEngine):
+    """Generation engine that fails if used, to prove cache reuse."""
+
+    def generate(self, *, prompts: list[str], num_candidates: int) -> list[list[str]]:
+        """Raise to signal an unexpected (uncached) generation call.
+
+        Args:
+            prompts:
+                The prompts (unused).
+            num_candidates:
+                Number of candidates (unused).
+
+        Raises:
+            AssertionError:
+                Always, since cached candidates should have been reused.
+        """
+        raise AssertionError("generation should have been served from cache")
+
+
+class _ExplodingScoringEngine(ScoringEngine):
+    """Scoring engine that fails if used, to prove cache reuse."""
+
+    def score(self, *, prompts: list[str], responses: list[str]) -> list[float]:
+        """Raise to signal an unexpected (uncached) scoring call.
+
+        Args:
+            prompts:
+                The prompts (unused).
+            responses:
+                The responses (unused).
+
+        Raises:
+            AssertionError:
+                Always, since cached scores should have been reused.
+        """
+        raise AssertionError("scoring should have been served from cache")
 
 
 class FakeGenerationEngine(GenerationEngine):

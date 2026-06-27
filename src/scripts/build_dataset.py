@@ -33,7 +33,16 @@ logger = logging.getLogger(__name__)
     default=Path("data/preference_pairs.jsonl"),
     help="Output path for preference pairs. Default: data/preference_pairs.jsonl.",
 )
-def main(*, config: Path, output: Path) -> None:
+@click.option(
+    "--candidate-cache",
+    type=click.Path(path_type=Path),
+    default=Path("data/candidates_cache.jsonl"),
+    help=(
+        "Path to the raw-candidate cache. Reused across runs with a matching "
+        "generation config so modes can share one generation pass."
+    ),
+)
+def main(*, config: Path, output: Path, candidate_cache: Path) -> None:
     """Build a preference dataset from the configured data source.
 
     This script loads examples from the Laerebogen dataset, generates candidate
@@ -87,6 +96,20 @@ def main(*, config: Path, output: Path) -> None:
         config=cfg.reward, gpu_memory_utilization=cfg.reward.gpu_memory_utilization
     )
 
+    # Fingerprint the generation config so cached candidates are only reused when
+    # they were produced with the same settings.
+    gen = cfg.generation
+    generation_signature = "|".join(
+        [
+            cfg.policy.model_id,
+            f"max_model_len={cfg.policy.max_model_len}",
+            f"K={gen.num_candidates}",
+            f"max_tokens={gen.max_tokens}",
+            f"temperature={gen.temperature}",
+            f"top_p={gen.top_p}",
+        ]
+    )
+
     # Build dataset
     logger.info("Building preference dataset")
     pairs = build_preference_dataset(
@@ -98,6 +121,8 @@ def main(*, config: Path, output: Path) -> None:
         output_path=output,
         examples=examples,
         batch_size=cfg.generation.batch_size,
+        candidate_cache_path=candidate_cache,
+        generation_signature=generation_signature,
     )
 
     logger.info(f"Successfully built dataset with {len(pairs)} pairs")

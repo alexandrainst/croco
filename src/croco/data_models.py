@@ -21,6 +21,24 @@ class DataExample(BaseModel):
     hash: str | None = None
 
 
+class ExampleCandidates(BaseModel):
+    """Cached self-generations and scores for one example.
+
+    Stored independently of the preference-construction mode so a single
+    (expensive) generation pass can be reused to build pairs in any mode.
+    """
+
+    prompt: str
+    gold_output: str
+    candidates: list[ScoredCandidate]
+    gold_score: float | None = None
+    evolution: int | None = None
+    hash: str | None = None
+    # Generation-config fingerprint; a cached record is only reused when it matches
+    # the current run, so changing K/max_tokens/etc. forces regeneration.
+    signature: str
+
+
 class PreferencePair(BaseModel):
     """A constructed (chosen, rejected) preference pair for DPO."""
 

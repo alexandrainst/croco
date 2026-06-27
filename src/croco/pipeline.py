@@ -3,8 +3,8 @@
 import logging
 from pathlib import Path
 
-from .data_models import DataExample, PreferencePair, ScoredCandidate
-from .dataset import append_pairs, load_pairs
+from .data_models import DataExample, ExampleCandidates, PreferencePair, ScoredCandidate
+from .dataset import append_candidates, append_pairs, load_candidate_cache, load_pairs
 from .engines import GenerationEngine, ScoringEngine
 from .preference import (
     build_pair_generated,
@@ -26,19 +26,25 @@ def build_preference_dataset(
     examples: list[DataExample] | None = None,
     batch_size: int = 64,
     resume: bool = True,
+    candidate_cache_path: Path | None = None,
+    generation_signature: str = "",
 ) -> list[PreferencePair]:
     """Build a preference dataset.
 
     This function runs the full CroCo pipeline in prompt batches:
-    1. Generate multiple candidate responses for a batch of instructions
-    2. Score all candidates (and the gold outputs, where needed) in bulk
-    3. Construct preference pairs (chosen vs rejected) per example
-    4. Append the batch's pairs to disk before moving on
+    1. Reuse or generate+score candidate responses (and gold scores) per example
+    2. Construct preference pairs (chosen vs rejected) per example
+    3. Append the batch's pairs to disk before moving on
 
     Batching lets vLLM saturate the GPU with its own request queue, and the
     per-batch append provides incremental checkpointing: an interrupted build
     leaves a usable dataset and can be resumed. Pairs are written in processing
     order; curriculum ordering is applied at training time.
+
+    When ``candidate_cache_path`` is given, raw scored candidates (and gold
+    scores) are persisted there keyed by example hash. A subsequent build with a
+    matching ``generation_signature`` reuses them, so different construction modes
+    can share a single (expensive) generation pass.
 
     Args:
         generation_engine:
@@ -51,7 +57,7 @@ def build_preference_dataset(
             One of "generated", "gold_chosen", or "max_reward".
         score_gold_output:
             Whether to score the gold output in "gold_chosen" mode (always scored
-            in "max_reward" mode, which requires it).
+            otherwise, so the cache is reusable across modes).
         output_path:
             Path to save the resulting preference dataset (JSONL).
         examples (optional):
@@ -62,6 +68,12 @@ def build_preference_dataset(
         resume (optional):
             If True and the output file exists, skip examples whose hash already
             has a pair on disk and append to it. Defaults to True.
+        candidate_cache_path (optional):
+            Path to a candidate cache JSONL. If set, candidates are read from and
+            written to it. Defaults to None.
+        generation_signature (optional):
+            Fingerprint of the generation config; cached candidates are only
+            reused when their signature matches. Defaults to "".
 
     Returns:
         List of all constructed preference pairs (including any pre-existing ones
@@ -81,6 +93,15 @@ def build_preference_dataset(
             "Resuming from %s: %d pairs already present", output_path, n_existing
         )
 
+    cache: dict[str, ExampleCandidates] = {}
+    if candidate_cache_path is not None and candidate_cache_path.exists():
+        cache = load_candidate_cache(path=candidate_cache_path)
+        logger.info(
+            "Loaded %d cached candidate records from %s",
+            len(cache),
+            candidate_cache_path,
+        )
+
     todo = [
         example
         for example in examples
@@ -95,46 +116,46 @@ def build_preference_dataset(
     )
 
     n_built = 0
+    n_generated = 0
     for batch_start in range(0, len(todo), batch_size):
         batch = todo[batch_start : batch_start + batch_size]
-        candidates_per_example = _generate_and_score_batch(
+        records, n_new = _candidates_for_batch(
+            batch=batch,
             generation_engine=generation_engine,
             scoring_engine=scoring_engine,
-            prompts=[example.instruction for example in batch],
             num_candidates=num_candidates,
+            cache=cache,
+            signature=generation_signature,
+            candidate_cache_path=candidate_cache_path,
         )
-        gold_scores = _maybe_score_gold(
-            construction_mode=construction_mode,
-            score_gold_output=score_gold_output,
-            scoring_engine=scoring_engine,
-            batch=batch,
-        )
+        n_generated += n_new
 
         batch_pairs: list[PreferencePair] = []
-        for example, candidates, gold_score in zip(
-            batch, candidates_per_example, gold_scores, strict=True
-        ):
-            if len(candidates) < 1:
+        for record in records:
+            if len(record.candidates) < 1:
                 continue
             pair = _construct_pair(
                 construction_mode=construction_mode,
-                prompt=example.instruction,
-                gold_output=example.output,
-                gold_score=gold_score,
-                candidates=candidates,
-                evolution=example.evolution,
-                hash=example.hash,
+                prompt=record.prompt,
+                gold_output=record.gold_output,
+                gold_score=record.gold_score,
+                candidates=record.candidates,
+                evolution=record.evolution,
+                hash=record.hash,
             )
             if pair is not None:
                 batch_pairs.append(pair)
 
         append_pairs(pairs=batch_pairs, path=output_path)
         n_built += len(batch_pairs)
+        n_processed = min(batch_start + batch_size, len(todo))
         logger.info(
-            "Processed %d/%d examples, %d pairs built this run",
-            min(batch_start + batch_size, len(todo)),
+            "Processed %d/%d examples, %d pairs (%d generated, %d cached)",
+            n_processed,
             len(todo),
             n_built,
+            n_generated,
+            n_processed - n_generated,
         )
 
     logger.info(
@@ -145,6 +166,111 @@ def build_preference_dataset(
     )
 
     return load_pairs(path=output_path)
+
+
+def _candidates_for_batch(
+    *,
+    batch: list[DataExample],
+    generation_engine: GenerationEngine,
+    scoring_engine: ScoringEngine,
+    num_candidates: int,
+    cache: dict[str, ExampleCandidates],
+    signature: str,
+    candidate_cache_path: Path | None,
+) -> tuple[list[ExampleCandidates], int]:
+    """Return candidate records for a batch, generating any cache misses.
+
+    Gold outputs are always scored for freshly generated examples so the cache is
+    reusable across construction modes. Newly generated records are appended to
+    the cache file (if any) and added to the in-memory cache.
+
+    Args:
+        batch:
+            The examples in this batch.
+        generation_engine:
+            Engine for generating candidate responses.
+        scoring_engine:
+            Engine for scoring (prompt, response) pairs.
+        num_candidates:
+            Number of candidates to generate per prompt.
+        cache:
+            In-memory candidate cache keyed by example hash (mutated in place).
+        signature:
+            Generation-config fingerprint required for a cache hit.
+        candidate_cache_path:
+            Path to append newly generated records to, or None.
+
+    Returns:
+        A tuple of (records aligned to ``batch`` order, number generated).
+    """
+    misses = [
+        example
+        for example in batch
+        if _cached_record(cache=cache, example=example, signature=signature) is None
+    ]
+
+    fresh: dict[int, ExampleCandidates] = {}
+    if misses:
+        candidates_per_example = _generate_and_score_batch(
+            generation_engine=generation_engine,
+            scoring_engine=scoring_engine,
+            prompts=[example.instruction for example in misses],
+            num_candidates=num_candidates,
+        )
+        gold_scores = scoring_engine.score(
+            prompts=[example.instruction for example in misses],
+            responses=[example.output for example in misses],
+        )
+        new_records: list[ExampleCandidates] = []
+        for example, candidates, gold_score in zip(
+            misses, candidates_per_example, gold_scores, strict=True
+        ):
+            record = ExampleCandidates(
+                prompt=example.instruction,
+                gold_output=example.output,
+                candidates=candidates,
+                gold_score=gold_score,
+                evolution=example.evolution,
+                hash=example.hash,
+                signature=signature,
+            )
+            fresh[id(example)] = record
+            new_records.append(record)
+            if example.hash is not None:
+                cache[example.hash] = record
+        if candidate_cache_path is not None:
+            append_candidates(records=new_records, path=candidate_cache_path)
+
+    records = [
+        _cached_record(cache=cache, example=example, signature=signature)
+        or fresh[id(example)]
+        for example in batch
+    ]
+    return records, len(misses)
+
+
+def _cached_record(
+    *, cache: dict[str, ExampleCandidates], example: DataExample, signature: str
+) -> ExampleCandidates | None:
+    """Return a usable cached record for an example, or None.
+
+    Args:
+        cache:
+            In-memory candidate cache keyed by example hash.
+        example:
+            The example to look up.
+        signature:
+            Generation-config fingerprint required for a cache hit.
+
+    Returns:
+        The cached record if present with a matching signature, else None.
+    """
+    if example.hash is None:
+        return None
+    record = cache.get(example.hash)
+    if record is not None and record.signature == signature:
+        return record
+    return None
 
 
 def _generate_and_score_batch(
@@ -202,42 +328,6 @@ def _generate_and_score_batch(
         )
 
     return candidates_per_example
-
-
-def _maybe_score_gold(
-    *,
-    construction_mode: str,
-    score_gold_output: bool,
-    scoring_engine: ScoringEngine,
-    batch: list[DataExample],
-) -> list[float | None]:
-    """Score the gold outputs for a batch where the mode requires it.
-
-    Args:
-        construction_mode:
-            One of "generated", "gold_chosen", or "max_reward".
-        score_gold_output:
-            Whether to score the gold output in "gold_chosen" mode.
-        scoring_engine:
-            Engine for scoring (prompt, response) pairs.
-        batch:
-            The examples in the batch.
-
-    Returns:
-        A gold score per example (parallel to ``batch``), or None where the gold
-        output is not scored.
-    """
-    needs_gold = construction_mode == "max_reward" or (
-        construction_mode == "gold_chosen" and score_gold_output
-    )
-    if not needs_gold:
-        return [None] * len(batch)
-
-    scores = scoring_engine.score(
-        prompts=[example.instruction for example in batch],
-        responses=[example.output for example in batch],
-    )
-    return list(scores)
 
 
 def _construct_pair(

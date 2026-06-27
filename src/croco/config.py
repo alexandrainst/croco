@@ -90,6 +90,9 @@ class DPOTrainConfig(BaseModel):
     lora_dropout: float
     seed: int
     hf_repo_id: str | None = None  # HuggingFace repo ID for uploading model and dataset
+    # Save an intermediate checkpoint every N optimiser steps (0 disables). Each
+    # checkpoint is an adapter that can be evaluated to trace the learning curve.
+    save_steps: int = 0
 
 
 class EvalConfig(BaseModel):

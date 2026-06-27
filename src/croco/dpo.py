@@ -74,6 +74,16 @@ def build_dpo_config(*, config: DPOTrainConfig) -> DPOConfig:
     Returns:
         DPOConfig with all training hyperparameters.
     """
+    save_kwargs: dict[str, t.Any] = {}
+    if config.save_steps > 0:
+        # Keep every checkpoint (save_total_limit=None) so the full learning curve
+        # can be evaluated afterwards.
+        save_kwargs = {
+            "save_strategy": "steps",
+            "save_steps": config.save_steps,
+            "save_total_limit": None,
+        }
+
     return DPOConfig(
         output_dir=str(config.output_dir),
         learning_rate=config.learning_rate,
@@ -88,6 +98,7 @@ def build_dpo_config(*, config: DPOTrainConfig) -> DPOConfig:
         bf16=config.bf16,
         gradient_checkpointing=config.gradient_checkpointing,
         seed=config.seed,
+        **save_kwargs,
     )
 
 

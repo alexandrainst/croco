@@ -145,28 +145,35 @@ All scripts are run with `uv run` from the project root:
 
 ```bash
 # Build the preference dataset (generation + scoring)
-uv run src/scripts/build_dataset.py --config config/danish.yaml
+uv run src/scripts/build_dataset.py --config config/danish-apertus.yaml
 
 # Train using DPO with curriculum learning
-uv run src/scripts/train.py --config config/danish.yaml
+uv run src/scripts/train.py --config config/danish-apertus.yaml
 
 # Evaluate the trained model
-uv run src/scripts/eval_model.py --config config/danish.yaml --model path/to/model
+uv run src/scripts/eval_model.py --config config/danish-apertus.yaml --model path/to/model
 
 # Run the full pipeline (build -> train -> evaluate)
-uv run src/scripts/run_pipeline.py --config config/danish.yaml
+uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml
 ```
 
 ### Configuration
 
-The default configuration is `config/danish.yaml`. Key sections:
+Available configurations (all use `danish-foundation-models/munin-apertus-8b` as
+the policy and `Skywork/Skywork-Reward-V2-Qwen3-8B` as the reward model):
 
-- **`construction_mode`**: `generated` or `existing`
-- **`policy`**: Policy model settings (Gemma-3-12B-IT default)
-- **`reward`**: Reward model settings (Skywork-Reward-V2-Qwen3-8B default)
+- **`config/danish-apertus.yaml`**: main run, `max_reward` construction mode.
+- **`config/danish-apertus-gold.yaml`**: `gold_chosen` ablation of the above.
+- **`config/danish-micro-apertus.yaml`**: tiny smoke test (10 samples).
+
+Key sections:
+
+- **`construction_mode`**: `generated`, `gold_chosen`, or `max_reward`
+- **`policy`**: Policy model settings
+- **`reward`**: Reward model settings
 - **`generation`**: vLLM generation parameters (candidates, temperature, etc.)
 - **`data`**: Dataset configuration (Laerebogen, stratification, sample count)
-- **`dpo`**: Training hyperparameters, curriculum settings, LoRA config
+- **`dpo`**: Training hyperparameters, curriculum, LoRA, checkpoint `save_steps`
 - **`eval`**: Evaluation tasks and iterations
 
 ### GPU Requirements

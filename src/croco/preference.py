@@ -65,11 +65,12 @@ def build_pair_gold_chosen(
     evolution: int | None = None,
     hash: str | None = None,
 ) -> PreferencePair | None:
-    """Build a pair where chosen is the dataset's gold output.
+    """Build a pair where chosen is always the dataset's gold output.
 
     Rejected is the self-generation nearest to ``mu - 2*sigma`` (statistics
-    taken over the generations only). If ``gold_score`` is given, the rejected
-    reward must be strictly below it.
+    taken over the generations only). The gold output is always the chosen
+    response, regardless of its reward relative to the generations, so the
+    example is never discarded even when the best generation outscores gold.
 
     Args:
         prompt:
@@ -79,23 +80,21 @@ def build_pair_gold_chosen(
         candidates:
           The scored self-generations for this prompt.
         gold_score (optional):
-          Reward-model score of ``gold_output``, used as an upper bound on the
-          rejected reward. Defaults to None.
+          Reward-model score of ``gold_output``, recorded on the pair for
+          reference only. Defaults to None.
         evolution (optional):
           The source difficulty level. Defaults to None.
         hash (optional):
           The source row hash. Defaults to None.
 
     Returns:
-        The preference pair, or None if no valid rejected generation exists.
+        The preference pair, or None if there are no generations to use as the
+        rejected response.
     """
     if len(candidates) < 1:
         return None
-    rejected = _select_rejected(pool=candidates, upper_bound=gold_score, exclude=None)
+    rejected = _select_rejected(pool=candidates, upper_bound=None, exclude=None)
     if rejected is None:
-        # No generation scores strictly below the gold output, so there is no valid
-        # contrastive pair: skip rather than invert the preference (which would train
-        # the policy towards the RM-preferred generation over the gold chosen).
         return None
     return PreferencePair(
         prompt=prompt,

@@ -8,8 +8,8 @@
 #   uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml
 
 # gold_chosen: chosen is always the dataset's gold output; rejected is the
-# self-generation nearest mu-2sigma that scores below gold. Examples where no
-# generation scores below gold are skipped.
+# self-generation nearest mu-2sigma. Gold is the chosen response regardless of
+# its reward, so no example is discarded (even when a generation outscores gold).
 construction_mode: gold_chosen
 score_gold_output: true
 language: da
@@ -54,8 +54,10 @@ dpo:
   warmup_ratio: 0.05
   weight_decay: 0.01
   beta: 0.1
-  per_device_train_batch_size: 8
-  gradient_accumulation_steps: 1
+  # Effective batch 8 (4 x 2); per-device 4 halves the DPO forward's peak memory
+  # to keep the unattended run clear of the whole-box GPU OOM.
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 2
   num_train_epochs: 1
   max_length: 4096
   bf16: true

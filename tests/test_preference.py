@@ -349,8 +349,8 @@ class TestBuildPairGoldChosen:
         )
         assert result is None
 
-    def test_build_pair_gold_chosen_rejected_above_gold(self) -> None:
-        """Test when best rejected candidate is above gold score."""
+    def test_build_pair_gold_chosen_keeps_when_generations_beat_gold(self) -> None:
+        """Gold is always chosen even when every generation outscores it."""
         gold_output = "Gold output"
         gold_score = 0.5
 
@@ -365,9 +365,8 @@ class TestBuildPairGoldChosen:
         #                = sqrt((0.01 + 0 + 0.01) / 3)
         #                = sqrt(0.02 / 3) ≈ 0.082
         # Target = 0.8 - 2 * 0.082 = 0.8 - 0.164 = 0.636
-        # Closest to 0.636 is "gen_low" (0.7)
-        # But 0.7 >= 0.5 (gold_score), so it's excluded
-        # All candidates are above gold_score, so rejected selection fails
+        # Closest to 0.636 is "gen_low" (0.7). Gold no longer acts as an upper
+        # bound, so the example is kept with gen_low as the rejected response.
 
         result = build_pair_gold_chosen(
             prompt="Test prompt",
@@ -375,7 +374,11 @@ class TestBuildPairGoldChosen:
             candidates=candidates,
             gold_score=gold_score,
         )
-        assert result is None
+        assert result is not None
+        assert result.chosen == "Gold output"
+        assert result.chosen_score == 0.5
+        assert result.rejected == "gen_low"
+        assert result.rejected_score == 0.7
 
     def test_build_pair_gold_chosen_partial_exclusion(self) -> None:
         """Test when some candidates are above gold score but not all."""

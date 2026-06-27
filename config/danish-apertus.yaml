@@ -64,10 +64,11 @@ dpo:
   warmup_ratio: 0.05
   weight_decay: 0.01
   beta: 0.1
-  # Effective batch stays 8 (8 x 1), but as a single GPU pass it trains far faster
-  # than 1 x 8 gradient accumulation did.
-  per_device_train_batch_size: 8
-  gradient_accumulation_steps: 1
+  # Effective batch is 8 (4 x 2). Per-device 4 (rather than 8) roughly halves the
+  # peak activation/logits memory of the DPO chosen+rejected forward, keeping an
+  # unattended run clear of the whole-box GPU OOM while preserving the dynamics.
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 2
   num_train_epochs: 1
   max_length: 4096
   bf16: true

@@ -13,12 +13,20 @@ they can be compared while the runs are still in progress:
 Plots are rendered with Plotly (loaded from a CDN), so each chart has a built-in
 "download as PNG" button. The page carries a meta-refresh, so regenerating the
 file in place keeps an open browser tab live.
+
+The data files can live locally or on a remote host: pass ``--ssh-host`` to read
+the model directories and results file from that host over plain ``ssh``/``cat``,
+so nothing extra needs to run there. With ``--watch`` the script regenerates the
+HTML on an interval, giving a live dashboard driven entirely from this repo.
 """
 
 import datetime as dt
 import json
 import logging
+import os
 import re
+import subprocess
+import time
 import typing as t
 from pathlib import Path
 
@@ -46,37 +54,48 @@ _TRAINING_KEYS = {
     "-m",
     "model_dirs",
     multiple=True,
-    type=click.Path(path_type=Path),
     help="DPO output directory to read training dynamics from (repeatable).",
 )
 @click.option(
     "--results",
     "-r",
-    type=click.Path(path_type=Path),
-    default=Path("euroeval_benchmark_results.jsonl"),
+    default="euroeval_benchmark_results.jsonl",
     help="Path to the EuroEval results JSONL file.",
 )
 @click.option(
     "--output",
     "-o",
-    type=click.Path(path_type=Path, allow_dash=True),
+    type=click.Path(path_type=Path),
     default=Path("croco_dashboard.html"),
-    help="Output HTML path, or '-' for stdout.",
+    help="Output HTML path.",
 )
 @click.option(
-    "--total-steps",
+    "--ssh-host",
+    default=None,
+    help="If set, read all paths from this host over ssh (paths are then "
+    "relative to --remote-root).",
+)
+@click.option(
+    "--remote-root",
+    default="~/croco",
+    help="Remote working directory that paths are relative to. Defaults to ~/croco.",
+)
+@click.option(
+    "--watch",
     type=int,
     default=0,
-    help="Planned total training steps, for progress display. 0 to infer.",
+    help="Regenerate every N seconds in a loop. 0 (default) builds once and exits.",
 )
 def main(
     *,
-    model_dirs: tuple[Path, ...],
-    results: Path,
+    model_dirs: tuple[str, ...],
+    results: str,
     output: Path,
-    total_steps: int,
+    ssh_host: str | None,
+    remote_root: str,
+    watch: int,
 ) -> None:
-    """Build the dashboard HTML from training states and EuroEval results.
+    """Build (and optionally keep refreshing) the dashboard HTML.
 
     Args:
         model_dirs:
@@ -84,90 +103,132 @@ def main(
         results:
           Path to the EuroEval results JSONL file.
         output:
-          Output HTML path, or '-' for stdout.
-        total_steps:
-          Planned total training steps for progress display, or 0 to infer.
+          Output HTML path.
+        ssh_host (optional):
+          Host to read the data from over ssh. Defaults to None (local).
+        remote_root:
+          Remote directory that paths are relative to when reading over ssh.
+        watch:
+          Regenerate every N seconds when positive, else build once.
+    """
+    reader = _Reader(ssh_host=ssh_host, root=remote_root)
+    refresh = watch if watch > 0 else 30
+
+    while True:
+        _build_once(
+            reader=reader,
+            model_dirs=model_dirs,
+            results=results,
+            output=output,
+            refresh_seconds=refresh,
+        )
+        if watch <= 0:
+            return
+        time.sleep(watch)
+
+
+def _build_once(
+    *,
+    reader: "_Reader",
+    model_dirs: tuple[str, ...],
+    results: str,
+    output: Path,
+    refresh_seconds: int,
+) -> None:
+    """Assemble the data and write the dashboard HTML atomically.
+
+    Args:
+        reader:
+          File reader (local or ssh-backed).
+        model_dirs:
+          DPO output directories to read training dynamics from.
+        results:
+          Path to the EuroEval results JSONL file.
+        output:
+          Output HTML path.
+        refresh_seconds:
+          Browser meta-refresh interval to embed in the page.
     """
     data = {
         "generated": dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "training": {
-            _mode_label(model_dir.name): _training_series(
-                model_dir=model_dir, total_steps=total_steps
-            )
+            _mode_label(Path(model_dir).name): series
             for model_dir in model_dirs
-            if _latest_trainer_state(model_dir=model_dir) is not None
+            if (series := _training_series(reader=reader, model_dir=model_dir))
         },
-        **_eval_series(results=results),
+        **_eval_series(reader=reader, results=results),
     }
+    html = _render_html(data=data, refresh_seconds=refresh_seconds)
 
-    html = _render_html(data=data)
-    if str(output) == "-":
-        click.echo(html, nl=False)
-    else:
-        output.write_text(html)
-        logger.info("Wrote dashboard to %s", output)
+    tmp = output.with_suffix(output.suffix + ".tmp")
+    tmp.write_text(html)
+    os.replace(tmp, output)
+    logger.info("Wrote dashboard to %s (modes: %s)", output, list(data["training"]))
 
 
-def _training_series(*, model_dir: Path, total_steps: int) -> dict[str, t.Any]:
+def _training_series(*, reader: "_Reader", model_dir: str) -> dict[str, t.Any] | None:
     """Extract per-step training metrics from a model directory.
 
     Args:
+        reader:
+          File reader (local or ssh-backed).
         model_dir:
           DPO output directory containing checkpoint-* subdirectories.
-        total_steps:
-          Planned total training steps, or 0 to infer from the log.
 
     Returns:
         Mapping with a ``steps`` list, one list per tracked metric, plus the
-        latest step and the (possibly inferred) total step count.
+        latest step and total step count, or None when no state is available.
     """
-    state = _latest_trainer_state(model_dir=model_dir)
-    history = state["log_history"] if state else []
-    rows = [entry for entry in history if "loss" in entry]
+    state = _latest_trainer_state(reader=reader, model_dir=model_dir)
+    if state is None:
+        return None
+    rows = [entry for entry in state["log_history"] if "loss" in entry]
 
     series: dict[str, t.Any] = {"steps": [entry["step"] for entry in rows]}
     for source_key, out_key in _TRAINING_KEYS.items():
         series[out_key] = [entry.get(source_key) for entry in rows]
 
-    inferred_total = 0
-    if state is not None:
-        max_steps = state.get("max_steps", 0)
-        inferred_total = int(max_steps) if max_steps else 0
+    max_steps = int(state.get("max_steps", 0) or 0)
     series["latest_step"] = series["steps"][-1] if series["steps"] else 0
-    series["total"] = total_steps or inferred_total or series["latest_step"]
+    series["total"] = max_steps or series["latest_step"]
     return series
 
 
-def _latest_trainer_state(*, model_dir: Path) -> dict[str, t.Any] | None:
+def _latest_trainer_state(
+    *, reader: "_Reader", model_dir: str
+) -> dict[str, t.Any] | None:
     """Return the trainer state from the highest-step checkpoint, if any.
 
     Falls back to a top-level ``trainer_state.json`` (written when training
     finishes) when no checkpoint directories are present.
 
     Args:
+        reader:
+          File reader (local or ssh-backed).
         model_dir:
           DPO output directory.
 
     Returns:
         The parsed trainer state, or None when none is available.
     """
-    if not model_dir.exists():
-        return None
-    checkpoints = sorted(
-        (path for path in model_dir.glob("checkpoint-*") if path.is_dir()),
-        key=lambda path: int(path.name.split("-")[-1]),
-    )
-    for candidate in (*reversed(checkpoints), model_dir):
-        state_path = candidate / "trainer_state.json"
-        if state_path.exists():
-            return json.loads(state_path.read_text())
+    candidates = [
+        f"{model_dir}/checkpoint-{step}/trainer_state.json"
+        for step in reader.checkpoint_steps(model_dir=model_dir)
+    ]
+    candidates.append(f"{model_dir}/trainer_state.json")
+    for path in reversed(candidates):
+        text = reader.read_text(path=path)
+        if text:
+            return json.loads(text)
     return None
 
 
-def _eval_series(*, results: Path) -> dict[str, t.Any]:
+def _eval_series(*, reader: "_Reader", results: str) -> dict[str, t.Any]:
     """Parse EuroEval results into final scores and per-checkpoint curves.
 
     Args:
+        reader:
+          File reader (local or ssh-backed).
         results:
           Path to the EuroEval results JSONL file.
 
@@ -180,10 +241,11 @@ def _eval_series(*, results: Path) -> dict[str, t.Any]:
     curves: dict[str, dict[str, list[dict[str, t.Any]]]] = {}
     keys: set[str] = set()
 
-    if not results.exists():
+    text = reader.read_text(path=results)
+    if not text:
         return {"finals": finals, "curves": curves, "metric_keys": []}
 
-    for line in results.read_text().splitlines():
+    for line in text.splitlines():
         if not line.strip():
             continue
         record = json.loads(line)
@@ -200,8 +262,9 @@ def _eval_series(*, results: Path) -> dict[str, t.Any]:
             if step is None:
                 finals.setdefault(_final_label(mode=mode), {})[key] = entry
             else:
-                point = {"step": step, **entry}
-                curves.setdefault(mode, {}).setdefault(key, []).append(point)
+                curves.setdefault(mode, {}).setdefault(key, []).append(
+                    {"step": step, **entry}
+                )
 
     for metric_points in curves.values():
         for points in metric_points.values():
@@ -290,25 +353,109 @@ def _mode_label(name: str) -> str:
     return "gold_chosen" if name.endswith("-gold") else "max_reward"
 
 
-def _render_html(*, data: dict[str, t.Any]) -> str:
+class _Reader:
+    """Read text files and list checkpoints, locally or over ssh."""
+
+    def __init__(self, *, ssh_host: str | None, root: str) -> None:
+        """Initialise the reader.
+
+        Args:
+            ssh_host:
+              Host to read from over ssh, or None to read the local filesystem.
+            root:
+              Remote directory that relative paths resolve against (ssh only).
+        """
+        self.ssh_host = ssh_host
+        self.root = root
+
+    def read_text(self, *, path: str) -> str | None:
+        """Return the contents of a file, or None if it is missing or empty.
+
+        Args:
+            path:
+              File path (local, or relative to the remote root over ssh).
+
+        Returns:
+            The file contents, or None.
+        """
+        if self.ssh_host is None:
+            local = Path(path)
+            return local.read_text() if local.exists() else None
+        out = self._ssh(command=f"cat {self.root}/{path} 2>/dev/null")
+        return out or None
+
+    def checkpoint_steps(self, *, model_dir: str) -> list[int]:
+        """Return the checkpoint step numbers present in a model directory.
+
+        Args:
+            model_dir:
+              DPO output directory (local, or relative to the remote root).
+
+        Returns:
+            Sorted checkpoint step numbers (ascending), empty when none exist.
+        """
+        if self.ssh_host is None:
+            base = Path(model_dir)
+            names = (
+                [path.name for path in base.glob("checkpoint-*") if path.is_dir()]
+                if base.exists()
+                else []
+            )
+        else:
+            out = self._ssh(
+                command=f"ls -d {self.root}/{model_dir}/checkpoint-* 2>/dev/null"
+            )
+            names = out.splitlines()
+        steps = [
+            int(match.group(1))
+            for name in names
+            if (match := _CHECKPOINT_RE.search(name))
+        ]
+        return sorted(steps)
+
+    def _ssh(self, *, command: str) -> str:
+        """Run a command on the ssh host and return stdout (empty on failure).
+
+        Args:
+            command:
+              Shell command to execute on the remote host.
+
+        Returns:
+            The command's standard output, or an empty string on any error.
+        """
+        host = self.ssh_host
+        assert host is not None  # noqa: S101 - _ssh is only reached in remote mode
+        result = subprocess.run(
+            ["ssh", host, command],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        return result.stdout
+
+
+def _render_html(*, data: dict[str, t.Any], refresh_seconds: int) -> str:
     """Render the dashboard HTML with the experiment data embedded.
 
     Args:
         data:
           The assembled dashboard data.
+        refresh_seconds:
+          Browser meta-refresh interval to embed.
 
     Returns:
         A complete, self-contained HTML document.
     """
-    payload = json.dumps(data)
-    return _HTML_TEMPLATE.replace("__DATA__", payload)
+    return _HTML_TEMPLATE.replace("__DATA__", json.dumps(data)).replace(
+        "__REFRESH__", str(refresh_seconds)
+    )
 
 
 _HTML_TEMPLATE = r"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="refresh" content="120">
+<meta http-equiv="refresh" content="__REFRESH__">
 <title>CroCo dashboard</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
 <style>
@@ -329,8 +476,8 @@ _HTML_TEMPLATE = r"""<!doctype html>
 </head>
 <body>
 <h1>CroCo experiment dashboard</h1>
-<div class="meta">Generated <span id="gen"></span> &middot; auto-refreshes every 120s
-  &middot; hover a chart and use the camera icon to save a PNG</div>
+<div class="meta">Generated <span id="gen"></span> &middot; auto-refreshes every
+  __REFRESH__s &middot; hover a chart and use the camera icon to save a PNG</div>
 
 <h2>Training progress</h2>
 <div id="progress" class="meta"></div>

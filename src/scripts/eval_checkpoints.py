@@ -152,10 +152,11 @@ def _run_euroeval(
         gpu_memory_utilization:
           vLLM GPU memory utilisation.
     """
+    # EuroEval ships only a console-script entry point (no ``__main__``), so it
+    # cannot be run via ``python -m euroeval``; invoke the binary next to the
+    # active interpreter instead.
     cmd = [
-        sys.executable,
-        "-m",
-        "euroeval",
+        str(Path(sys.executable).with_name("euroeval")),
         "--model",
         str(model_path),
         "--language",

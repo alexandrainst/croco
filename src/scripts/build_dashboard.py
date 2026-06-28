@@ -86,6 +86,13 @@ _TRAINING_KEYS = {
     default=0,
     help="Regenerate every N seconds in a loop. 0 (default) builds once and exits.",
 )
+@click.option(
+    "--refresh-seconds",
+    type=int,
+    default=60,
+    help="Browser meta-refresh interval embedded in the page. Kept independent of "
+    "--watch so the display tracks the file without racing the regeneration.",
+)
 def main(
     *,
     model_dirs: tuple[str, ...],
@@ -94,6 +101,7 @@ def main(
     ssh_host: str | None,
     remote_root: str,
     watch: int,
+    refresh_seconds: int,
 ) -> None:
     """Build (and optionally keep refreshing) the dashboard HTML.
 
@@ -110,9 +118,10 @@ def main(
           Remote directory that paths are relative to when reading over ssh.
         watch:
           Regenerate every N seconds when positive, else build once.
+        refresh_seconds:
+          Browser meta-refresh interval embedded in the page.
     """
     reader = _Reader(ssh_host=ssh_host, root=remote_root)
-    refresh = watch if watch > 0 else 30
 
     while True:
         _build_once(
@@ -120,7 +129,7 @@ def main(
             model_dirs=model_dirs,
             results=results,
             output=output,
-            refresh_seconds=refresh,
+            refresh_seconds=refresh_seconds,
         )
         if watch <= 0:
             return

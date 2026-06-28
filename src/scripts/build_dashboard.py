@@ -207,7 +207,11 @@ def _training_series(*, reader: "_Reader", model_dir: str) -> dict[str, t.Any] |
         series[out_key] = [entry.get(source_key) for entry in rows]
 
     max_steps = int(state.get("max_steps", 0) or 0)
-    series["latest_step"] = series["steps"][-1] if series["steps"] else 0
+    # Prefer the optimiser's ``global_step`` over the last logged step: logging
+    # runs on a fixed cadence, so a finished run whose final step is not a
+    # logging multiple (e.g. 625 with cadence 10) would otherwise read 620/625.
+    last_logged_step = series["steps"][-1] if series["steps"] else 0
+    series["latest_step"] = int(state.get("global_step", 0) or 0) or last_logged_step
     series["total"] = max_steps or series["latest_step"]
     return series
 

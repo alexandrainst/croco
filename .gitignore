@@ -110,3 +110,7 @@ site/
 
 # Node modules
 node_modules/
+
+# Generated live dashboard
+croco_dashboard.html
+croco_dashboard.html.tmp

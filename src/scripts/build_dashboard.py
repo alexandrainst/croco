@@ -38,6 +38,15 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 _CHECKPOINT_RE = re.compile(r"checkpoint-(\d+)")
+# Ordered most-specific first: each construction-mode / ablation maps to the
+# unique tail of its model directory. ``max_reward`` is the bare suffix, so it
+# must be matched last or it would swallow the ``-gold``/``-ls``/``-simpo`` ones.
+_MODE_MARKERS = (
+    ("croco-munin-apertus-8b-da-gold", "gold_chosen"),
+    ("croco-munin-apertus-8b-da-ls", "label_smoothing"),
+    ("croco-munin-apertus-8b-da-simpo", "sigmoid_norm"),
+    ("croco-munin-apertus-8b-da", "max_reward"),
+)
 _TRAINING_KEYS = {
     "loss": "loss",
     "rewards/accuracies": "acc",
@@ -311,14 +320,14 @@ def _result_mode(*, model_id: str) -> str | None:
           The ``model_info.id`` from a results record.
 
     Returns:
-        ``base``, ``gold_chosen``, ``max_reward`` or None for unrelated models.
+        The construction-mode/ablation label, ``base``, or None for unrelated
+        models.
     """
     if model_id.rstrip("/").endswith("munin-apertus-8b"):
         return "base"
-    if "croco-munin-apertus-8b-da-gold" in model_id:
-        return "gold_chosen"
-    if "croco-munin-apertus-8b-da" in model_id:
-        return "max_reward"
+    for marker, mode in _MODE_MARKERS:
+        if marker in model_id:
+            return mode
     return None
 
 
@@ -357,9 +366,12 @@ def _mode_label(name: str) -> str:
           The model directory name.
 
     Returns:
-        ``gold_chosen`` for ``*-gold`` directories, else ``max_reward``.
+        The construction-mode/ablation label for the directory.
     """
-    return "gold_chosen" if name.endswith("-gold") else "max_reward"
+    for marker, mode in _MODE_MARKERS:
+        if name.endswith(marker):
+            return mode
+    return "max_reward"
 
 
 class _Reader:
@@ -508,7 +520,8 @@ _HTML_TEMPLATE = r"""<!doctype html>
 
 <script>
 const DATA = __DATA__;
-const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f"};
+const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f",
+  label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd"};
 document.getElementById("gen").textContent = DATA.generated;
 
 const layout = (title, xlab, ylab, extra) => Object.assign({

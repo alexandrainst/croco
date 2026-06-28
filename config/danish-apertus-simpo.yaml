@@ -1,0 +1,83 @@
+# CroCo ablation - Munin-Apertus-8B (Danish), max_reward + length-normalised loss
+#
+# Single-variable ablation of config/danish-apertus.yaml: identical max_reward
+# data and DPO recipe, but the SimPO-style length-normalised loss
+# (loss_type: sigmoid_norm) to test whether normalising by completion length
+# curbs the verbosity bias that reward models tend to introduce. Reuses the
+# already-built max_reward pairs (data/pairs_apertus.jsonl) - run with
+# --skip-build.
+#
+# NOTE: SimPO is usually run with a much larger beta (~2-2.5) and a target
+# margin; here beta is held at 0.1 to keep this a clean single-variable change.
+# If the length-normalised loss underperforms, the first thing to retune is beta.
+#
+# Usage:
+#   uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo.yaml \
+#     --dataset-output data/pairs_apertus.jsonl --skip-build
+
+construction_mode: max_reward
+score_gold_output: true
+language: da
+
+policy:
+  model_id: danish-foundation-models/munin-apertus-8b
+  attn_implementation: sdpa
+  max_model_len: 4096
+
+reward:
+  model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
+  max_model_len: 32768
+  gpu_memory_utilization: 0.35
+
+generation:
+  num_candidates: 4
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 1.0
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.45
+  batch_size: 64
+  enable_prefix_caching: true
+  enable_chunked_prefill: true
+  language_model_only: false
+
+data:
+  dataset_id: danish-foundation-models/laerebogen
+  subset: evolved
+  split: train
+  num_samples: 5000
+  stratify_by_evolution: true
+  evolution_min: null
+  evolution_max: null
+  max_prompt_tokens: 2048
+  seed: 42
+
+dpo:
+  output_dir: models/croco-munin-apertus-8b-da-simpo
+  learning_rate: 5.0e-6
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  beta: 0.1
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  num_train_epochs: 1
+  max_length: 4096
+  bf16: true
+  gradient_checkpointing: true
+  curriculum: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  seed: 42
+  hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da-simpo
+  save_steps: 100
+  # The only change from the max_reward baseline: length-normalised DPO loss.
+  loss_type: sigmoid_norm
+
+eval:
+  language: da
+  tasks: null
+  num_iterations: 1
+  skip: true
+  gpu_memory_utilization: 0.5

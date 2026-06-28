@@ -93,6 +93,15 @@ class DPOTrainConfig(BaseModel):
     # Save an intermediate checkpoint every N optimiser steps (0 disables). Each
     # checkpoint is an adapter that can be evaluated to trace the learning curve.
     save_steps: int = 0
+    # DPO loss variant (e.g. "sigmoid" for vanilla DPO, "sigmoid_norm" for the
+    # SimPO-style length-normalised loss). Passed through to TRL's DPOConfig.
+    loss_type: str = "sigmoid"
+    # Conservative-DPO label smoothing; >0 assumes that fraction of preference
+    # labels are flipped, adding robustness to noisy reward-model judgements.
+    label_smoothing: float = 0.0
+    # Cache the (frozen) reference log-probabilities once before training instead
+    # of recomputing them each step. A speed optimisation, not a recipe change.
+    precompute_ref_log_probs: bool = False
 
 
 class EvalConfig(BaseModel):

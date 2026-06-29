@@ -263,6 +263,7 @@ def _eval_series(*, reader: "_Reader", results: str) -> dict[str, t.Any]:
     finals: dict[str, dict[str, t.Any]] = {}
     curves: dict[str, dict[str, list[dict[str, t.Any]]]] = {}
     keys: set[str] = set()
+    base_entries: dict[str, dict[str, t.Any]] = {}
 
     text = reader.read_text(path=results)
     if not text:
@@ -282,6 +283,8 @@ def _eval_series(*, reader: "_Reader", results: str) -> dict[str, t.Any]:
             key = f"{dataset}||{result['evaluation_name']}"
             keys.add(key)
             entry = _score_entry(result=result)
+            if mode == "base":
+                base_entries[key] = entry
             if step is None:
                 finals.setdefault(_final_label(mode=mode), {})[key] = entry
             else:
@@ -289,8 +292,13 @@ def _eval_series(*, reader: "_Reader", results: str) -> dict[str, t.Any]:
                     {"step": step, **entry}
                 )
 
+    # Anchor every mode's curve at step 0 with the base policy's score: before any
+    # DPO steps the LoRA-adapted model is the base model, so step 0 is a shared,
+    # meaningful starting point for all construction modes.
     for metric_points in curves.values():
-        for points in metric_points.values():
+        for key, points in metric_points.items():
+            if key in base_entries:
+                points.append({"step": 0, **base_entries[key]})
             points.sort(key=lambda point: point["step"])
 
     return {"finals": finals, "curves": curves, "metric_keys": sorted(keys)}

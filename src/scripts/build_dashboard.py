@@ -682,10 +682,10 @@ function finals() {
       error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
         array: up, arrayminus: dn}});
   }
-  const height = Math.max(420, 60 + leaves.length * labels.length * 13);
+  const height = Math.max(420, 60 + leaves.length * labels.length * 22);
   Plotly.newPlot("finals", traces,
     layout("Final EuroEval scores (▲ better / ▼ worse than base in group, 95% CI)",
-      "score", "", {barmode: "group", bargroupgap: 0.2, height,
+      "score", "", {barmode: "group", bargap: 0.15, bargroupgap: 0.12, height,
       margin: {t: 40, r: 40, b: 40, l: 10},
       yaxis: {automargin: true, autorange: "reversed",
         tickfont: {family: "monospace", size: 11}}}), CFG);

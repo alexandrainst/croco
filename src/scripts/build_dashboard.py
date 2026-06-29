@@ -630,44 +630,66 @@ function finals() {
   }
   const baseLabel = labels.find(l => l.startsWith("base"));
   const base = baseLabel ? DATA.finals[baseLabel] : null;
-  const keys = [...new Set(labels.flatMap(l => Object.keys(DATA.finals[l])))].sort();
-  // One bar per (dataset/metric, model). The y label shows only "dataset /
-  // metric" with the significance arrow as a suffix; the model is given by bar
-  // colour and the legend. A monospace tick font with fixed-width padding (a
-  // non-breaking space when there is no arrow) keeps the arrows aligned in a
-  // column on the right.
-  const tickvals = [], ticktext = [];
-  const byLabel = {};
-  let pos = 0;
-  for (const k of keys) {
-    for (const label of labels) {
-      const r = DATA.finals[label][k];
-      if (!r) continue;
-      const s = label === baseLabel ? 0 : sigVsBase(r, base ? base[k] : null);
-      const mark = s > 0 ? "▲" : s < 0 ? "▼" : "\u00A0";
-      tickvals.push(pos);
-      ticktext.push(`${k.replace("||", " / ")}\u00A0\u00A0${mark}`);
-      if (!byLabel[label]) byLabel[label] = {y: [], x: [], up: [], dn: []};
-      byLabel[label].y.push(pos);
-      byLabel[label].x.push(r.score);
-      byLabel[label].up.push(r.upper != null ? r.upper - r.score : 0);
-      byLabel[label].dn.push(r.lower != null ? r.score - r.lower : 0);
-      pos++;
+  // Group by dataset: the y label is just the dataset name; each metric is a
+  // separate bar whose name shows on hover. The group arrow is set when ANY
+  // (method, metric) in the dataset is significantly better / worse than base.
+  const allKeys = [...new Set(labels.flatMap(l => Object.keys(DATA.finals[l])))];
+  const byDs = {};
+  for (const key of allKeys) {
+    const ds = key.split("||")[0];
+    if (!byDs[ds]) byDs[ds] = [];
+    byDs[ds].push(key);
+  }
+  const datasets = Object.keys(byDs).sort();
+  for (const ds of datasets) byDs[ds].sort();
+  const maxSlots = Math.max(1, ...datasets.map(d => byDs[d].length));
+  const catOf = {}, cats = [];
+  for (const ds of datasets) {
+    let better = false, worse = false;
+    for (const key of byDs[ds]) {
+      for (const label of labels) {
+        if (label === baseLabel) continue;
+        const s = sigVsBase(DATA.finals[label][key], base ? base[key] : null);
+        if (s > 0) better = true; else if (s < 0) worse = true;
+      }
+    }
+    const up = better ? "▲" : "\u00A0", dn = worse ? "▼" : "\u00A0";
+    const cat = `${ds}\u00A0\u00A0${up}${dn}`;
+    catOf[ds] = cat; cats.push(cat);
+  }
+  const traces = [];
+  const shown = new Set();
+  for (const label of labels) {
+    const mode = label.startsWith("base") ? "base" : label;
+    for (let slot = 0; slot < maxSlots; slot++) {
+      const y = [], x = [], up = [], dn = [], cd = [];
+      for (const ds of datasets) {
+        if (slot >= byDs[ds].length) continue;
+        const key = byDs[ds][slot];
+        const r = DATA.finals[label][key];
+        if (!r) continue;
+        y.push(catOf[ds]); x.push(r.score);
+        up.push(r.upper != null ? r.upper - r.score : 0);
+        dn.push(r.lower != null ? r.score - r.lower : 0);
+        cd.push(key.split("||")[1].replace(/^test_/, ""));
+      }
+      if (!x.length) continue;
+      const showlegend = !shown.has(label); shown.add(label);
+      traces.push({type: "bar", orientation: "h", name: label,
+        legendgroup: label, showlegend, y, x, customdata: cd,
+        marker: {color: COLOURS[mode]},
+        hovertemplate: "%{customdata}: %{x:.3f}<extra>" + label + "</extra>",
+        error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
+          array: up, arrayminus: dn}});
     }
   }
-  const traces = Object.entries(byLabel).map(([label, d]) => {
-    const mode = label.startsWith("base") ? "base" : label;
-    return {type: "bar", orientation: "h", name: label, y: d.y, x: d.x,
-      marker: {color: COLOURS[mode]},
-      error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
-        array: d.up, arrayminus: d.dn}};
-  });
-  const height = Math.max(420, 60 + pos * 22);
+  const height = Math.max(420, 60 + datasets.length * labels.length * maxSlots * 14);
   Plotly.newPlot("finals", traces,
-    layout("Final EuroEval scores (▲ better / ▼ worse than base, 95% CI)",
-      "score", "", {height, margin: {t: 40, r: 40, b: 40, l: 10},
-      yaxis: {automargin: true, autorange: "reversed", tickvals, ticktext,
-        tickfont: {family: "monospace", size: 11}}}), CFG);
+    layout("Final EuroEval scores (▲ better / ▼ worse than base in group, 95% CI)",
+      "score", "", {barmode: "group", height,
+      margin: {t: 40, r: 40, b: 40, l: 10},
+      yaxis: {automargin: true, categoryorder: "array", categoryarray: cats,
+        autorange: "reversed", tickfont: {family: "monospace", size: 11}}}), CFG);
 }
 
 progress(); trainingPlots(); curves(); finals();

@@ -659,9 +659,9 @@ function finals() {
   }
   const traces = [];
   const shown = new Set();
-  for (const label of labels) {
-    const mode = label.startsWith("base") ? "base" : label;
-    for (let slot = 0; slot < maxSlots; slot++) {
+  for (let slot = 0; slot < maxSlots; slot++) {
+    for (const label of labels) {
+      const mode = label.startsWith("base") ? "base" : label;
       const y = [], x = [], up = [], dn = [], cd = [];
       for (const ds of datasets) {
         if (slot >= byDs[ds].length) continue;
@@ -686,7 +686,7 @@ function finals() {
   const height = Math.max(420, 60 + datasets.length * labels.length * maxSlots * 14);
   Plotly.newPlot("finals", traces,
     layout("Final EuroEval scores (▲ better / ▼ worse than base in group, 95% CI)",
-      "score", "", {barmode: "group", height,
+      "score", "", {barmode: "group", bargroupgap: 0.25, height,
       margin: {t: 40, r: 40, b: 40, l: 10},
       yaxis: {automargin: true, categoryorder: "array", categoryarray: cats,
         autorange: "reversed", tickfont: {family: "monospace", size: 11}}}), CFG);

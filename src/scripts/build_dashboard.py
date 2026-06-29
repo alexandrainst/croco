@@ -630,8 +630,10 @@ function finals() {
   }
   const baseLabel = labels.find(l => l.startsWith("base"));
   const base = baseLabel ? DATA.finals[baseLabel] : null;
-  // Group by dataset: the y label is just the dataset name; each metric is a
-  // separate bar whose name shows on hover. The group arrow is set when ANY
+  // Nested groups via a multicategory y-axis: outer = dataset, inner = metric,
+  // construction modes are the grouped bars at each (dataset, metric) leaf.
+  // Plotly draws a divider and wider gap between datasets automatically. The
+  // group arrow rides the dataset (outer) label and is set when ANY
   // (method, metric) in the dataset is significantly better / worse than base.
   const allKeys = [...new Set(labels.flatMap(l => Object.keys(DATA.finals[l])))];
   const byDs = {};
@@ -642,8 +644,7 @@ function finals() {
   }
   const datasets = Object.keys(byDs).sort();
   for (const ds of datasets) byDs[ds].sort();
-  const maxSlots = Math.max(1, ...datasets.map(d => byDs[d].length));
-  const catOf = {}, cats = [];
+  const outerOf = {};
   for (const ds of datasets) {
     let better = false, worse = false;
     for (const key of byDs[ds]) {
@@ -654,50 +655,40 @@ function finals() {
       }
     }
     const arrows = (better ? "▲" : "") + (worse ? "▼" : "");
-    const suffix = arrows.padStart(2, "\u00A0");
-    const cat = `${ds}\u00A0${suffix}`;
-    catOf[ds] = cat; cats.push(cat);
+    outerOf[ds] = arrows ? `${ds} ${arrows}` : ds;
+  }
+  const leaves = [];
+  for (const ds of datasets) {
+    for (const key of byDs[ds]) {
+      leaves.push({ds, key, metric: key.split("||")[1].replace(/^test_/, "")});
+    }
   }
   const traces = [];
-  const shown = new Set();
-  for (let slot = 0; slot < maxSlots; slot++) {
-    if (slot > 0) {
-      traces.push({type: "bar", orientation: "h", showlegend: false,
-        legendgroup: "_gap" + slot, hoverinfo: "skip",
-        y: datasets.map(ds => catOf[ds]), x: datasets.map(() => null),
-        marker: {color: "rgba(0,0,0,0)"}});
+  for (const label of labels) {
+    const mode = label.startsWith("base") ? "base" : label;
+    const outer = [], inner = [], x = [], up = [], dn = [], cd = [];
+    for (const leaf of leaves) {
+      const r = DATA.finals[label][leaf.key];
+      outer.push(outerOf[leaf.ds]); inner.push(leaf.metric);
+      x.push(r ? r.score : null);
+      up.push(r && r.upper != null ? r.upper - r.score : 0);
+      dn.push(r && r.lower != null ? r.score - r.lower : 0);
+      cd.push(`${leaf.ds} / ${leaf.metric}`);
     }
-    for (const label of labels) {
-      const mode = label.startsWith("base") ? "base" : label;
-      const y = [], x = [], up = [], dn = [], cd = [];
-      for (const ds of datasets) {
-        if (slot >= byDs[ds].length) continue;
-        const key = byDs[ds][slot];
-        const r = DATA.finals[label][key];
-        if (!r) continue;
-        y.push(catOf[ds]); x.push(r.score);
-        up.push(r.upper != null ? r.upper - r.score : 0);
-        dn.push(r.lower != null ? r.score - r.lower : 0);
-        cd.push(key.split("||")[1].replace(/^test_/, ""));
-      }
-      if (!x.length) continue;
-      const showlegend = !shown.has(label); shown.add(label);
-      traces.push({type: "bar", orientation: "h", name: label,
-        legendgroup: label, showlegend, y, x, customdata: cd,
-        marker: {color: COLOURS[mode]},
-        hovertemplate: "%{customdata}: %{x:.3f}<extra>" + label + "</extra>",
-        error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
-          array: up, arrayminus: dn}});
-    }
+    traces.push({type: "bar", orientation: "h", name: label,
+      legendgroup: label, y: [outer, inner], x, customdata: cd,
+      marker: {color: COLOURS[mode]},
+      hovertemplate: "%{customdata}: %{x:.3f}<extra>" + label + "</extra>",
+      error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
+        array: up, arrayminus: dn}});
   }
-  const slots = labels.length * maxSlots + Math.max(0, maxSlots - 1);
-  const height = Math.max(420, 60 + datasets.length * slots * 14);
+  const height = Math.max(420, 60 + leaves.length * labels.length * 13);
   Plotly.newPlot("finals", traces,
     layout("Final EuroEval scores (▲ better / ▼ worse than base in group, 95% CI)",
-      "score", "", {barmode: "group", bargroupgap: 0.25, height,
+      "score", "", {barmode: "group", bargroupgap: 0.2, height,
       margin: {t: 40, r: 40, b: 40, l: 10},
-      yaxis: {automargin: true, categoryorder: "array", categoryarray: cats,
-        autorange: "reversed", tickfont: {family: "monospace", size: 11}}}), CFG);
+      yaxis: {automargin: true, autorange: "reversed",
+        tickfont: {family: "monospace", size: 11}}}), CFG);
 }
 
 progress(); trainingPlots(); curves(); finals();

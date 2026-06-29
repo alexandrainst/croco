@@ -642,8 +642,8 @@ function finals() {
       y: cats, x: recs.map(r => r ? r.score : null),
       marker: {color: COLOURS[mode]}, cliponaxis: false,
       text: sigs.map(s => s > 0 ? "▲" : s < 0 ? "▼" : ""),
-      textposition: "inside", insidetextanchor: "start",
-      textfont: {size: 22, color: sigs.map(sigColour)},
+      textposition: "inside", insidetextanchor: "start", constraintext: "none",
+      textfont: {size: 18, color: sigs.map(sigColour)},
       error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
         array: recs.map(r => (r && r.upper != null) ? r.upper - r.score : 0),
         arrayminus: recs.map(r => (r && r.lower != null) ? r.score - r.lower : 0)}};

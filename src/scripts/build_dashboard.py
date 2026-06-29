@@ -521,7 +521,6 @@ _HTML_TEMPLATE = r"""<!doctype html>
   <div id="loss" class="plot"></div>
   <div id="acc" class="plot"></div>
   <div id="margins" class="plot"></div>
-  <div id="rewards" class="plot"></div>
 </div>
 
 <h2>EuroEval learning curves <span class="pill">per checkpoint</span></h2>
@@ -580,16 +579,6 @@ function trainingPlots() {
     if (key === "acc") lay.yaxis.range = [0, 1];
     Plotly.newPlot(div, traces, lay, CFG);
   }
-  const rewardTraces = [];
-  for (const [mode, s] of Object.entries(DATA.training)) {
-    rewardTraces.push(Object.assign(lineTrace(mode + " chosen", s.steps, s.chosen),
-      {line: {color: COLOURS[mode], dash: "solid"}}));
-    rewardTraces.push(Object.assign(lineTrace(mode + " rejected", s.steps, s.rejected),
-      {line: {color: COLOURS[mode], dash: "dot"}}));
-  }
-  Plotly.newPlot("rewards", rewardTraces,
-    layout("Implicit rewards: chosen (solid) vs rejected (dotted)",
-      "step", "reward"), CFG);
 }
 
 function curveMetrics() {
@@ -609,7 +598,7 @@ function drawCurve(metric) {
       error_y: hasCI ? {type: "data", symmetric: false,
         array: pts.map(p => p.upper - p.score),
         arrayminus: pts.map(p => p.score - p.lower),
-        color: "black", thickness: 1} : undefined});
+        color: "black", thickness: 2.5, width: 4} : undefined});
   }
   const [ds, m] = metric.split("||");
   Plotly.newPlot("curve", traces, layout(`${ds} - ${m}`, "checkpoint step", m), CFG);
@@ -648,13 +637,15 @@ function finals() {
     const recs = keys.map(k => DATA.finals[label][k]);
     const sigs = recs.map((r, i) =>
       label === baseLabel ? 0 : sigVsBase(r, base ? base[keys[i]] : null));
+    const sigColour = s => s > 0 ? "#1a9850" : s < 0 ? "#d62728" : "rgba(0,0,0,0)";
     return {type: "bar", orientation: "h", name: label,
       y: cats, x: recs.map(r => r ? r.score : null),
-      marker: {color: COLOURS[mode]}, cliponaxis: false,
+      marker: {color: COLOURS[mode],
+        line: {color: sigs.map(sigColour), width: sigs.map(s => s ? 3 : 0)}},
+      cliponaxis: false,
       text: sigs.map(s => s > 0 ? "▲" : s < 0 ? "▼" : ""),
       textposition: "outside",
-      textfont: {size: 13,
-        color: sigs.map(s => s > 0 ? "#1a9850" : s < 0 ? "#d62728" : "#000")},
+      textfont: {size: 17, color: sigs.map(sigColour)},
       error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
         array: recs.map(r => (r && r.upper != null) ? r.upper - r.score : 0),
         arrayminus: recs.map(r => (r && r.lower != null) ? r.score - r.lower : 0)}};
@@ -663,7 +654,7 @@ function finals() {
   Plotly.newPlot("finals", traces,
     layout("Final EuroEval scores (▲ better / ▼ worse than base, 95% CI)",
       "score", "", {barmode: "group", height,
-      margin: {t: 40, r: 30, b: 40, l: 210}}), CFG);
+      margin: {t: 40, r: 40, b: 40, l: 10}, yaxis: {automargin: true}}), CFG);
 }
 
 progress(); trainingPlots(); curves(); finals();

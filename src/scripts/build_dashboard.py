@@ -354,7 +354,7 @@ def _final_label(*, mode: str) -> str:
     Returns:
         A human-readable label for the final-comparison series.
     """
-    return {"base": "base (munin-apertus-8b)"}.get(mode, mode)
+    return mode
 
 
 def _checkpoint_step(*, model_id: str) -> int | None:
@@ -631,23 +631,28 @@ function finals() {
   const baseLabel = labels.find(l => l.startsWith("base"));
   const base = baseLabel ? DATA.finals[baseLabel] : null;
   const keys = [...new Set(labels.flatMap(l => Object.keys(DATA.finals[l])))].sort();
-  // One row per (dataset/metric, model), grouped by dataset, with the
-  // significance arrow appended to the row label rather than drawn on the bar.
-  const order = [];
+  // One bar per (dataset/metric, model). The y label shows only "dataset /
+  // metric" with the significance arrow as a suffix; the model is given by bar
+  // colour and the legend. A monospace tick font with fixed-width padding (a
+  // non-breaking space when there is no arrow) keeps the arrows aligned in a
+  // column on the right.
+  const tickvals = [], ticktext = [];
   const byLabel = {};
+  let pos = 0;
   for (const k of keys) {
     for (const label of labels) {
       const r = DATA.finals[label][k];
       if (!r) continue;
       const s = label === baseLabel ? 0 : sigVsBase(r, base ? base[k] : null);
-      const arrow = s > 0 ? "  ▲" : s < 0 ? "  ▼" : "";
-      const row = `${k.replace("||", " / ")} · ${label}${arrow}`;
-      order.push(row);
+      const mark = s > 0 ? "▲" : s < 0 ? "▼" : "\u00A0";
+      tickvals.push(pos);
+      ticktext.push(`${k.replace("||", " / ")}\u00A0\u00A0${mark}`);
       if (!byLabel[label]) byLabel[label] = {y: [], x: [], up: [], dn: []};
-      byLabel[label].y.push(row);
+      byLabel[label].y.push(pos);
       byLabel[label].x.push(r.score);
       byLabel[label].up.push(r.upper != null ? r.upper - r.score : 0);
       byLabel[label].dn.push(r.lower != null ? r.score - r.lower : 0);
+      pos++;
     }
   }
   const traces = Object.entries(byLabel).map(([label, d]) => {
@@ -657,12 +662,12 @@ function finals() {
       error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
         array: d.up, arrayminus: d.dn}};
   });
-  const height = Math.max(420, 60 + order.length * 22);
+  const height = Math.max(420, 60 + pos * 22);
   Plotly.newPlot("finals", traces,
     layout("Final EuroEval scores (▲ better / ▼ worse than base, 95% CI)",
       "score", "", {height, margin: {t: 40, r: 40, b: 40, l: 10},
-      yaxis: {automargin: true, categoryorder: "array", categoryarray: order,
-        autorange: "reversed"}}), CFG);
+      yaxis: {automargin: true, autorange: "reversed", tickvals, ticktext,
+        tickfont: {family: "monospace", size: 11}}}), CFG);
 }
 
 progress(); trainingPlots(); curves(); finals();

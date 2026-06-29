@@ -535,6 +535,12 @@ _HTML_TEMPLATE = r"""<!doctype html>
 const DATA = __DATA__;
 const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f",
   generated: "#ff7f0e", label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd"};
+// Translucent shade of a mode colour, used for confidence-interval bars so they
+// read as the same series as the line without visually merging with it.
+function ciColour(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16 & 255}, ${n >> 8 & 255}, ${n & 255}, 0.35)`;
+}
 document.getElementById("gen").textContent = DATA.generated;
 
 const layout = (title, xlab, ylab, extra) => Object.assign({
@@ -598,7 +604,8 @@ function drawCurve(metric) {
       mode: "lines+markers", name: mode, line: {color: COLOURS[mode]},
       error_y: hasCI ? {type: "data", symmetric: false,
         array: pts.map(p => p.upper - p.score),
-        arrayminus: pts.map(p => p.score - p.lower)} : undefined});
+        arrayminus: pts.map(p => p.score - p.lower),
+        color: ciColour(COLOURS[mode]), thickness: 1.5} : undefined});
   }
   const [ds, m] = metric.split("||");
   Plotly.newPlot("curve", traces, layout(`${ds} - ${m}`, "checkpoint step", m), CFG);

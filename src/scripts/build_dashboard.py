@@ -653,27 +653,22 @@ function finals() {
   }
   const datasets = Object.keys(byDs).sort();
   for (const ds of datasets) byDs[ds].sort();
-  const arrowOf = {};
-  let maxArrow = 0;
-  for (const key of allKeys) {
-    let better = false, worse = false;
-    for (const label of labels) {
-      if (label === baseLabel) continue;
-      const s = sigVsBase(DATA.finals[label][key], base ? base[key] : null);
-      if (s > 0) better = true; else if (s < 0) worse = true;
-    }
-    const arrows = (better ? "▲" : "") + (worse ? "▼" : "");
-    arrowOf[key] = arrows;
-    if (arrows.length > maxArrow) maxArrow = arrows.length;
-  }
-  // Right-align the triangles into a fixed-width column so they stand out; the
-  // metrics without a triangle get equivalent whitespace to line up the column.
+  // One triangle per non-base mode, coloured by that mode and pinned to a fixed
+  // column, so a single metric can show several at once (e.g. one mode
+  // significantly better, another significantly worse). Each mode keeps the same
+  // column across rows; modes with no significant difference at a leaf get a
+  // blank (NBSP) slot so the coloured triangles stay vertically aligned per mode.
+  const nonBase = labels.filter(l => l !== baseLabel).sort();
   const innerOf = {};
   for (const key of allKeys) {
     const metric = key.split("||")[1].replace(/^test_/, "");
-    innerOf[key] = maxArrow
-      ? `${metric}\u00A0${arrowOf[key].padStart(maxArrow, "\u00A0")}`
-      : metric;
+    const slots = nonBase.map(label => {
+      const s = sigVsBase(DATA.finals[label][key], base ? base[key] : null);
+      if (s === 0) return "\u00A0";
+      const colour = COLOURS[label] || "#000";
+      return `<span style="color:${colour}">${s > 0 ? "▲" : "▼"}</span>`;
+    });
+    innerOf[key] = nonBase.length ? `${metric}\u00A0${slots.join("")}` : metric;
   }
   const leaves = [];
   for (const ds of datasets) {
@@ -703,7 +698,7 @@ function finals() {
   const height = Math.max(420, 60 + leaves.length * labels.length * 22);
   document.getElementById("finals").style.height = `${height}px`;
   Plotly.newPlot("finals", traces,
-    layout("Final EuroEval scores (▲ better / ▼ worse than base, 95% CI)",
+    layout("Final EuroEval scores (▲ better / ▼ worse than base, by mode colour; 95% CI)",
       "score", "", {barmode: "group", bargap: 0.15, bargroupgap: 0.12, height,
       margin: {t: 40, r: 40, b: 40, l: 10},
       yaxis: {automargin: true, autorange: "reversed",

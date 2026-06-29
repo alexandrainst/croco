@@ -594,7 +594,7 @@ function drawCurve(metric) {
   // intervals sit side-by-side instead of overlapping; hover still reports the
   // true checkpoint step.
   const present = Object.entries(DATA.curves).filter(([, mm]) => mm[metric]);
-  const spread = 8;
+  const spread = 4;
   present.forEach(([mode, metrics], i) => {
     const pts = metrics[metric];
     const dx = (i - (present.length - 1) / 2) * spread;

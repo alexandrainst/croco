@@ -645,7 +645,8 @@ function finals() {
   }
   const datasets = Object.keys(byDs).sort();
   for (const ds of datasets) byDs[ds].sort();
-  const innerOf = {};
+  const arrowOf = {};
+  let maxArrow = 0;
   for (const key of allKeys) {
     let better = false, worse = false;
     for (const label of labels) {
@@ -654,8 +655,17 @@ function finals() {
       if (s > 0) better = true; else if (s < 0) worse = true;
     }
     const arrows = (better ? "▲" : "") + (worse ? "▼" : "");
+    arrowOf[key] = arrows;
+    if (arrows.length > maxArrow) maxArrow = arrows.length;
+  }
+  // Right-align the triangles into a fixed-width column so they stand out; the
+  // metrics without a triangle get equivalent whitespace to line up the column.
+  const innerOf = {};
+  for (const key of allKeys) {
     const metric = key.split("||")[1].replace(/^test_/, "");
-    innerOf[key] = arrows ? `${metric} ${arrows}` : metric;
+    innerOf[key] = maxArrow
+      ? `${metric}\u00A0${arrowOf[key].padStart(maxArrow, "\u00A0")}`
+      : metric;
   }
   const leaves = [];
   for (const ds of datasets) {
@@ -683,6 +693,7 @@ function finals() {
         array: up, arrayminus: dn}});
   }
   const height = Math.max(420, 60 + leaves.length * labels.length * 22);
+  document.getElementById("finals").style.height = `${height}px`;
   Plotly.newPlot("finals", traces,
     layout("Final EuroEval scores (▲ better / ▼ worse than base, 95% CI)",
       "score", "", {barmode: "group", bargap: 0.15, bargroupgap: 0.12, height,

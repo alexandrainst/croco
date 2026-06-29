@@ -631,28 +631,38 @@ function finals() {
   const baseLabel = labels.find(l => l.startsWith("base"));
   const base = baseLabel ? DATA.finals[baseLabel] : null;
   const keys = [...new Set(labels.flatMap(l => Object.keys(DATA.finals[l])))].sort();
-  const cats = keys.map(k => k.replace("||", " / "));
-  const traces = labels.map(label => {
+  // One row per (dataset/metric, model), grouped by dataset, with the
+  // significance arrow appended to the row label rather than drawn on the bar.
+  const order = [];
+  const byLabel = {};
+  for (const k of keys) {
+    for (const label of labels) {
+      const r = DATA.finals[label][k];
+      if (!r) continue;
+      const s = label === baseLabel ? 0 : sigVsBase(r, base ? base[k] : null);
+      const arrow = s > 0 ? "  ▲" : s < 0 ? "  ▼" : "";
+      const row = `${k.replace("||", " / ")} · ${label}${arrow}`;
+      order.push(row);
+      if (!byLabel[label]) byLabel[label] = {y: [], x: [], up: [], dn: []};
+      byLabel[label].y.push(row);
+      byLabel[label].x.push(r.score);
+      byLabel[label].up.push(r.upper != null ? r.upper - r.score : 0);
+      byLabel[label].dn.push(r.lower != null ? r.score - r.lower : 0);
+    }
+  }
+  const traces = Object.entries(byLabel).map(([label, d]) => {
     const mode = label.startsWith("base") ? "base" : label;
-    const recs = keys.map(k => DATA.finals[label][k]);
-    const sigs = recs.map((r, i) =>
-      label === baseLabel ? 0 : sigVsBase(r, base ? base[keys[i]] : null));
-    const sigColour = s => s > 0 ? "#0a5d2a" : s < 0 ? "#8b0000" : "rgba(0,0,0,0)";
-    return {type: "bar", orientation: "h", name: label,
-      y: cats, x: recs.map(r => r ? r.score : null),
-      marker: {color: COLOURS[mode]}, cliponaxis: false,
-      text: sigs.map(s => s > 0 ? "▲" : s < 0 ? "▼" : ""),
-      textposition: "inside", insidetextanchor: "start", constraintext: "none",
-      textfont: {size: 18, color: sigs.map(sigColour)},
+    return {type: "bar", orientation: "h", name: label, y: d.y, x: d.x,
+      marker: {color: COLOURS[mode]},
       error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
-        array: recs.map(r => (r && r.upper != null) ? r.upper - r.score : 0),
-        arrayminus: recs.map(r => (r && r.lower != null) ? r.score - r.lower : 0)}};
+        array: d.up, arrayminus: d.dn}};
   });
-  const height = Math.max(420, 60 + keys.length * Math.max(1, labels.length) * 16);
+  const height = Math.max(420, 60 + order.length * 22);
   Plotly.newPlot("finals", traces,
     layout("Final EuroEval scores (▲ better / ▼ worse than base, 95% CI)",
-      "score", "", {barmode: "group", height,
-      margin: {t: 40, r: 40, b: 40, l: 10}, yaxis: {automargin: true}}), CFG);
+      "score", "", {height, margin: {t: 40, r: 40, b: 40, l: 10},
+      yaxis: {automargin: true, categoryorder: "array", categoryarray: order,
+        autorange: "reversed"}}), CFG);
 }
 
 progress(); trainingPlots(); curves(); finals();

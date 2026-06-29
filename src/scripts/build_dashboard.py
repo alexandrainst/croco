@@ -637,15 +637,13 @@ function finals() {
     const recs = keys.map(k => DATA.finals[label][k]);
     const sigs = recs.map((r, i) =>
       label === baseLabel ? 0 : sigVsBase(r, base ? base[keys[i]] : null));
-    const sigColour = s => s > 0 ? "#1a9850" : s < 0 ? "#d62728" : "rgba(0,0,0,0)";
+    const sigColour = s => s > 0 ? "#0a5d2a" : s < 0 ? "#8b0000" : "rgba(0,0,0,0)";
     return {type: "bar", orientation: "h", name: label,
       y: cats, x: recs.map(r => r ? r.score : null),
-      marker: {color: COLOURS[mode],
-        line: {color: sigs.map(sigColour), width: sigs.map(s => s ? 3 : 0)}},
-      cliponaxis: false,
+      marker: {color: COLOURS[mode]}, cliponaxis: false,
       text: sigs.map(s => s > 0 ? "▲" : s < 0 ? "▼" : ""),
-      textposition: "outside",
-      textfont: {size: 17, color: sigs.map(sigColour)},
+      textposition: "inside", insidetextanchor: "start",
+      textfont: {size: 22, color: sigs.map(sigColour)},
       error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
         array: recs.map(r => (r && r.upper != null) ? r.upper - r.score : 0),
         arrayminus: recs.map(r => (r && r.lower != null) ? r.score - r.lower : 0)}};

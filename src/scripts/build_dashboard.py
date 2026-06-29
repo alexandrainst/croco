@@ -43,6 +43,7 @@ _CHECKPOINT_RE = re.compile(r"checkpoint-(\d+)")
 # must be matched last or it would swallow the ``-gold``/``-ls``/``-simpo`` ones.
 _MODE_MARKERS = (
     ("croco-munin-apertus-8b-da-gold", "gold_chosen"),
+    ("croco-munin-apertus-8b-da-generated", "generated"),
     ("croco-munin-apertus-8b-da-ls", "label_smoothing"),
     ("croco-munin-apertus-8b-da-simpo", "sigmoid_norm"),
     ("croco-munin-apertus-8b-da", "max_reward"),
@@ -525,7 +526,7 @@ _HTML_TEMPLATE = r"""<!doctype html>
 <script>
 const DATA = __DATA__;
 const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f",
-  label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd"};
+  generated: "#ff7f0e", label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd"};
 document.getElementById("gen").textContent = DATA.generated;
 
 const layout = (title, xlab, ylab, extra) => Object.assign({

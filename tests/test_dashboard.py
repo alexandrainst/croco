@@ -29,6 +29,7 @@ class TestResultMode:
         cases = {
             "models/croco-munin-apertus-8b-da": "max_reward",
             "models/croco-munin-apertus-8b-da-gold": "gold_chosen",
+            "models/croco-munin-apertus-8b-da-generated": "generated",
             "models/croco-munin-apertus-8b-da-ls": "label_smoothing",
             "models/croco-munin-apertus-8b-da-simpo": "sigmoid_norm",
         }

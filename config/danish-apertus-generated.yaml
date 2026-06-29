@@ -1,0 +1,82 @@
+# CroCo construction-mode comparison - Munin-Apertus-8B (Danish), paper-faithful
+#
+# The original CroCo construction (Eq. 2): both chosen and rejected are policy
+# self-generations - chosen is the highest-reward generation, rejected is the
+# generation nearest mu - 2*sigma below it. The dataset gold output is unused.
+# This is the fully on-policy baseline: it isolates whether bringing the gold
+# reference into the chosen set (max_reward's ~30% off-policy gold) actually
+# helps over pure self-generation.
+#
+# Reuses the already-built candidate cache (same policy/generation signature as
+# danish-apertus.yaml), so no GPU generation is needed - only preference
+# construction + DPO. Build (do NOT pass --skip-build, it needs its own pairs):
+#   uv run src/scripts/run_pipeline.py -c config/danish-apertus-generated.yaml \
+#     --dataset-output data/pairs_generated.jsonl \
+#     --candidate-cache data/candidates_cache.jsonl
+
+construction_mode: generated
+# Gold output is unused in this mode; the cache already holds gold scores so this
+# changes nothing for cache hits, it just reflects that gold plays no role here.
+score_gold_output: false
+language: da
+
+policy:
+  model_id: danish-foundation-models/munin-apertus-8b
+  attn_implementation: sdpa
+  max_model_len: 4096
+
+reward:
+  model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
+  max_model_len: 32768
+  gpu_memory_utilization: 0.35
+
+generation:
+  num_candidates: 4
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 1.0
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.45
+  batch_size: 64
+  enable_prefix_caching: true
+  enable_chunked_prefill: true
+  language_model_only: false
+
+data:
+  dataset_id: danish-foundation-models/laerebogen
+  subset: evolved
+  split: train
+  num_samples: 5000
+  stratify_by_evolution: true
+  evolution_min: null
+  evolution_max: null
+  max_prompt_tokens: 2048
+  seed: 42
+
+dpo:
+  output_dir: models/croco-munin-apertus-8b-da-generated
+  learning_rate: 5.0e-6
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  beta: 0.1
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  num_train_epochs: 1
+  max_length: 4096
+  bf16: true
+  gradient_checkpointing: true
+  curriculum: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  seed: 42
+  hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da-generated
+  save_steps: 100
+
+eval:
+  language: da
+  tasks: null
+  num_iterations: 1
+  skip: true
+  gpu_memory_utilization: 0.5

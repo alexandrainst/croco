@@ -653,13 +653,20 @@ function finals() {
         if (s > 0) better = true; else if (s < 0) worse = true;
       }
     }
-    const up = better ? "▲" : "\u00A0", dn = worse ? "▼" : "\u00A0";
-    const cat = `${ds}\u00A0\u00A0${up}${dn}`;
+    const arrows = (better ? "▲" : "") + (worse ? "▼" : "");
+    const suffix = arrows.padStart(2, "\u00A0");
+    const cat = `${ds}\u00A0${suffix}`;
     catOf[ds] = cat; cats.push(cat);
   }
   const traces = [];
   const shown = new Set();
   for (let slot = 0; slot < maxSlots; slot++) {
+    if (slot > 0) {
+      traces.push({type: "bar", orientation: "h", showlegend: false,
+        legendgroup: "_gap" + slot, hoverinfo: "skip",
+        y: datasets.map(ds => catOf[ds]), x: datasets.map(() => null),
+        marker: {color: "rgba(0,0,0,0)"}});
+    }
     for (const label of labels) {
       const mode = label.startsWith("base") ? "base" : label;
       const y = [], x = [], up = [], dn = [], cd = [];
@@ -683,7 +690,8 @@ function finals() {
           array: up, arrayminus: dn}});
     }
   }
-  const height = Math.max(420, 60 + datasets.length * labels.length * maxSlots * 14);
+  const slots = labels.length * maxSlots + Math.max(0, maxSlots - 1);
+  const height = Math.max(420, 60 + datasets.length * slots * 14);
   Plotly.newPlot("finals", traces,
     layout("Final EuroEval scores (▲ better / ▼ worse than base in group, 95% CI)",
       "score", "", {barmode: "group", bargroupgap: 0.25, height,

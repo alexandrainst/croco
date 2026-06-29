@@ -529,17 +529,21 @@ _HTML_TEMPLATE = r"""<!doctype html>
 <div id="curve" class="plot full"></div>
 
 <h2>Final comparison <span class="pill">with 95% CIs</span></h2>
-<div id="finals" class="plot full"></div>
+<div id="finals" style="width:100%"></div>
 
 <script>
 const DATA = __DATA__;
 const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f",
   generated: "#ff7f0e", label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd"};
-// Translucent shade of a mode colour, used for confidence-interval bars so they
-// read as the same series as the line without visually merging with it.
-function ciColour(hex) {
-  const n = parseInt(hex.slice(1), 16);
-  return `rgba(${n >> 16 & 255}, ${n >> 8 & 255}, ${n & 255}, 0.35)`;
+// Significance of a score relative to the base policy via non-overlapping 95%
+// CIs: returns +1 (significantly better), -1 (significantly worse) or 0.
+function sigVsBase(rec, baseRec) {
+  if (!rec || !baseRec) return 0;
+  if ([rec.lower, rec.upper, baseRec.lower, baseRec.upper].some(v => v == null))
+    return 0;
+  if (rec.lower > baseRec.upper) return rec.lower_is_better ? -1 : 1;
+  if (rec.upper < baseRec.lower) return rec.lower_is_better ? 1 : -1;
+  return 0;
 }
 document.getElementById("gen").textContent = DATA.generated;
 
@@ -605,7 +609,7 @@ function drawCurve(metric) {
       error_y: hasCI ? {type: "data", symmetric: false,
         array: pts.map(p => p.upper - p.score),
         arrayminus: pts.map(p => p.score - p.lower),
-        color: ciColour(COLOURS[mode]), thickness: 1.5} : undefined});
+        color: "black", thickness: 1} : undefined});
   }
   const [ds, m] = metric.split("||");
   Plotly.newPlot("curve", traces, layout(`${ds} - ${m}`, "checkpoint step", m), CFG);
@@ -635,18 +639,31 @@ function finals() {
     document.getElementById("finals").innerHTML =
       '<div class="note">No final evaluations yet.</div>'; return;
   }
+  const baseLabel = labels.find(l => l.startsWith("base"));
+  const base = baseLabel ? DATA.finals[baseLabel] : null;
   const keys = [...new Set(labels.flatMap(l => Object.keys(DATA.finals[l])))].sort();
+  const cats = keys.map(k => k.replace("||", " / "));
   const traces = labels.map(label => {
+    const mode = label.startsWith("base") ? "base" : label;
     const recs = keys.map(k => DATA.finals[label][k]);
-    return {type: "bar", name: label,
-      x: keys.map(k => k.replace("||", "/")),
-      y: recs.map(r => r ? r.score : null),
-      error_y: {type: "data", symmetric: false,
+    const sigs = recs.map((r, i) =>
+      label === baseLabel ? 0 : sigVsBase(r, base ? base[keys[i]] : null));
+    return {type: "bar", orientation: "h", name: label,
+      y: cats, x: recs.map(r => r ? r.score : null),
+      marker: {color: COLOURS[mode]}, cliponaxis: false,
+      text: sigs.map(s => s > 0 ? "▲" : s < 0 ? "▼" : ""),
+      textposition: "outside",
+      textfont: {size: 13,
+        color: sigs.map(s => s > 0 ? "#1a9850" : s < 0 ? "#d62728" : "#000")},
+      error_x: {type: "data", symmetric: false, color: "black", thickness: 1,
         array: recs.map(r => (r && r.upper != null) ? r.upper - r.score : 0),
         arrayminus: recs.map(r => (r && r.lower != null) ? r.score - r.lower : 0)}};
   });
+  const height = Math.max(420, 60 + keys.length * Math.max(1, labels.length) * 16);
   Plotly.newPlot("finals", traces,
-    layout("Final EuroEval scores by model", "", "score", {barmode: "group"}), CFG);
+    layout("Final EuroEval scores (▲ better / ▼ worse than base, 95% CI)",
+      "score", "", {barmode: "group", height,
+      margin: {t: 40, r: 30, b: 40, l: 210}}), CFG);
 }
 
 progress(); trainingPlots(); curves(); finals();

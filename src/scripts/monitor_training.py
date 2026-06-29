@@ -68,8 +68,8 @@ def get_training_progress(session_name: str) -> tuple[int | None, int | None]:
         )
         output = result.stdout
 
-        for line in output.split("\n")[-20:]:
-            match = re.search(r"(\d+)%.*\|.*\|?\s*(\d+)/(\d+)", line)
+        for line in reversed(output.split("\n")):
+            match = re.search(r"^\s+(\d+)%\|.+#\|\s*(\d+)/(\d+)", line)
             if match:
                 current = int(match.group(2))
                 total = int(match.group(3))

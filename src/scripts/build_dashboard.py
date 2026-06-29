@@ -590,16 +590,24 @@ function curveMetrics() {
 
 function drawCurve(metric) {
   const traces = [];
-  for (const [mode, metrics] of Object.entries(DATA.curves)) {
-    const pts = metrics[metric]; if (!pts) continue;
+  // Dodge each run by a small horizontal offset so the (vertical) confidence
+  // intervals sit side-by-side instead of overlapping; hover still reports the
+  // true checkpoint step.
+  const present = Object.entries(DATA.curves).filter(([, mm]) => mm[metric]);
+  const spread = 8;
+  present.forEach(([mode, metrics], i) => {
+    const pts = metrics[metric];
+    const dx = (i - (present.length - 1) / 2) * spread;
     const hasCI = pts.every(p => p.lower != null && p.upper != null);
-    traces.push({x: pts.map(p => p.step), y: pts.map(p => p.score),
+    traces.push({x: pts.map(p => p.step + dx), y: pts.map(p => p.score),
+      customdata: pts.map(p => p.step),
       mode: "lines+markers", name: mode, line: {color: COLOURS[mode]},
+      hovertemplate: "step %{customdata}: %{y:.2f}<extra>" + mode + "</extra>",
       error_y: hasCI ? {type: "data", symmetric: false,
         array: pts.map(p => p.upper - p.score),
         arrayminus: pts.map(p => p.score - p.lower),
         color: "black", thickness: 2.5, width: 4} : undefined});
-  }
+  });
   const [ds, m] = metric.split("||");
   Plotly.newPlot("curve", traces, layout(`${ds} - ${m}`, "checkpoint step", m), CFG);
 }

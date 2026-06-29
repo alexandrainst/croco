@@ -633,8 +633,9 @@ function finals() {
   // Nested groups via a multicategory y-axis: outer = dataset, inner = metric,
   // construction modes are the grouped bars at each (dataset, metric) leaf.
   // Plotly draws a divider and wider gap between datasets automatically. The
-  // group arrow rides the dataset (outer) label and is set when ANY
-  // (method, metric) in the dataset is significantly better / worse than base.
+  // significance arrow rides the metric (inner) label and is set when ANY
+  // non-base method at that (dataset, metric) leaf is significantly better /
+  // worse than base.
   const allKeys = [...new Set(labels.flatMap(l => Object.keys(DATA.finals[l])))];
   const byDs = {};
   for (const key of allKeys) {
@@ -644,18 +645,17 @@ function finals() {
   }
   const datasets = Object.keys(byDs).sort();
   for (const ds of datasets) byDs[ds].sort();
-  const outerOf = {};
-  for (const ds of datasets) {
+  const innerOf = {};
+  for (const key of allKeys) {
     let better = false, worse = false;
-    for (const key of byDs[ds]) {
-      for (const label of labels) {
-        if (label === baseLabel) continue;
-        const s = sigVsBase(DATA.finals[label][key], base ? base[key] : null);
-        if (s > 0) better = true; else if (s < 0) worse = true;
-      }
+    for (const label of labels) {
+      if (label === baseLabel) continue;
+      const s = sigVsBase(DATA.finals[label][key], base ? base[key] : null);
+      if (s > 0) better = true; else if (s < 0) worse = true;
     }
     const arrows = (better ? "▲" : "") + (worse ? "▼" : "");
-    outerOf[ds] = arrows ? `${ds} ${arrows}` : ds;
+    const metric = key.split("||")[1].replace(/^test_/, "");
+    innerOf[key] = arrows ? `${metric} ${arrows}` : metric;
   }
   const leaves = [];
   for (const ds of datasets) {
@@ -669,7 +669,7 @@ function finals() {
     const outer = [], inner = [], x = [], up = [], dn = [], cd = [];
     for (const leaf of leaves) {
       const r = DATA.finals[label][leaf.key];
-      outer.push(outerOf[leaf.ds]); inner.push(leaf.metric);
+      outer.push(leaf.ds); inner.push(innerOf[leaf.key]);
       x.push(r ? r.score : null);
       up.push(r && r.upper != null ? r.upper - r.score : 0);
       dn.push(r && r.lower != null ? r.score - r.lower : 0);
@@ -684,7 +684,7 @@ function finals() {
   }
   const height = Math.max(420, 60 + leaves.length * labels.length * 22);
   Plotly.newPlot("finals", traces,
-    layout("Final EuroEval scores (▲ better / ▼ worse than base in group, 95% CI)",
+    layout("Final EuroEval scores (▲ better / ▼ worse than base, 95% CI)",
       "score", "", {barmode: "group", bargap: 0.15, bargroupgap: 0.12, height,
       margin: {t: 40, r: 40, b: 40, l: 10},
       yaxis: {automargin: true, autorange: "reversed",

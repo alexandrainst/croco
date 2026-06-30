@@ -1,0 +1,83 @@
+# GRPO smoke test - Munin-Apertus-8B (Danish)
+#
+# A tiny end-to-end GRPO run whose sole job is to de-risk the FULL run
+# (config/danish-apertus-grpo.yaml) before it commits GPU hours. It exercises the
+# whole new online-RL path - vLLM-colocate rollouts + training policy + the 8B
+# reward model resident together - at the SAME memory footprint as the full run
+# (same models, same vllm_gpu_memory_utilization, same max_tokens), just over a
+# handful of prompts for a few optimiser steps. If this fits and trains sanely,
+# the full run will too.
+#
+# Usage:  uv run src/scripts/train_grpo.py -c config/danish-micro-grpo.yaml
+
+# Required by the schema but unused by the GRPO path.
+construction_mode: max_reward
+score_gold_output: false
+language: da
+
+policy:
+  model_id: danish-foundation-models/munin-apertus-8b
+  attn_implementation: sdpa
+  max_model_len: 4096
+
+reward:
+  model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
+  max_model_len: 32768
+  gpu_memory_utilization: 0.35
+
+# max_tokens kept at the full run's 2048 so the smoke validates worst-case
+# rollout/training memory, not a smaller-than-real footprint.
+generation:
+  num_candidates: 4
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 1.0
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.45
+  batch_size: 64
+  enable_prefix_caching: true
+  enable_chunked_prefill: true
+  language_model_only: false
+
+data:
+  dataset_id: danish-foundation-models/laerebogen
+  subset: evolved
+  split: train
+  # 16 prompts -> 4 prompts/step x 4 optimiser steps. Enough to load, generate,
+  # score and step without burning real time.
+  num_samples: 16
+  stratify_by_evolution: true
+  evolution_min: null
+  evolution_max: null
+  max_prompt_tokens: 2048
+  seed: 42
+
+grpo:
+  # Throwaway output; the smoke model is not kept or uploaded.
+  output_dir: models/_smoke_grpo
+  learning_rate: 5.0e-6
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  beta: 0.04
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  num_train_epochs: 1
+  bf16: true
+  gradient_checkpointing: true
+  curriculum: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  seed: 42
+  use_vllm: true
+  vllm_gpu_memory_utilization: 0.3
+  hf_repo_id: null
+  save_steps: 0
+
+eval:
+  language: da
+  tasks: null
+  num_iterations: 1
+  skip: true
+  gpu_memory_utilization: 0.5

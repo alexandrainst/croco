@@ -46,6 +46,7 @@ _MODE_MARKERS = (
     ("croco-munin-apertus-8b-da-generated", "generated"),
     ("croco-munin-apertus-8b-da-ls", "label_smoothing"),
     ("croco-munin-apertus-8b-da-simpo", "sigmoid_norm"),
+    ("croco-munin-apertus-8b-da-grpo", "grpo"),
     ("croco-munin-apertus-8b-da", "max_reward"),
 )
 _TRAINING_KEYS = {
@@ -460,10 +461,7 @@ class _Reader:
         host = self.ssh_host
         assert host is not None  # noqa: S101 - _ssh is only reached in remote mode
         result = subprocess.run(
-            ["ssh", host, command],
-            capture_output=True,
-            text=True,
-            check=False,
+            ["ssh", host, command], capture_output=True, text=True, check=False
         )
         return result.stdout
 
@@ -533,7 +531,8 @@ _HTML_TEMPLATE = r"""<!doctype html>
 <script>
 const DATA = __DATA__;
 const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f",
-  generated: "#ff7f0e", label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd"};
+  generated: "#ff7f0e", label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd",
+  grpo: "#8c564b"};
 // Significance of a score relative to the base policy via non-overlapping 95%
 // CIs: returns +1 (significantly better), -1 (significantly worse) or 0.
 function sigVsBase(rec, baseRec) {
@@ -698,7 +697,8 @@ function finals() {
   const height = Math.max(420, 60 + leaves.length * labels.length * 22);
   document.getElementById("finals").style.height = `${height}px`;
   Plotly.newPlot("finals", traces,
-    layout("Final EuroEval scores (▲ better / ▼ worse than base, by mode colour; 95% CI)",
+    layout("Final EuroEval scores (▲ better / ▼ worse than base, " +
+      "by mode colour; 95% CI)",
       "score", "", {barmode: "group", bargap: 0.15, bargroupgap: 0.12, height,
       margin: {t: 40, r: 40, b: 40, l: 10},
       yaxis: {automargin: true, autorange: "reversed",

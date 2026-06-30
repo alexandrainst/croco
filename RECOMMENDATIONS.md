@@ -2,8 +2,8 @@
 
 This document summarizes recommendations for optimizing the CroCo DPO training pipeline based on an investigation of alternative algorithms (SimPO, KTO, GRPO) and TRL configuration options.
 
-**Last updated:** 2026-06-28  
-**TRL version:** 1.7.0 (verified)  
+**Last updated:** 2026-06-28
+**TRL version:** 1.7.0 (verified)
 **Investigation method:** TRL source code inspection, paper review, GitHub API queries
 
 ---
@@ -76,11 +76,13 @@ chosen_avg_score = chosen_logratios / length        # ← Length normalized
 **Paper reference:** SimPO Eq. 4 ([Meng et al., 2024](https://arxiv.org/abs/2405.14734))
 
 **Benefits:**
+
 - Reduces verbosity bias (model can't game by generating longer text) — see [Length Bias in RLHF](https://arxiv.org/abs/2310.03716)
 - Same training infrastructure (no code changes)
 - Available in TRL 1.7.0
 
 **Tradeoffs:**
+
 - Still requires reference model (not true SimPO)
 - No memory/speed benefit over DPO (unless combined with `precompute_ref_log_probs`)
 
@@ -102,7 +104,7 @@ dpo:
   dataloader_num_workers: 4            # NEW: Parallel data loading (~20-30% faster)
                                       # Source: pytorch.org/docs/stable/data.html
   dataloader_prefetch_factor: 2        # NEW: Prefetch batches
-  
+
   # === MEMORY OPTIMIZATIONS ===
   gradient_checkpointing: true         # KEEP: Already enabled ✓ (saves ~40% memory)
                                       # Source: dpo_config.py:L150, Chen et al. (2016):1604.06174
@@ -110,7 +112,7 @@ dpo:
                                       # Source: dpo_config.py:L280
   per_device_train_batch_size: 1       # KEEP: Already minimal
   gradient_accumulation_steps: 8       # KEEP: Effective batch = 8
-  
+
   # === QUALITY OPTIMIZATIONS ===
   loss_type: ['sigmoid_norm']          # NEW: SimPO-style length normalization
                                       # Source: dpo_trainer.py:L2450, SimPO paper:2405.14734
@@ -122,7 +124,7 @@ dpo:
                                       # Source: dpo_trainer.py:L2470, WPO paper:2406.11827
   neftune_noise_alpha: 5.0             # NEW: Embedding noise regularization
                                       # Source: NEFTune paper:2310.05914
-  
+
   # === UNCHANGED ===
   output_dir: models/croco-munin-apertus-8b-da
   learning_rate: 5.0e-6
@@ -176,25 +178,25 @@ dpo:
 
 ### Phase 2: Speed Optimizations (Medium Risk)
 
-4. **Enable `precompute_ref_log_probs: true`**
+1. **Enable `precompute_ref_log_probs: true`**
    - Biggest speed win (~30-50%)
    - Requires extra RAM to cache log-probs
    - Test with micro config first
    - **Source:** [`dpo_trainer.py:L1464`](https://github.com/huggingface/trl/blob/main/trl/trainer/dpo_trainer.py#L1464)
 
-5. **Enable `torch_compile: true`**
+2. **Enable `torch_compile: true`**
    - Second-biggest speed win
    - First run will be slow (compilation overhead)
    - Subsequent runs faster
    - **Source:** [PyTorch Compile Tutorial](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)
 
-6. **Set `dataloader_num_workers: 4`**
+3. **Set `dataloader_num_workers: 4`**
    - Parallel data loading
    - Monitor CPU/memory usage
 
 ### Phase 3: Memory Optimizations (If Needed)
 
-7. **Enable `activation_offloading: true`** (only if OOM)
+1. **Enable `activation_offloading: true`** (only if OOM)
    - Saves 20-30% GPU memory
    - Tradeoff: ~15% slower training
    - **Source:** [`dpo_config.py:L280`](https://github.com/huggingface/trl/blob/main/trl/trainer/dpo_config.py#L280)
@@ -206,6 +208,7 @@ dpo:
 ### After Each Phase
 
 1. **Run micro config:**
+
    ```bash
    uv run src/scripts/run_pipeline.py --config config/danish-micro-apertus.yaml
    ```
@@ -216,6 +219,7 @@ dpo:
    - Reasonable training speed (steps/sec)
 
 3. **Evaluate checkpoints:**
+
    ```bash
    uv run src/scripts/eval_checkpoints.py --model-path models/croco-munin-apertus-8b-da-micro
    ```
@@ -236,6 +240,7 @@ dpo:
 ### Common Issues
 
 **1. OOM (Out of Memory) Errors**
+
 ```yaml
 # Solutions:
 activation_offloading: true          # Offload activations to CPU (dpo_config.py:L280)
@@ -244,6 +249,7 @@ gradient_checkpointing: true         # Already enabled (dpo_config.py:L150)
 ```
 
 **2. `precompute_ref_log_probs` Uses Too Much RAM**
+
 ```yaml
 # Solutions:
 precompute_ref_log_probs: false      # Disable if RAM < 32GB
@@ -251,6 +257,7 @@ precompute_ref_batch_size: 16        # Reduce batch size for precomputation
 ```
 
 **3. `torch_compile` Fails or Is Slow**
+
 ```yaml
 # Solutions:
 torch_compile: false                 # Disable if issues
@@ -258,12 +265,14 @@ torch_compile: false                 # Disable if issues
 ```
 
 **4. `padding_free` Causes Errors**
+
 ```yaml
 # Solutions:
 padding_free: false                  # Not all models support this (dpo_config.py:L200)
 ```
 
 **5. Loss Doesn't Decrease**
+
 ```yaml
 # Solutions:
 beta: 0.2                            # Try higher regularization (DPO paper:2305.18290)
@@ -291,7 +300,7 @@ If you want to try **KTO** (Kahneman-Tversky Optimization) instead:
 ```python
 def to_kto_records(*, pairs: list[PreferencePair]) -> list[dict[str, t.Any]]:
     """Convert preference pairs to TRL KTO format.
-    
+
     Source: KTO paper (Ethayarajh et al., 2024): https://arxiv.org/abs/2402.01306
             TRL KTOTrainer expects: prompt, completion, label
     """
@@ -436,11 +445,11 @@ dpo:
   padding_free: false
   dataloader_num_workers: 4
   dataloader_prefetch_factor: 2
-  
+
   # Memory (verified in dpo_config.py)
   gradient_checkpointing: true
   activation_offloading: false
-  
+
   # Quality (verified in dpo_trainer.py:L2450, L2340, L2470)
   loss_type: ['sigmoid_norm']
   beta: 0.1
@@ -449,6 +458,7 @@ dpo:
   neftune_noise_alpha: 5.0
 ```
 
-**Expected outcome:** ~40% faster training, better length control, more robust to reward noise.
+**Expected outcome:** ~40% faster training, better length control, more robust
+to reward noise.
 
 **All claims verifiable** via the sources and commands listed above.

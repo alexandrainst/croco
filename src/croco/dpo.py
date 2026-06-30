@@ -120,7 +120,14 @@ def train_dpo(*, config: PipelineConfig, dataset_path: Path) -> Path:
 
     Returns:
         Path to the directory where the trained model was saved.
+
+    Raises:
+        ValueError:
+            If the configuration has no ``dpo`` block.
     """
+    if config.dpo is None:
+        msg = "train_dpo requires a 'dpo' block in the configuration."
+        raise ValueError(msg)
     dpo_config = config.dpo
 
     # Load and convert dataset

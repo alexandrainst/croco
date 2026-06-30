@@ -32,6 +32,7 @@ class TestResultMode:
             "models/croco-munin-apertus-8b-da-generated": "generated",
             "models/croco-munin-apertus-8b-da-ls": "label_smoothing",
             "models/croco-munin-apertus-8b-da-simpo": "sigmoid_norm",
+            "models/croco-munin-apertus-8b-da-grpo": "grpo",
         }
         for model_id, expected in cases.items():
             assert build_dashboard._result_mode(model_id=model_id) == expected
@@ -64,3 +65,4 @@ class TestModeLabel:
             build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo")
             == "sigmoid_norm"
         )
+        assert build_dashboard._mode_label("croco-munin-apertus-8b-da-grpo") == "grpo"

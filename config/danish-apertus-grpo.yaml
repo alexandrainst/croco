@@ -1,0 +1,93 @@
+# CroCo vs online-RL baseline - Munin-Apertus-8B (Danish), GRPO
+#
+# The "is the CroCo machinery worth it?" ablation: skip all offline preference
+# construction and instead optimise the policy ONLINE against the reward model
+# with GRPO. The policy generates a group of completions per prompt during
+# training, the reward model scores them, and GRPO updates on the group-relative
+# advantage.
+#
+# Held fixed against the winning max_reward DPO run for an apples-to-apples
+# comparison: same policy, same prompts (data block), same reward model
+# (Skywork-Qwen3-8B baseline), and the SAME rollout sampling - group size,
+# temperature, top_p and completion length are read from the generation block
+# (num_candidates = GRPO group size). The only difference is online group-relative
+# vs offline contrastive-DPO preference optimisation.
+#
+# Usage (no dataset build - GRPO generates online):
+#   uv run src/scripts/train_grpo.py -c config/danish-apertus-grpo.yaml
+# Then evaluate the adapter with eval_model.py / eval_checkpoints.py as usual.
+
+# Required by the schema but unused by the GRPO path (no preference construction).
+construction_mode: max_reward
+score_gold_output: false
+language: da
+
+policy:
+  model_id: danish-foundation-models/munin-apertus-8b
+  attn_implementation: sdpa
+  max_model_len: 4096
+
+reward:
+  model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
+  max_model_len: 32768
+  gpu_memory_utilization: 0.35
+
+# Rollout sampling for GRPO is read from here: num_candidates is the group size,
+# and temperature/top_p/max_tokens match the CroCo self-generation distribution.
+generation:
+  num_candidates: 4
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 1.0
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.45
+  batch_size: 64
+  enable_prefix_caching: true
+  enable_chunked_prefill: true
+  language_model_only: false
+
+data:
+  dataset_id: danish-foundation-models/laerebogen
+  subset: evolved
+  split: train
+  num_samples: 5000
+  stratify_by_evolution: true
+  evolution_min: null
+  evolution_max: null
+  max_prompt_tokens: 2048
+  seed: 42
+
+grpo:
+  output_dir: models/croco-munin-apertus-8b-da-grpo
+  learning_rate: 5.0e-6
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  # GRPO KL-penalty coefficient (distinct from DPO's beta=0.1). 0.04 is the TRL
+  # default; tune on the box if rewards collapse or KL explodes.
+  beta: 0.04
+  # Effective 16 completions/step = 4 prompts x 4 generations. per_device x
+  # grad_accum must keep the generation batch divisible by num_generations (4).
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  num_train_epochs: 1
+  bf16: true
+  gradient_checkpointing: true
+  curriculum: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  seed: 42
+  use_vllm: true
+  # Fraction of (unified) GPU memory the colocated vLLM rollout engine may claim;
+  # the rest must hold the training policy + the reward model. Tune on the box.
+  vllm_gpu_memory_utilization: 0.3
+  hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da-grpo
+  save_steps: 100
+
+eval:
+  language: da
+  tasks: null
+  num_iterations: 1
+  skip: true
+  gpu_memory_utilization: 0.5

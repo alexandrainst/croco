@@ -1,6 +1,8 @@
-# Ignore line-length rule for PLAN.md which contains many code snippets
+# Ignore long-form planning/investigation docs that contain many code snippets,
+# wide tables and long reference lines (not product-facing markdown).
 ignores:
   - "PLAN.md"
+  - "RECOMMENDATIONS.md"
 
 rules:
   MD013:

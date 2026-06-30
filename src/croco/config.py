@@ -104,6 +104,47 @@ class DPOTrainConfig(BaseModel):
     precompute_ref_log_probs: bool = False
 
 
+class GRPOTrainConfig(BaseModel):
+    """Configuration for GRPO (online RL) training.
+
+    The online-RL baseline that skips offline preference construction entirely:
+    the policy generates completions during training and the reward model scores
+    them on the fly. Rollout sampling (group size, temperature, top_p, completion
+    length) and the prompt set are deliberately taken from the shared
+    ``generation``/``data`` blocks, so this run draws the SAME self-generation
+    distribution as the CroCo pipeline - isolating online-vs-offline preference
+    optimisation as the only difference from the max_reward DPO config.
+    """
+
+    output_dir: pathlib.Path
+    learning_rate: float
+    lr_scheduler_type: str
+    warmup_ratio: float
+    weight_decay: float
+    # KL-penalty coefficient against the (frozen) reference policy.
+    beta: float
+    per_device_train_batch_size: int
+    gradient_accumulation_steps: int
+    num_train_epochs: int
+    bf16: bool
+    gradient_checkpointing: bool
+    # Order prompts easy-to-hard by evolution and disable dataset shuffling, so the
+    # online run sees the same curriculum as the DPO runs (GRPO's repeat-sampler is
+    # preserved; only its shuffle is turned off).
+    curriculum: bool
+    lora_r: int
+    lora_alpha: int
+    lora_dropout: float
+    seed: int
+    # Use a colocated vLLM engine for fast rollouts. The fraction below is what
+    # vLLM may claim of the (unified) GPU memory; keep it modest so the training
+    # copy of the policy and the reward model still fit. Tune on the box.
+    use_vllm: bool = True
+    vllm_gpu_memory_utilization: float = 0.3
+    hf_repo_id: str | None = None
+    save_steps: int = 0
+
+
 class EvalConfig(BaseModel):
     """Configuration for evaluation."""
 
@@ -124,7 +165,11 @@ class PipelineConfig(BaseModel):
     reward: RewardModelConfig
     generation: GenerationConfig
     data: DataConfig
-    dpo: DPOTrainConfig
+    # Exactly one training block is used per run: ``dpo`` for the offline CroCo
+    # pipeline, ``grpo`` for the online-RL baseline. Both default to None so a
+    # config need only specify the one it uses.
+    dpo: DPOTrainConfig | None = None
+    grpo: GRPOTrainConfig | None = None
     eval: EvalConfig
 
     @model_validator(mode="after")

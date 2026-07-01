@@ -1,9 +1,15 @@
 # CroCo micro pre-flight - exercises every new DPO knob at once on 10 samples.
 #
-# Not a quality experiment: it just confirms that loss_type=sigmoid_norm,
-# label_smoothing and precompute_ref_log_probs all train without runtime errors
-# (with our LoRA implicit-reference + curriculum sampler) before committing hours
-# to the real ablations. No Hub upload.
+# Not a quality experiment: it just confirms that loss_type=sigmoid_norm and
+# label_smoothing (the knobs the ls/simpo runs actually use) train without runtime
+# errors (with our LoRA implicit-reference + curriculum sampler) before committing
+# hours to the real ablations. No Hub upload.
+#
+# precompute_ref_log_probs is deliberately NOT exercised here: no queued run uses
+# it, and TRL's precompute path memory-maps a /tmp datasets arrow cache that proved
+# fragile on the shared box (the file vanished mid-run and aborted the gate on
+# 2026-06-30). If we ever enable it for real, point HF_DATASETS_CACHE/TMPDIR at
+# persistent on-disk storage first.
 #
 # Usage:
 #   uv run src/scripts/run_pipeline.py --config config/danish-micro-ablation.yaml
@@ -60,10 +66,9 @@ dpo:
   lora_dropout: 0.05
   seed: 42
   hf_repo_id: null
-  # All three new knobs at once - this run only checks they execute cleanly.
+  # The knobs the ls/simpo runs use - this run only checks they execute cleanly.
   loss_type: sigmoid_norm
   label_smoothing: 0.05
-  precompute_ref_log_probs: true
 
 eval:
   language: da

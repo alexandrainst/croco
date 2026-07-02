@@ -131,4 +131,16 @@ uv run src/scripts/run_pipeline.py -c config/danish-apertus.yaml \
 
 ___
 
+## References
+
+See [REFERENCES.md](REFERENCES.md) for full bibliography.
+
+**Key citations**:
+
+- **DPO**: Rafailov et al. (2023) — *Direct Preference Optimization* [arXiv:2305.18290]
+- **SimPO**: Meng et al. (2024) — *SimPO: Simple Preference Optimization with a Reference-Free Reward* [arXiv:2405.14734]
+- **GRPO**: Shao et al. (2024) — *DeepSeekMath* [arXiv:2402.03300]
+- **LoRA**: Hu et al. (2021) — *Low-Rank Adaptation* [arXiv:2106.09685]
+- **Curriculum**: Bengio et al. (2009) — *Curriculum Learning* [ICML 2009]
+
 *Last updated: 2026-07-02*

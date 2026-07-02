@@ -67,6 +67,13 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 
 - [Main CroCo](01-main-croco.md) — DPO baseline
 
+## References
+
+- **GRPO**: Shao et al. (2024) — *DeepSeekMath* [arXiv:2402.03300](https://arxiv.org/abs/2402.03300)
+  - Appendix A.3: GRPO algorithm details
+- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- **vLLM**: Kwon et al. (2023) — [GitHub](https://github.com/vllm-project/vllm)
+
 ---
 
 *Created: 2026-07-02*

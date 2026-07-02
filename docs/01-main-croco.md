@@ -58,6 +58,13 @@ _Results pending — training completed, evals in progress._
 - [SimPO ablations](06-simpo.md) — tests alternative loss functions
 - [Llama RM ablation](04-llama-rm.md) — tests alternative reward model
 
+## References
+
+- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- **LoRA**: Hu et al. (2021) — [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
+- **Curriculum**: Bengio et al. (2009) — [ICML 2009](https://doi.org/10.1145/1553374.1553380)
+- **vLLM**: Kwon et al. (2023) — [GitHub](https://github.com/vllm-project/vllm)
+
 ---
 
 *Created: 2026-07-02*

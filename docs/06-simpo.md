@@ -44,6 +44,12 @@ _Results pending — evals start after training completes (~2h)._
 - [SimPO Full](08-simpo-full.md) — ref-free loss + target margin γ=0.5
 - [Length-Normalised](05-length-normalised.md) — predecessor ablation
 
+## References
+
+- **SimPO**: Meng et al. (2024) — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
+- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- **Length normalization**: Koehn & Knowles (2017) — [ACL Workshop](https://aclanthology.org/W17-3206/)
+
 ---
 
 *Created: 2026-07-02 | Updated: 2026-07-02 17:20 CEST*

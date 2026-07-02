@@ -58,6 +58,12 @@ We chose **2.0** (conservative, matches base models).
 - [SimPO](06-simpo.md) — β=0.1 baseline
 - [SimPO Full](08-simpo-full.md) — adds ref-free loss + target margin
 
+## References
+
+- **SimPO**: Meng et al. (2024) — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
+  - Table 7: Hyperparameter recommendations for base/instruct models
+- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+
 ---
 
 *Created: 2026-07-02*

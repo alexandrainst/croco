@@ -56,6 +56,11 @@ _Results pending._
 - [Main CroCo](01-main-croco.md) — max-reward construction baseline
 - [Generated](03-generated.md) — standard generated mode without max selection
 
+## References
+
+- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- **Curriculum**: Bengio et al. (2009) — [ICML 2009](https://doi.org/10.1145/1553374.1553380)
+
 ---
 
 *Created: 2026-07-02*

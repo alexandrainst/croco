@@ -44,6 +44,12 @@ _Results pending — training completed, evals in progress._
 - [SimPO](06-simpo.md) — extends length-normalisation with reference-free loss
 - [Main CroCo](01-main-croco.md) — standard DPO baseline
 
+## References
+
+- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- **Length normalization**: Koehn & Knowles (2017) — [ACL Workshop](https://aclanthology.org/W17-3206/)
+- **SimPO**: Meng et al. (2024) — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
+
 ---
 
 *Created: 2026-07-02*

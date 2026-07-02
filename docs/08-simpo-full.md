@@ -73,6 +73,15 @@ Custom code in `src/croco/dpo.py`:
 - [SimPO Tuned](07-simpo-tuned.md) — length-norm DPO with ref model
 - [SimPO](06-simpo.md) — β=0.1 baseline
 
+## References
+
+- **SimPO**: Meng et al. (2024) — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
+  - Section 2.3: Target reward margin derivation
+  - Section 4.3: γ ablation study (Figure 3)
+  - Appendix A: Hyperparameter table (β=2.0–10, γ/β=0.1–0.8)
+- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- **LoRA**: Hu et al. (2021) — [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
+
 ---
 
 *Created: 2026-07-02*

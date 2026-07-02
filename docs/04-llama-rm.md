@@ -38,6 +38,12 @@ _Results pending._
 
 - [Main CroCo](01-main-croco.md) — Skywork RM baseline
 
+## References
+
+- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- **Skywork-Reward-V2**: Skywork AI (2024) — [Hugging Face](https://huggingface.co/Skywork/Skywork-Reward-V2-Qwen3-8B)
+- **Llama 3**: Meta AI (2024) — [Hugging Face](https://huggingface.co/meta-llama/Meta-Llama-3-8B)
+
 ---
 
 *Created: 2026-07-02*

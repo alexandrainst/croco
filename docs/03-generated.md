@@ -86,8 +86,6 @@ of the reward model's selection.
 
 ---
 
-
-
 ## Reproduction
 
 ```bash
@@ -101,10 +99,11 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-generated.yaml
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-generated.yaml --eval-only --eval.num-iterations 3
 
 # 4. Evaluate specific checkpoint
-uv run src/scripts/eval_checkpoints.py -m models/<MODEL_DIR> -l da --num-iterations 3
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-generated -l da --num-iterations 3
 ```
 
 **Tips:**
+
 - `--skip-build` reuses cached `candidates_cache.jsonl` and `pairs_*.jsonl`
 - Remove `--skip-build` to regenerate candidates with new generation params
 - See `config/danish-apertus-generated.yaml` for full hyperparameters

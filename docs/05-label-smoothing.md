@@ -102,8 +102,6 @@ biased preference data, as is common in practice.
 
 ---
 
-
-
 ## Reproduction
 
 ```bash
@@ -117,10 +115,11 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml --skip
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml --eval-only --eval.num-iterations 3
 
 # 4. Evaluate specific checkpoint
-uv run src/scripts/eval_checkpoints.py -m models/<MODEL_DIR> -l da --num-iterations 3
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-ls -l da --num-iterations 3
 ```
 
 **Tips:**
+
 - `--skip-build` reuses cached `candidates_cache.jsonl` and `pairs_*.jsonl`
 - Remove `--skip-build` to regenerate candidates with new generation params
 - See `config/danish-apertus-ls.yaml` for full hyperparameters

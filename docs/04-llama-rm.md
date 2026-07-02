@@ -53,12 +53,12 @@ Qwen-based RM.
 
 **Status:** ⏳ **Queued** — ready to launch after ls/simpo ablations complete.
 
-| Date       | Milestone                    |
-| ---------- | ---------------------------- |
-| 2026-07-01 | Config created               |
-| 2026-07-02 | Queue script created         |
-| —          | **Awaiting ls/simpo winner** |
-| 2026-07-02 | Evals pending                |
+| Date       | Milestone                                 |
+| ---------- | ----------------------------------------- |
+| 2026-07-01 | Config created                            |
+| 2026-07-02 | Queue script created: `llama_rm_queue.sh` |
+| —          | **Awaiting ls/simpo winner**              |
+| 2026-07-02 | Evals pending                             |
 
 ## Related
 

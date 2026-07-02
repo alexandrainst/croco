@@ -3,7 +3,7 @@ title: SimPO Ablation (β=0.1)
 description: Length-normalised loss with low beta (single-variable baseline)
 created: 2026-07-02
 updated: 2026-07-02 17:25 CEST
-status: training-complete
+status: evals-in-progress
 config: config/danish-apertus-simpo.yaml
 output: models/croco-munin-apertus-8b-da-simpo
 started: 2026-07-01 09:59
@@ -90,7 +90,6 @@ eval, 3 for checkpoints).
 
 ---
 
-
 ## Reproduction
 
 ```bash
@@ -108,6 +107,10 @@ uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-simpo
 ```
 
 **Tips:**
+
 - `--skip-build` reuses cached candidate pairs
 - See `config/danish-apertus-simpo.yaml` for full hyperparameters
+
+```
+
 ```

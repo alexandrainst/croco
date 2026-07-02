@@ -152,69 +152,21 @@ Significance determined by non-overlapping CIs._
 
 ### Learning Curves
 
-Representative checkpoint-by-checkpoint performance:
+Checkpoint-by-checkpoint performance across all 10 [EuroEval](https://euroeval.com) benchmarks:
 
-![Angry Tweets learning curve](gfx/curve_angry-tweets-test_mcc.png)
 
-![IFEval-da learning curve](gfx/curve_ifeval-da.png)
+| Dataset | Description |
+|---------|-------------|
+| ![Angry Tweets](gfx/curve_angry-tweets.png) | Sentiment classification on Danish tweets |
+| ![Danish Citizen Tests](gfx/curve_danish-citizen-tests.png) | Multiple choice civics knowledge |
+| ![Danske Talemåder](gfx/curve_danske-talemaader.png) | Danish idiom completion |
+| ![Dansk](gfx/curve_dansk.png) | Named entity recognition |
+| ![Hellaswag-da](gfx/curve_hellaswag-da.png) | Commonsense inference |
+| ![IFEval-da](gfx/curve_ifeval-da.png) | Instruction following |
+| ![Multi-Wiki QA-da](gfx/curve_multi-wiki-qa-da.png) | Open-domain question answering |
+| ![Nordjylland News](gfx/curve_nordjylland-news.png) | News article generation |
+| ![ScaLA-da](gfx/curve_scala-da.png) | Language understanding |
+| ![ValEU-da](gfx/curve_valeu-da.png) | European values alignment |
 
-![ScaLA-da learning curve](gfx/curve_scala-da-test_mcc.png)
+*Error bars show 95% CIs (bootstrap, 1000 samples); runs dodged horizontally for visibility.*
 
-_Error bars show 95% CIs; runs dodged horizontally for visibility._
-
----
-
-## Configs
-
-All configs in `config/` directory:
-
-```
-config/
-├── danish-apertus.yaml          # Main run (max_reward)
-├── danish-apertus-gold.yaml     # Gold chosen ablation
-├── danish-apertus-generated.yaml # Generated mode
-├── danish-apertus-llama-rm.yaml # Llama-based RM
-├── danish-apertus-ls.yaml       # Length-normalised loss
-├── danish-apertus-simpo.yaml    # SimPO β=0.1
-├── danish-apertus-simpo-tuned.yaml  # SimPO β=2.0
-├── danish-apertus-simpo-full.yaml   # Ref-free SimPO + γ=0.5
-├── danish-apertus-grpo.yaml     # GRPO online RL
-└── danish-micro-*.yaml          # Smoke tests (10-16 samples)
-```
-
----
-
-## Running Experiments
-
-```bash
-# Single experiment
-uv run src/scripts/run_pipeline.py -c config/danish-apertus.yaml
-
-# With custom dataset output
-uv run src/scripts/run_pipeline.py -c config/danish-apertus.yaml \
-  --dataset-output data/pairs_apertus.jsonl --skip-build
-
-# Resume after pre-flight (auto-launches queued runs)
-# Monitor runs via tmux sessions: queue, tqueue, grpo
-```
-
----
-
-## Timeline
-
-| Date             | Milestone                                  |
-| ---------------- | ------------------------------------------ |
-| 2026-06-28       | Initial CroCo runs (main, gold, generated) |
-| 2026-06-29       | RM ablation (Llama vs Skywork)             |
-| 2026-06-30       | Loss ablations started (ls, simpo)         |
-| 2026-07-02       | SimPO ablations queued (tuned, full)       |
-| 2026-07-04 (est) | GRPO baseline completes                    |
-
----
-
-### Final Comparison
-
-![Final EuroEval comparison with 95% CIs](gfx/final_comparison.png)
-
-_Bars show mean scores; error bars are 95% confidence intervals (bootstrap, 1000 samples).  
-Significance determined by non-overlapping CIs._

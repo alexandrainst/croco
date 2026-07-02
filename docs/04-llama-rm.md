@@ -3,7 +3,7 @@ title: Llama RM Ablation
 description: Reward model substitution (Skywork vs Llama-3-based)
 created: 2026-07-02
 updated: 2026-07-02
-status: evals-pending
+status: not-started
 config: config/danish-apertus-llama-rm.yaml
 output: models/croco-munin-apertus-8b-da-llama-rm
 ---
@@ -51,11 +51,13 @@ Qwen-based RM.
 
 ## Timeline
 
-| Date       | Milestone          |
-| ---------- | ------------------ |
-| 2026-06-29 | Training started   |
-| 2026-06-30 | Training completed |
-| 2026-07-02 | Evals pending      |
+**Status:** Config exists (`config/danish-apertus-llama-rm.yaml`) but experiment was **never started**.
+
+| Date       | Milestone                    |
+| ---------- | ---------------------------- |
+| 2026-07-01 | Config created               |
+| —          | **Never queued or executed** |
+| 2026-07-02 | Evals pending                |
 
 ## Related
 

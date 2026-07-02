@@ -57,17 +57,17 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 ## Hyperparameter Summary
 
-| Experiment  | β (temp) | Loss Type        | Target Margin (γ) | Curriculum | Ref Model |
-| ----------- | -------- | ---------------- | ----------------- | ---------- | --------- |
-| Max Reward  | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
-| Gold Chosen | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
-| Generated   | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
-| Llama RM    | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
-| Length-Norm | 0.1      | `length_norm`    | —                 | ✓          | ✓         |
-| SimPO       | 0.1      | `sigmoid_norm`   | —                 | ✓          | ✓         |
-| SimPO Tuned | 2.0      | `sigmoid_norm`   | —                 | ✓          | ✓         |
-| SimPO Full  | 2.0      | `simpo` (custom) | 0.5               | ✓          | ✗         |
-| GRPO        | 0.04     | GRPO loss        | —                 | ✓          | ✗         |
+| Experiment      | β (temp) | Loss Type        | Target Margin (γ) | Curriculum | Ref Model |
+| --------------- | -------- | ---------------- | ----------------- | ---------- | --------- |
+| Max Reward      | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
+| Gold Chosen     | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
+| Generated       | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
+| Llama RM        | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
+| Label Smoothing | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
+| SimPO           | 0.1      | `sigmoid_norm`   | —                 | ✓          | ✓         |
+| SimPO Tuned     | 2.0      | `sigmoid_norm`   | —                 | ✓          | ✓         |
+| SimPO Full      | 2.0      | `simpo` (custom) | 0.5               | ✓          | ✗         |
+| GRPO            | 0.04     | GRPO loss        | —                 | ✓          | ✗         |
 
 ---
 

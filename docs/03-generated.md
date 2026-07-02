@@ -45,9 +45,9 @@ of the reward model's selection.
 ## Results
 
 **Evaluation suite:** 10 Danish benchmarks from EuroEval, 3 iterations each.
-**Legend:** ▲ significantly better than Max Reward, ▼ significantly worse (non-overlapping 95% CIs).
+**Legend:** ▲ significantly better than base Munin-Apertus-8B, ▼ significantly worse (non-overlapping 95% CIs).
 
-| Benchmark            | Task                     | Metric               |     Score | vs Max Reward | Status      |
+| Benchmark            | Task                     | Metric               |     Score | vs Base Model | Status      |
 | -------------------- | ------------------------ | -------------------- | --------: | :-----------: | ----------- |
 | AngryTweets          | Sentiment classification | MCC                  | **47.38** |       •       | ✅ Complete |
 | ScaLA-da             | Linguistic acceptability | MCC                  | **34.58** |       •       | ✅ Complete |
@@ -57,7 +57,7 @@ of the reward model's selection.
 | Danske Talemåder     | Knowledge                | Accuracy             | **74.48** |       •       | ✅ Complete |
 | Danish Citizen Tests | Knowledge                | Accuracy             | **89.63** |       •       | ✅ Complete |
 | HellaSwag-da         | Common sense reasoning   | Accuracy             | **52.08** |       •       | ✅ Complete |
-| IFEval-da            | Instruction following    | Instruction accuracy | **49.16** |       ▼       | ✅ Complete |
+| IFEval-da            | Instruction following    | Instruction accuracy | **49.16** |       •       | ✅ Complete |
 | ValEU-da             | European values          | Alignment score      | **20.52** |       •       | ✅ Complete |
 
 ## Timeline

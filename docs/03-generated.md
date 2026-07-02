@@ -122,7 +122,8 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-generated.yaml
 # 2. Or resume from existing cache (skip build step)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-generated.yaml --skip-build
 
-# 3. Run evals only (10 iterations)
+# 3. Run evals (current standard: 10 iterations)
+#    Historical evals used 3 iterations — point estimates only
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-generated.yaml --eval-only --eval.num-iterations 10
 
 # 4. Evaluate specific checkpoint

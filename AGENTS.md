@@ -69,13 +69,31 @@ bash src/scripts/<script>.sh
 | Script | Purpose | Status |
 |--------|---------|--------|
 | `grpo_queue.sh` | GRPO baseline (micro → apertus) | ⏳ Queued |
-| `llama_rm_queue.sh` | Llama-3.1 RM ablation (rescore cache → train) | 🏃 Running |
+| `llama_rm_queue.sh` | Llama-3.1 RM ablation (rescore cache → train) | ⏳ Waiting for queue |
 | `update_docs.sh` | Export all 22 plots from dashboard | ✅ Ready |
+| `auto_launch_llama_rm.sh` | Monitor `queue` → auto-launch llama_rm when GPU free | ✅ Ready |
+| `auto_launch_grpo.sh` | Monitor `llamarm` → auto-launch grpo when GPU free | ✅ Ready |
 
 **Removed scripts:**
 
 - `resume_ls_simpo.sh` — ls/simpo ablations complete
 - `resume_tuned_simpo.sh` — SimPO tuned/full complete
+
+### Auto-Launch Scripts
+
+Chain experiments automatically when GPU becomes free:
+
+```bash
+# Launch llama_rm when 'queue' session finishes
+tmux new-session -d -s auto_rm "bash -lc 'bash ~/croco/src/scripts/auto_launch_llama_rm.sh 2>&1 | tee ~/croco/auto_rm_launch.log'"
+
+# Launch grpo when 'llamarm' session finishes  
+tmux new-session -d -s auto_grpo "bash -lc 'bash ~/croco/src/scripts/auto_launch_grpo.sh 2>&1 | tee ~/croco/auto_grpo_launch.log'"
+```
+
+**Workflow:** `queue` (simpo evals) → `llamarm` (Llama RM) → `grpo` (GRPO baseline)
+
+Monitor logs: `tail -f ~/croco/auto_rm_launch.log` or `tail -f ~/croco/auto_grpo_launch.log`
 
 ### update_docs.sh Details
 

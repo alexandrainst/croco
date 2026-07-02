@@ -99,7 +99,14 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 ## Benchmark Results Summary
 
-All scores from [EuroEval](https://euroeval.com) (10 iterations). **See individual experiment docs for full tables with 95% confidence intervals.**
+**Benchmark scores** from [EuroEval](https://euroeval.com) v17.5.0.
+
+| Experiment | Iterations | CIs Available |
+|------------|------------|---------------|
+| Completed (01, 02, 03, 05) | 3 (historical) | Mean scores only — CIs require 10 iterations |
+| Ongoing / Future | 10 (standard) | ✅ Yes — bootstrap 95% CIs |
+
+**Significance markers** (▲▼) in tables below based on non-overlapping 95% CIs where available; otherwise on point estimates.
 
 | Dataset              | Metric     | Base Model | Max Reward |    Gold | Generated | Label Smooth |
 | -------------------- | ---------- | ---------: | ---------: | ------: | --------: | -----------: |

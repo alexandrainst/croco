@@ -12,8 +12,9 @@ output: models/croco-munin-apertus-8b-da
 
 ## Hypothesis
 
-The standard CroCo pipeline with `max_reward` construction mode produces preference
-pairs that lead to better alignment than alternative construction methods.
+The `max_reward` construction mode produces high-quality preference pairs by:  
+(1) selecting the best available example (gold or generated) as **chosen**, and  
+(2) using a statistically low-reward candidate (mean − 2×σ) as **rejected**, ensuring a clear reward margin.
 
 ## Method
 
@@ -21,8 +22,8 @@ pairs that lead to better alignment than alternative construction methods.
 
 1. Generate 4 candidates per prompt using policy model ([vLLM](https://github.com/vllm-project/vllm), temp=0.7)
 2. Score all candidates with Skywork-Reward-V2-Qwen3-8B
-3. Select highest-reward candidate as **chosen**
-4. Use original prompt's existing output as **rejected** (if available)
+3. **Chosen**: highest-reward candidate (either gold from dataset OR max-reward generation)
+4. **Rejected**: candidate closest to (mean − 2×σ) of generated candidates
 
 ### Training
 

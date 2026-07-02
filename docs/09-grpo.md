@@ -85,7 +85,7 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 
 ## Related
 
-- [Main CroCo](01-main-croco.md) — DPO baseline
+- [Max Reward](01-max-reward.md) — DPO baseline
 
 ## References
 

@@ -60,7 +60,7 @@ _Results pending — training completed, evals in progress._
 ## Related
 
 - [SimPO](06-simpo.md) — extends length-normalisation with reference-free loss
-- [Main CroCo](01-main-croco.md) — standard DPO baseline
+- [Max Reward](01-max-reward.md) — standard DPO baseline
 
 ## References
 

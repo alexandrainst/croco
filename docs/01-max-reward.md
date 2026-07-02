@@ -1,5 +1,5 @@
 ---
-title: Main CroCo Run
+title: Max Reward Ablation
 description: max_reward construction mode baseline
 created: 2026-07-02
 updated: 2026-07-02
@@ -8,7 +8,7 @@ config: config/danish-apertus.yaml
 output: models/croco-munin-apertus-8b-da
 ---
 
-# Main CroCo Run
+# Max Reward Ablation
 
 **Config:** `config/danish-apertus.yaml`  
 **Output:** `models/croco-munin-apertus-8b-da`

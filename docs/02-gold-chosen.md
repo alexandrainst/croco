@@ -71,7 +71,7 @@ _Results pending._
 
 ## Related
 
-- [Main CroCo](01-main-croco.md) — max-reward construction baseline
+- [Max Reward](01-max-reward.md) — max-reward construction baseline
 - [Generated](03-generated.md) — standard generated mode without max selection
 
 ## References

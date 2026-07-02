@@ -56,7 +56,7 @@ _Results pending._
 
 ## Related
 
-- [Main CroCo](01-main-croco.md) — max-reward selection
+- [Max Reward](01-max-reward.md) — max-reward selection
 - [Gold Chosen](02-gold-chosen.md) — expert outputs as chosen
 
 ## References

@@ -54,7 +54,7 @@ _Results pending._
 
 ## Related
 
-- [Main CroCo](01-main-croco.md) — Skywork RM baseline
+- [Max Reward](01-max-reward.md) — Skywork RM baseline
 
 ## References
 

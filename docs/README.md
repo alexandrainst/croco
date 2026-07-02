@@ -31,7 +31,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 | Experiment | Description | Status |
 |------------|-------------|--------|
-| [**Main CroCo Run**](01-main-croco.md) | `max_reward` construction: generate 4 candidates, select best as chosen | ✅ Complete |
+| [**Max Reward**](01-max-reward.md) | `max_reward` construction: generate 4 candidates, select best as chosen | ✅ Complete |
 | [**Gold Chosen**](02-gold-chosen.md) | Use gold (expert) outputs as chosen instead of max-reward candidates | ✅ Complete |
 | [**Generated**](03-generated.md) | Standard generated mode: keep all candidates, score against prompts | ✅ Complete |
 | [**Llama RM**](04-llama-rm.md) | Substitute Skywork RM with Llama-3-based reward model | ✅ Complete |
@@ -57,7 +57,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 | Experiment | β (temp) | Loss Type | Target Margin (γ) | Curriculum | Ref Model |
 |------------|----------|-----------|-------------------|------------|-----------|
-| Main CroCo | 0.1 | standard (exp) | — | ✓ | ✓ |
+| Max Reward | 0.1 | standard (exp) | — | ✓ | ✓ |
 | Gold Chosen | 0.1 | standard (exp) | — | ✓ | ✓ |
 | Generated | 0.1 | standard (exp) | — | ✓ | ✓ |
 | Llama RM | 0.1 | standard (exp) | — | ✓ | ✓ |

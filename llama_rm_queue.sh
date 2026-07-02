@@ -14,13 +14,12 @@ DIR=croco-munin-apertus-8b-da-llamarm
 log "===== Llama RM: sync repo ====="
 run git pull --ff-only
 
-log "===== Llama RM: update config with ls/simpo winner ====="
-# Check which loss won (edit this before running based on ls/simpo results):
-#   - If label smoothing wins: add `label_smoothing: 0.05` to dpo block
-#   - If SimPO wins: add `loss_type: sigmoid_norm` to dpo block
-#   - If vanilla DPO wins: leave as is
-log "WARNING: Review config/danish-apertus-llama-rm.yaml dpo block before proceeding"
-log "Current config uses vanilla DPO (no modifications)"
+log "===== Llama RM: config check ====="
+log "Config uses vanilla DPO (default)"
+log "OPTIONAL: Edit config/danish-apertus-llama-rm.yaml to match ls/simpo winner"
+log "  - Label smoothing wins: add label_smoothing: 0.05"
+log "  - SimPO wins: add loss_type: sigmoid_norm"
+log "  - Vanilla DPO wins: leave as is (current default)"
 
 log "===== Llama RM: STEP 1 - Re-score candidate cache ====="
 run uv run src/scripts/rescore_candidates.py \

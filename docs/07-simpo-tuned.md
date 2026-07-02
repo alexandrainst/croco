@@ -23,8 +23,8 @@ loss.
 
 ### Settings
 
-- **β = 2.0** (SimPO paper range: 2.0–2.5 for base/instruct models)
-- **`loss_type: sigmoid_norm`** (TRL's length-normalised DPO — **not** ref-free)
+- **β = 2.0** ([SimPO](https://arxiv.org/abs/2405.14734) paper range: 2.0–2.5 for base/instruct models)
+- **`loss_type: sigmoid_norm`** (TRL's length-normalised [DPO](https://arxiv.org/abs/2305.18290) — **not** ref-free)
 - Reference model: **active**
 - Curriculum learning: **enabled**
 
@@ -33,7 +33,7 @@ loss.
 From [princeton-nlp/SimPO](https://github.com/princeton-nlp/SimPO):
 > SimPO requires a much larger `beta` than DPO... We recommend using `2.0` or `2.5`.
 
-Paper values:
+Paper values ([Meng et al., 2024](https://arxiv.org/abs/2405.14734)):
 | Model | β |
 |-------|---|
 | Mistral-Base | 2.0 |
@@ -76,13 +76,6 @@ We chose **2.0** (conservative, matches base models).
 
 - [SimPO](06-simpo.md) — β=0.1 baseline
 - [SimPO Full](08-simpo-full.md) — adds ref-free loss + target margin
-
-## References
-
-- SimPO: Meng et al. (2024), "SimPO: Simple Preference Optimization with a Reference-Free Reward" — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)  
-  - Section 4.1: Beta ablation study
-  - Official implementation: [princeton-nlp/SimPO](https://github.com/princeton-nlp/SimPO) (recommends β=2.0–2.5)
-- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
 
 ---
 

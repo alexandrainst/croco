@@ -24,9 +24,9 @@ baseline for subsequent SimPO experiments.
 ### Settings
 
 - **β = 0.1** (intentionally low — tests loss type only, not hyperparameter tuning)
-- **`loss_type: sigmoid_norm`** (TRL's length-normalised DPO)
-- Reference model: **active** (computed via adapter-off forward with LoRA)
-- Curriculum learning: **enabled**
+- **`loss_type: sigmoid_norm`** (TRL's length-normalised [DPO](https://arxiv.org/abs/2305.18290))
+- Reference model: **active** (computed via adapter-off forward with [LoRA](https://arxiv.org/abs/2106.09685))
+- [Curriculum learning](https://doi.org/10.1145/1553374.1553380): **enabled**
 
 ### Why β=0.1?
 
@@ -63,14 +63,6 @@ _Results pending — evals start after training completes (~2h)._
 - [SimPO Tuned](07-simpo-tuned.md) — β raised to 2.0
 - [SimPO Full](08-simpo-full.md) — ref-free loss + target margin γ=0.5
 - [Length-Normalised](05-length-normalised.md) — predecessor ablation
-
-## References
-
-- SimPO: Meng et al. (2024), "SimPO: Simple Preference Optimization with a Reference-Free Reward" — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)  
-  - Section 2.2: Length-normalized reward formulation
-  - Section 2.3: Target reward margin
-- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- Length normalization: Koehn & Knowles (2017), "Six Challenges for NMT" — [ACL Workshop](https://aclanthology.org/W17-3206/)
 
 ---
 

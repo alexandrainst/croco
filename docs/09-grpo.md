@@ -25,9 +25,9 @@ achieving comparable alignment quality.
 
 - **No offline preference dataset** — generates rollouts online each step
 - **vLLM-colocate**: Rollout generation + training in same process
-- **Group scoring**: Generate N candidates, score with RM, compute relative advantages
+- **Group scoring**: Generate N candidates, score with RM, compute relative advantages ([Shao et al., 2024](https://arxiv.org/abs/2402.03300), Appendix A.3)
 
-Contrast with DPO:
+Contrast with [DPO](https://arxiv.org/abs/2305.18290):
 | Aspect | DPO | GRPO |
 |--------|-----|------|
 | Data | Offline preference pairs | Online rollouts |
@@ -86,13 +86,6 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 ## Related
 
 - [Max Reward](01-max-reward.md) — DPO baseline
-
-## References
-
-- GRPO: Shao et al. (2024), "DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models" — [arXiv:2402.03300](https://arxiv.org/abs/2402.03300)  
-  - Appendix A.3: Group Relative Policy Optimization algorithm
-- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- vLLM: Kwon et al. (2023), "vLLM: Easy, Fast, and Cheap LLM Serving with PagedAttention" — [GitHub](https://github.com/vllm-project/vllm)
 
 ---
 

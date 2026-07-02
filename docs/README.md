@@ -16,7 +16,7 @@ experiment tests a specific hypothesis about preference optimisation for LLM ali
 All experiments follow the **CroCo (Contrastive Preference Optimization)** pipeline:
 
 1. **Build**: Construct preference pairs via candidate generation + reward scoring
-2. **Train**: DPO with curriculum learning (gated access by evolution score)
+2. **Train**: [DPO](https://arxiv.org/abs/2305.18290) with [curriculum learning](https://doi.org/10.1145/1553374.1553380) (gated access by evolution score)
 3. **Evaluate**: Danish language benchmarks (10 iter final + 3 iter checkpoint evals)
 
 Base model: `danish-foundation-models/munin-apertus-8b`  
@@ -42,14 +42,14 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 |------------|-------------|--------|
 | [**Length-Normalised Loss**](05-length-normalised.md) | Test `loss_type: length_norm` vs standard DPO | ✅ Complete |
 | [**SimPO (β=0.1)**](06-simpo.md) | Length-normalised loss with low β (clean single-variable ablation) | 🏃 Running |
-| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md) | Raise β to SimPO-recommended 2.0, keep `sigmoid_norm` | ⏳ Queued |
+| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md) | Raise β to [SimPO](https://arxiv.org/abs/2405.14734)-recommended 2.0, keep `sigmoid_norm` | ⏳ Queued |
 | [**SimPO Full (ref-free)**](08-simpo-full.md) | True ref-free SimPO loss + target margin γ=0.5 | ⏳ Queued |
 
 ### Online RL Baseline
 
 | Experiment | Description | Status |
 |------------|-------------|--------|
-| [**GRPO**](09-grpo.md) | Group Relative Policy Optimization: online RL with vLLM-colocate rollouts | ⏳ Queued |
+| [**GRPO**](09-grpo.md) | Group Relative Policy Optimization: online RL with vLLM-colocate rollouts ([Shao et al., 2024](https://arxiv.org/abs/2402.03300)) | ⏳ Queued |
 
 ---
 
@@ -139,14 +139,6 @@ uv run src/scripts/run_pipeline.py -c config/danish-apertus.yaml \
 
 ___
 
-## References
 
-Each experiment doc lists its specific references. Key foundational papers:
-
-- **DPO**: Rafailov et al. (2023), "Direct Preference Optimization: Your Language Model is Secretly a Reward Model" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- **SimPO**: Meng et al. (2024), "SimPO: Simple Preference Optimization with a Reference-Free Reward" — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
-- **GRPO**: Shao et al. (2024), "DeepSeekMath" — [arXiv:2402.03300](https://arxiv.org/abs/2402.03300)
-- **LoRA**: Hu et al. (2021), "LoRA: Low-Rank Adaptation" — [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
-- **Curriculum**: Bengio et al. (2009), "Curriculum Learning" — [ICML 2009](https://doi.org/10.1145/1553374.1553380)
 
 *Last updated: 2026-07-02*

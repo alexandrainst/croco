@@ -29,9 +29,9 @@ Tests whether RM architecture/training data affects preference pair quality.
 
 ### Training
 
-Identical to [Main CroCo](01-main-croco.md):
-- DPO with curriculum learning
-- β = 0.1, LoRA r=16, LR 5e-6
+Identical to [Main CroCo](01-max-reward.md):
+- [DPO](https://arxiv.org/abs/2305.18290) with [curriculum learning](https://doi.org/10.1145/1553374.1553380)
+- β = 0.1, [LoRA](https://arxiv.org/abs/2106.09685) r=16, LR 5e-6
 - Construction mode: `max_reward`
 
 ## Motivation
@@ -55,12 +55,6 @@ _Results pending._
 ## Related
 
 - [Max Reward](01-max-reward.md) — Skywork RM baseline
-
-## References
-
-- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- Skywork-Reward-V2-Qwen3-8B: Skywork AI (2024) — [Hugging Face](https://huggingface.co/Skywork/Skywork-Reward-V2-Qwen3-8B)
-- Llama 3: Meta AI (2024), "Llama 3 Model Card" — [Hugging Face](https://huggingface.co/meta-llama/Meta-Llama-3-8B)
 
 ---
 

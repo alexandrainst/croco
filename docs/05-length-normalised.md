@@ -21,24 +21,23 @@ Length-normalised DPO loss reduces verbosity bias compared to standard DPO.
 
 ### Loss Function: `loss_type: length_norm`
 
-Standard DPO computes log-probabilities over full sequences:
+Standard [DPO](https://arxiv.org/abs/2305.18290) computes log-probabilities over full sequences:
 ```
 log p(y|x) = Σ log p(y_i | x, y_{<i})
 ```
 
-Length-normalised divides by sequence length:
+Length-normalised divides by sequence length (a standard technique to counter verbosity bias [Koehn & Knowles, 2017](https://aclanthology.org/W17-3206/)):
 ```
 log p_norm(y|x) = (1/|y|) × Σ log p(y_i | x, y_{<i})
 ```
 
-This removes the advantage that longer responses have in accumulating higher total
-log-prob.
+This removes the advantage that longer responses have in accumulating higher total log-prob.
 
 ### Training
 
 - **β = 0.1** (held constant for clean ablation)
 - `loss_type: length_norm` (TRL builtin)
-- All other settings identical to [Main CroCo](01-main-croco.md)
+- All other settings identical to [Main CroCo](01-max-reward.md)
 
 ## Motivation
 
@@ -61,12 +60,6 @@ _Results pending — training completed, evals in progress._
 
 - [SimPO](06-simpo.md) — extends length-normalisation with reference-free loss
 - [Max Reward](01-max-reward.md) — standard DPO baseline
-
-## References
-
-- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- Length normalization: Koehn & Knowles (2017), "Six Challenges for NMT" — [ACL Workshop](https://aclanthology.org/W17-3206/)
-- SimPO: Meng et al. (2024), "SimPO: Simple Preference Optimization with a Reference-Free Reward" — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
 
 ---
 

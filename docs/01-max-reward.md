@@ -22,16 +22,16 @@ pairs that lead to better alignment than alternative construction methods.
 
 ### Construction Mode: `max_reward`
 
-1. Generate 4 candidates per prompt using policy model (vLLM, temp=0.7)
+1. Generate 4 candidates per prompt using policy model ([vLLM](https://github.com/vllm-project/vllm), temp=0.7)
 2. Score all candidates with Skywork-Reward-V2-Qwen3-8B
 3. Select highest-reward candidate as **chosen**
 4. Use original prompt's existing output as **rejected** (if available)
 
 ### Training
 
-- **DPO** with curriculum learning (gated access by evolution score)
+- **[DPO](https://arxiv.org/abs/2305.18290)** with [curriculum learning](https://doi.org/10.1145/1553374.1553380) (gated access by evolution score)
 - **β = 0.1** (standard DPO temperature)
-- **LoRA**: r=16, α=32, dropout=0.05
+- **[LoRA](https://arxiv.org/abs/2106.09685)**: r=16, α=32, dropout=0.05
 - **Learning rate**: 5e-6, cosine schedule, 5% warmup
 - **Steps**: 625 (1 epoch over ~5k preference pairs)
 
@@ -75,13 +75,6 @@ _Results pending — training completed, evals in progress._
 - [Gold Chosen ablation](02-gold-chosen.md) — replaces max-reward with expert outputs
 - [SimPO ablations](06-simpo.md) — tests alternative loss functions
 - [Llama RM ablation](04-llama-rm.md) — tests alternative reward model
-
-## References
-
-- DPO: Rafailov et al. (2023), "Direct Preference Optimization: Your Language Model is Secretly a Reward Model" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- LoRA: Hu et al. (2021), "LoRA: Low-Rank Adaptation of Large Language Models" — [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
-- Curriculum Learning: Bengio et al. (2009), "Curriculum Learning" — [ICML 2009](https://doi.org/10.1145/1553374.1553380)
-- vLLM: Kwon et al. (2023), "vLLM: Easy, Fast, and Cheap LLM Serving with PagedAttention" — [GitHub](https://github.com/vllm-project/vllm)
 
 ---
 

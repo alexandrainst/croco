@@ -28,9 +28,9 @@ generated outputs.
 
 ### Training
 
-Identical to [Main CroCo](01-main-croco.md):
-- DPO with curriculum learning
-- β = 0.1, LoRA r=16, LR 5e-6
+Identical to [Main CroCo](01-max-reward.md):
+- [DPO](https://arxiv.org/abs/2305.18290) with [curriculum learning](https://doi.org/10.1145/1553374.1553380)
+- β = 0.1, [LoRA](https://arxiv.org/abs/2106.09685) r=16, LR 5e-6
 
 ### Key Settings
 
@@ -73,11 +73,6 @@ _Results pending._
 
 - [Max Reward](01-max-reward.md) — max-reward construction baseline
 - [Generated](03-generated.md) — standard generated mode without max selection
-
-## References
-
-- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- Curriculum: Bengio et al. (2009), "Curriculum Learning" — [ICML 2009](https://doi.org/10.1145/1553374.1553380)
 
 ---
 

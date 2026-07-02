@@ -135,6 +135,14 @@ Auto-refreshing dashboard with interactive Plotly charts:
 
 Dashboard regenerates automatically; browser page refreshes every 60s.
 
+### Embedded Plots
+
+Each completed experiment doc includes training dynamics plots:
+
+- [Max Reward](01-max-reward.md), [Gold Chosen](02-gold-chosen.md),
+  [Generated](03-generated.md), [Label Smoothing](05-label-smoothing.md)
+- **DPO Loss**, **Preference Accuracy**, **Reward Margin** (PNG exports from dashboard)
+
 ---
 
 ## Configs

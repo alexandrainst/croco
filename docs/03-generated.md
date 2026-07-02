@@ -25,12 +25,14 @@ baseline for comparing construction strategies.
 4. Generated candidates become **rejected**
 
 This is the **inverse** of `max_reward`:
+
 - `max_reward`: best generated = chosen, original = rejected
 - `generated`: original = chosen, generated = rejected
 
 ### Training
 
 Identical to [Main CroCo](01-max-reward.md):
+
 - [DPO](https://arxiv.org/abs/2305.18290) with [curriculum learning](https://doi.org/10.1145/1553374.1553380)
 - β = 0.1, [LoRA](https://arxiv.org/abs/2106.09685) r=16, LR 5e-6
 
@@ -43,26 +45,26 @@ of the reward model's selection.
 
 **Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (3 iterations each).
 
-| Benchmark | Task | Metric | Score (± CI) |
-|-----------|------|--------|-------------|
-| AngryTweets | Sentiment classification | MCC | TBD |
-| ScaLA-da | Linguistic acceptability | MCC | TBD |
-| DANSK | Named entity recognition | Micro F1 | TBD |
-| MultiWikiQA-da | Reading comprehension | F1 | TBD |
-| Nordjylland News | Summarization | chrF++ | TBD |
-| Danske Talemåder | Knowledge | Accuracy | TBD |
-| Danish Citizen Tests | Knowledge | Accuracy | TBD |
-| HellaSwag-da | Common sense reasoning | Accuracy | TBD |
-| IFEval-da | Instruction following | Instruction accuracy | TBD |
-| ValEU-da | European values | Alignment score | TBD |
+| Benchmark            | Task                     | Metric               | Score (± CI) |
+| -------------------- | ------------------------ | -------------------- | ------------ |
+| AngryTweets          | Sentiment classification | MCC                  | TBD          |
+| ScaLA-da             | Linguistic acceptability | MCC                  | TBD          |
+| DANSK                | Named entity recognition | Micro F1             | TBD          |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | TBD          |
+| Nordjylland News     | Summarization            | chrF++               | TBD          |
+| Danske Talemåder     | Knowledge                | Accuracy             | TBD          |
+| Danish Citizen Tests | Knowledge                | Accuracy             | TBD          |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | TBD          |
+| IFEval-da            | Instruction following    | Instruction accuracy | TBD          |
+| ValEU-da             | European values          | Alignment score      | TBD          |
 
 ## Timeline
 
-| Date | Milestone |
-|------|----------|
-| 2026-06-28 | Training started |
+| Date       | Milestone          |
+| ---------- | ------------------ |
+| 2026-06-28 | Training started   |
 | 2026-06-29 | Training completed |
-| 2026-07-02 | Evals pending |
+| 2026-07-02 | Evals pending      |
 
 ## Related
 
@@ -71,4 +73,4 @@ of the reward model's selection.
 
 ---
 
-*Created: 2026-07-02 | Updated: 2026-07-02*
+_Created: 2026-07-02 | Updated: 2026-07-02_

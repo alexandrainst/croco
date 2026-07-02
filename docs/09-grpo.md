@@ -43,17 +43,18 @@ Contrast with [DPO](https://arxiv.org/abs/2305.18290):
 
 ```yaml
 grpo:
-  per_device_train_batch_size: 4
-  gradient_accumulation_steps: 4
-  num_train_epochs: 1
-  beta: 0.04
-  use_vllm: true
-  vllm_gpu_memory_utilization: 0.3
+    per_device_train_batch_size: 4
+    gradient_accumulation_steps: 4
+    num_train_epochs: 1
+    beta: 0.04
+    use_vllm: true
+    vllm_gpu_memory_utilization: 0.3
 ```
 
 ## Pre-Flight
 
 Micro smoke test (`danish-micro-grpo.yaml`):
+
 - 16 prompts, 4 optimiser steps
 - Same memory footprint as full run
 - Catches OOM before committing GPU hours
@@ -62,18 +63,18 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 
 **Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3 checkpoint).
 
-| Benchmark | Task | Metric | Target |
-|-----------|------|--------|--------|
-| AngryTweets | Sentiment classification | MCC | ≥ Main CroCo |
-| ScaLA-da | Linguistic acceptability | MCC | ≥ Main CroCo |
-| DANSK | Named entity recognition | Micro F1 | ≥ Main CroCo |
-| MultiWikiQA-da | Reading comprehension | F1 | ≥ Main CroCo |
-| Nordjylland News | Summarization | chrF++ | ≥ Main CroCo |
-| Danske Talemåder | Knowledge | Accuracy | ≥ Main CroCo |
-| Danish Citizen Tests | Knowledge | Accuracy | ≥ Main CroCo |
-| HellaSwag-da | Common sense reasoning | Accuracy | ≥ Main CroCo |
-| IFEval-da | Instruction following | Instruction accuracy | ≥ Main CroCo |
-| ValEU-da | European values | Alignment score | ≥ Main CroCo |
+| Benchmark            | Task                     | Metric               | Target       |
+| -------------------- | ------------------------ | -------------------- | ------------ |
+| AngryTweets          | Sentiment classification | MCC                  | ≥ Main CroCo |
+| ScaLA-da             | Linguistic acceptability | MCC                  | ≥ Main CroCo |
+| DANSK                | Named entity recognition | Micro F1             | ≥ Main CroCo |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | ≥ Main CroCo |
+| Nordjylland News     | Summarization            | chrF++               | ≥ Main CroCo |
+| Danske Talemåder     | Knowledge                | Accuracy             | ≥ Main CroCo |
+| Danish Citizen Tests | Knowledge                | Accuracy             | ≥ Main CroCo |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | ≥ Main CroCo |
+| IFEval-da            | Instruction following    | Instruction accuracy | ≥ Main CroCo |
+| ValEU-da             | European values          | Alignment score      | ≥ Main CroCo |
 
 **Hypothesis:** Online RL can match offline DPO quality without dataset construction cost.
 
@@ -91,12 +92,12 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 
 ## Comparison
 
-| Metric | DPO (Main) | GRPO |
-|--------|------------|------|
-| Build Cost | ~$X | $0 |
-| Training Time | ~11h | ~12h |
-| Memory | Ref + LoRA | vLLM + RM |
-| Data Reuse | ✓ (fixed pairs) | ✗ (fresh each step) |
+| Metric        | DPO (Main)      | GRPO                |
+| ------------- | --------------- | ------------------- |
+| Build Cost    | ~$X             | $0                  |
+| Training Time | ~11h            | ~12h                |
+| Memory        | Ref + LoRA      | vLLM + RM           |
+| Data Reuse    | ✓ (fixed pairs) | ✗ (fresh each step) |
 
 ## Related
 
@@ -104,4 +105,4 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 
 ---
 
-*Created: 2026-07-02 | Updated: 2026-07-02*
+_Created: 2026-07-02 | Updated: 2026-07-02_

@@ -22,10 +22,12 @@ length-normalised DPO with reference model.
 ### Loss Function: `loss_type: simpo` (custom)
 
 Implemented in `src/croco/dpo.py`:
+
 - **Reference-free**: Reward = raw length-normalised policy log-prob
 - **Target margin γ=0.5**: Bradley-Terry objective encourages margin ≥ γ ([Meng et al., 2024](https://arxiv.org/abs/2405.14734), §2.3)
 
 Loss:
+
 ```
 L = -log σ(β × (r(y_w) - r(y_c) - γ))
 r(y) = (1/|y|) × Σ log p(y_i | x, y_{<i})
@@ -42,6 +44,7 @@ r(y) = (1/|y|) × Σ log p(y_i | x, y_{<i})
 ### Why γ=0.5?
 
 From [SimPO paper](https://arxiv.org/abs/2405.14734) (§4.3, Figure 3):
+
 - Reward accuracy ↑ with γ
 - Win rate follows inverted-U (optimal around γ/β ≈ 0.5–0.8)
 - Too high γ → model degeneration
@@ -51,6 +54,7 @@ Our γ/β = 0.25 is **conservative** (paper median: 0.5). Safe first run of cust
 ## Implementation
 
 Custom code in `src/croco/dpo.py`:
+
 - `SimPOLossMixin` — ref-free loss override
 - `SimPODPOTrainer` — DPOTrainer + SimPO loss
 - `CurriculumSimPODPOTrainer` — CurriculumDPOTrainer + SimPO loss
@@ -66,22 +70,23 @@ Custom code in `src/croco/dpo.py`:
 
 **Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3 checkpoint).
 
-| Benchmark | Task | Metric | Target |
-|-----------|------|--------|--------|
-| AngryTweets | Sentiment classification | MCC | > SimPO Tuned |
-| ScaLA-da | Linguistic acceptability | MCC | > SimPO Tuned |
-| DANSK | Named entity recognition | Micro F1 | > SimPO Tuned |
-| MultiWikiQA-da | Reading comprehension | F1 | > SimPO Tuned |
-| Nordjylland News | Summarization | chrF++ | > SimPO Tuned |
-| Danske Talemåder | Knowledge | Accuracy | > SimPO Tuned |
-| Danish Citizen Tests | Knowledge | Accuracy | > SimPO Tuned |
-| HellaSwag-da | Common sense reasoning | Accuracy | > SimPO Tuned |
-| IFEval-da | Instruction following | Instruction accuracy | > SimPO Tuned |
-| ValEU-da | European values | Alignment score | > SimPO Tuned |
+| Benchmark            | Task                     | Metric               | Target        |
+| -------------------- | ------------------------ | -------------------- | ------------- |
+| AngryTweets          | Sentiment classification | MCC                  | > SimPO Tuned |
+| ScaLA-da             | Linguistic acceptability | MCC                  | > SimPO Tuned |
+| DANSK                | Named entity recognition | Micro F1             | > SimPO Tuned |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | > SimPO Tuned |
+| Nordjylland News     | Summarization            | chrF++               | > SimPO Tuned |
+| Danske Talemåder     | Knowledge                | Accuracy             | > SimPO Tuned |
+| Danish Citizen Tests | Knowledge                | Accuracy             | > SimPO Tuned |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | > SimPO Tuned |
+| IFEval-da            | Instruction following    | Instruction accuracy | > SimPO Tuned |
+| ValEU-da             | European values          | Alignment score      | > SimPO Tuned |
 
 **Hypothesis:** Ref-free loss + γ=0.5 should improve sample efficiency and task performance.
 
 **Key metrics to watch:**
+
 - Reward margin (should exceed γ=0.5 consistently)
 - Training speed (no ref model = faster steps)
 - Memory footprint (no ref model = lower VRAM)
@@ -92,12 +97,12 @@ Custom code in `src/croco/dpo.py`:
 
 ## Single Variables Tested
 
-| Setting | SimPO Tuned | SimPO Full |
-|---------|-------------|------------|
-| β | 2.0 | 2.0 |
+| Setting   | SimPO Tuned    | SimPO Full  |
+| --------- | -------------- | ----------- |
+| β         | 2.0            | 2.0         |
 | Loss type | `sigmoid_norm` | **`simpo`** |
-| Ref model | ✓ | **✗** |
-| γ | — | **0.5** |
+| Ref model | ✓              | **✗**       |
+| γ         | —              | **0.5**     |
 
 **Two changes**: ref-free loss + target margin (bundled as "true SimPO").
 
@@ -108,4 +113,4 @@ Custom code in `src/croco/dpo.py`:
 
 ---
 
-*Created: 2026-07-02 | Updated: 2026-07-02*
+_Created: 2026-07-02 | Updated: 2026-07-02_

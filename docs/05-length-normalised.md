@@ -19,11 +19,13 @@ Length-normalised DPO loss reduces verbosity bias compared to standard DPO.
 ### Loss Function: `loss_type: length_norm`
 
 Standard [DPO](https://arxiv.org/abs/2305.18290) computes log-probabilities over full sequences:
+
 ```
 log p(y|x) = Σ log p(y_i | x, y_{<i})
 ```
 
 Length-normalised divides by sequence length (a standard technique to counter verbosity bias [Koehn & Knowles, 2017](https://aclanthology.org/W17-3206/)):
+
 ```
 log p_norm(y|x) = (1/|y|) × Σ log p(y_i | x, y_{<i})
 ```
@@ -45,30 +47,31 @@ ensures the policy isn't rewarded simply for generating more tokens.
 
 **Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (3 iterations each).
 
-| Benchmark | Task | Metric | Score (± CI) |
-|-----------|------|--------|-------------|
-| AngryTweets | Sentiment classification | MCC | TBD |
-| ScaLA-da | Linguistic acceptability | MCC | TBD |
-| DANSK | Named entity recognition | Micro F1 | TBD |
-| MultiWikiQA-da | Reading comprehension | F1 | TBD |
-| Nordjylland News | Summarization | chrF++ | TBD |
-| Danske Talemåder | Knowledge | Accuracy | TBD |
-| Danish Citizen Tests | Knowledge | Accuracy | TBD |
-| HellaSwag-da | Common sense reasoning | Accuracy | TBD |
-| IFEval-da | Instruction following | Instruction accuracy | TBD |
-| ValEU-da | European values | Alignment score | TBD |
+| Benchmark            | Task                     | Metric               | Score (± CI) |
+| -------------------- | ------------------------ | -------------------- | ------------ |
+| AngryTweets          | Sentiment classification | MCC                  | TBD          |
+| ScaLA-da             | Linguistic acceptability | MCC                  | TBD          |
+| DANSK                | Named entity recognition | Micro F1             | TBD          |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | TBD          |
+| Nordjylland News     | Summarization            | chrF++               | TBD          |
+| Danske Talemåder     | Knowledge                | Accuracy             | TBD          |
+| Danish Citizen Tests | Knowledge                | Accuracy             | TBD          |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | TBD          |
+| IFEval-da            | Instruction following    | Instruction accuracy | TBD          |
+| ValEU-da             | European values          | Alignment score      | TBD          |
 
 **Training metrics** (step 625/625):
+
 - Final loss: TBD
 - Reward margin: TBD
 
 ## Timeline
 
-| Date | Milestone |
-|------|----------|
-| 2026-06-30 | Training started |
+| Date       | Milestone          |
+| ---------- | ------------------ |
+| 2026-06-30 | Training started   |
 | 2026-07-01 | Training completed |
-| 2026-07-02 | Evals in progress |
+| 2026-07-02 | Evals in progress  |
 
 ## Related
 
@@ -77,4 +80,4 @@ ensures the policy isn't rewarded simply for generating more tokens.
 
 ---
 
-*Created: 2026-07-02 | Updated: 2026-07-02*
+_Created: 2026-07-02 | Updated: 2026-07-02_

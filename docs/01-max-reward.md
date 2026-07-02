@@ -39,46 +39,45 @@ The `max_reward` construction mode produces high-quality preference pairs by:
 construction_mode: max_reward
 score_gold_output: true
 data:
-  dataset_id: danish-foundation-models/laerebogen
-  subset: evolved
-  num_samples: 5000
+    dataset_id: danish-foundation-models/laerebogen
+    subset: evolved
+    num_samples: 5000
 dpo:
-  curriculum: true
-  beta: 0.1
-  lora_r: 16
+    curriculum: true
+    beta: 0.1
+    lora_r: 16
 ```
 
 ## Results
 
 **Evaluation suite:** 10 Danish benchmarks from EuroEval, 3 iterations each:
 
-| Benchmark | Task | Metric | Score (± CI) | Status |
-|-----------|------|--------|--------------|--------|
-| AngryTweets | Sentiment classification | MCC | TBD | 🏃 In progress |
-| ScaLA-da | Linguistic acceptability | MCC | TBD | ⏳ Pending |
-| DANSK | Named entity recognition | Micro F1 | TBD | ⏳ Pending |
-| MultiWikiQA-da | Reading comprehension | F1 | TBD | ⏳ Pending |
-| Nordjylland News | Summarization | chrF++ | TBD | ⏳ Pending |
-| Danske Talemåder | Knowledge | Accuracy | TBD | ⏳ Pending |
-| Danish Citizen Tests | Knowledge | Accuracy | TBD | ⏳ Pending |
-| HellaSwag-da | Common sense reasoning | Accuracy | TBD | ⏳ Pending |
-| IFEval-da | Instruction following | Instruction accuracy | TBD | ⏳ Pending |
-| ValEU-da | European values | Alignment score | TBD | ⏳ Pending |
+| Benchmark            | Task                     | Metric               | Score (± CI) | Status         |
+| -------------------- | ------------------------ | -------------------- | ------------ | -------------- |
+| AngryTweets          | Sentiment classification | MCC                  | TBD          | 🏃 In progress |
+| ScaLA-da             | Linguistic acceptability | MCC                  | TBD          | ⏳ Pending     |
+| DANSK                | Named entity recognition | Micro F1             | TBD          | ⏳ Pending     |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | TBD          | ⏳ Pending     |
+| Nordjylland News     | Summarization            | chrF++               | TBD          | ⏳ Pending     |
+| Danske Talemåder     | Knowledge                | Accuracy             | TBD          | ⏳ Pending     |
+| Danish Citizen Tests | Knowledge                | Accuracy             | TBD          | ⏳ Pending     |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | TBD          | ⏳ Pending     |
+| IFEval-da            | Instruction following    | Instruction accuracy | TBD          | ⏳ Pending     |
+| ValEU-da             | European values          | Alignment score      | TBD          | ⏳ Pending     |
 
 **Training metrics** (step 625/625):
+
 - Final loss: TBD
 - Reward margin: TBD
 - Chosen log-prob: TBD
 
-
-
 ## Comparison
 
-| Metric | Main CroCo | Gold Chosen | Generated |
-|--------|------------|-------------|-----------|
-| Win Rate (Arena-Hard) | TBD | TBD | TBD |
-| AlpacaEval 2 LC | TBD | TBD | TBD |
-| Avg Response Length | TBD | TBD | TBD |
+| Metric                | Main CroCo | Gold Chosen | Generated |
+| --------------------- | ---------- | ----------- | --------- |
+| Win Rate (Arena-Hard) | TBD        | TBD         | TBD       |
+| AlpacaEval 2 LC       | TBD        | TBD         | TBD       |
+| Avg Response Length   | TBD        | TBD         | TBD       |
 
 ## Related
 
@@ -88,4 +87,4 @@ dpo:
 
 ---
 
-*Created: 2026-07-02 | Updated: 2026-07-02*
+_Created: 2026-07-02 | Updated: 2026-07-02_

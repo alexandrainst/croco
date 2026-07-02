@@ -29,43 +29,43 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 ### Construction Mode Ablations
 
-| Experiment | Description | Status |
-|------------|-------------|--------|
-| [**Max Reward**](01-max-reward.md) | `max_reward` construction: generate 4 candidates, select best as chosen | ✅ Complete |
-| [**Gold Chosen**](02-gold-chosen.md) | Use gold (expert) outputs as chosen instead of max-reward candidates | ✅ Complete |
-| [**Generated**](03-generated.md) | Standard generated mode: keep all candidates, score against prompts | ✅ Complete |
-| [**Llama RM**](04-llama-rm.md) | Substitute Skywork RM with Llama-3-based reward model | ✅ Complete |
+| Experiment                           | Description                                                             | Status      |
+| ------------------------------------ | ----------------------------------------------------------------------- | ----------- |
+| [**Max Reward**](01-max-reward.md)   | `max_reward` construction: generate 4 candidates, select best as chosen | ✅ Complete |
+| [**Gold Chosen**](02-gold-chosen.md) | Use gold (expert) outputs as chosen instead of max-reward candidates    | ✅ Complete |
+| [**Generated**](03-generated.md)     | Standard generated mode: keep all candidates, score against prompts     | ✅ Complete |
+| [**Llama RM**](04-llama-rm.md)       | Substitute Skywork RM with Llama-3-based reward model                   | ✅ Complete |
 
 ### Loss Function Ablations
 
-| Experiment | Description | Status |
-|------------|-------------|--------|
-| [**Length-Normalised Loss**](05-length-normalised.md) | Test `loss_type: length_norm` vs standard DPO | ✅ Complete |
-| [**SimPO (β=0.1)**](06-simpo.md) | Length-normalised loss with low β (clean single-variable ablation) | 🏃 Running |
-| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md) | Raise β to [SimPO](https://arxiv.org/abs/2405.14734)-recommended 2.0, keep `sigmoid_norm` | ⏳ Queued |
-| [**SimPO Full (ref-free)**](08-simpo-full.md) | True ref-free SimPO loss + target margin γ=0.5 | ⏳ Queued |
+| Experiment                                            | Description                                                                               | Status      |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------- |
+| [**Length-Normalised Loss**](05-length-normalised.md) | Test `loss_type: length_norm` vs standard DPO                                             | ✅ Complete |
+| [**SimPO (β=0.1)**](06-simpo.md)                      | Length-normalised loss with low β (clean single-variable ablation)                        | 🏃 Running  |
+| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)          | Raise β to [SimPO](https://arxiv.org/abs/2405.14734)-recommended 2.0, keep `sigmoid_norm` | ⏳ Queued   |
+| [**SimPO Full (ref-free)**](08-simpo-full.md)         | True ref-free SimPO loss + target margin γ=0.5                                            | ⏳ Queued   |
 
 ### Online RL Baseline
 
-| Experiment | Description | Status |
-|------------|-------------|--------|
+| Experiment             | Description                                                                                                                       | Status    |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------- |
 | [**GRPO**](09-grpo.md) | Group Relative Policy Optimization: online RL with vLLM-colocate rollouts ([Shao et al., 2024](https://arxiv.org/abs/2402.03300)) | ⏳ Queued |
 
 ---
 
 ## Hyperparameter Summary
 
-| Experiment | β (temp) | Loss Type | Target Margin (γ) | Curriculum | Ref Model |
-|------------|----------|-----------|-------------------|------------|-----------|
-| Max Reward | 0.1 | standard (exp) | — | ✓ | ✓ |
-| Gold Chosen | 0.1 | standard (exp) | — | ✓ | ✓ |
-| Generated | 0.1 | standard (exp) | — | ✓ | ✓ |
-| Llama RM | 0.1 | standard (exp) | — | ✓ | ✓ |
-| Length-Norm | 0.1 | `length_norm` | — | ✓ | ✓ |
-| SimPO | 0.1 | `sigmoid_norm` | — | ✓ | ✓ |
-| SimPO Tuned | 2.0 | `sigmoid_norm` | — | ✓ | ✓ |
-| SimPO Full | 2.0 | `simpo` (custom) | 0.5 | ✓ | ✗ |
-| GRPO | 0.04 | GRPO loss | — | ✓ | ✗ |
+| Experiment  | β (temp) | Loss Type        | Target Margin (γ) | Curriculum | Ref Model |
+| ----------- | -------- | ---------------- | ----------------- | ---------- | --------- |
+| Max Reward  | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
+| Gold Chosen | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
+| Generated   | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
+| Llama RM    | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
+| Length-Norm | 0.1      | `length_norm`    | —                 | ✓          | ✓         |
+| SimPO       | 0.1      | `sigmoid_norm`   | —                 | ✓          | ✓         |
+| SimPO Tuned | 2.0      | `sigmoid_norm`   | —                 | ✓          | ✓         |
+| SimPO Full  | 2.0      | `simpo` (custom) | 0.5               | ✓          | ✗         |
+| GRPO        | 0.04     | GRPO loss        | —                 | ✓          | ✗         |
 
 ---
 
@@ -129,16 +129,14 @@ uv run src/scripts/run_pipeline.py -c config/danish-apertus.yaml \
 
 ## Timeline
 
-| Date | Milestone |
-|------|-----------|
-| 2026-06-28 | Initial CroCo runs (main, gold, generated) |
-| 2026-06-29 | RM ablation (Llama vs Skywork) |
-| 2026-06-30 | Loss ablations started (ls, simpo) |
-| 2026-07-02 | SimPO ablations queued (tuned, full) |
-| 2026-07-04 (est) | GRPO baseline completes |
+| Date             | Milestone                                  |
+| ---------------- | ------------------------------------------ |
+| 2026-06-28       | Initial CroCo runs (main, gold, generated) |
+| 2026-06-29       | RM ablation (Llama vs Skywork)             |
+| 2026-06-30       | Loss ablations started (ls, simpo)         |
+| 2026-07-02       | SimPO ablations queued (tuned, full)       |
+| 2026-07-04 (est) | GRPO baseline completes                    |
 
-___
+---
 
-
-
-*Last updated: 2026-07-02*
+_Last updated: 2026-07-02_

@@ -28,12 +28,14 @@ baseline for subsequent SimPO experiments.
 ### Why β=0.1?
 
 This is **under-powered** by SimPO standards (paper recommends β=2.0–2.5). Purpose:
+
 - Clean single-variable ablation vs length-norm run
 - isolates effect of length-normalisation without confounding hyperparameter changes
 
 ## Training
 
 Identical to [Length-Normalised](05-length-normalised.md) except loss type hint:
+
 - DPO with curriculum learning
 - LoRA r=16, LR 5e-6
 - 625 steps (~1 epoch)
@@ -46,20 +48,21 @@ Identical to [Length-Normalised](05-length-normalised.md) except loss type hint:
 
 **Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations for final eval, 3 for checkpoints).
 
-| Benchmark | Task | Metric | Score (± CI) | Status |
-|-----------|------|--------|--------------|--------|
-| AngryTweets | Sentiment classification | MCC | — | 🏃 Currently running |
-| ScaLA-da | Linguistic acceptability | MCC | — | ⏳ Queued |
-| DANSK | Named entity recognition | Micro F1 | — | ⏳ Queued |
-| MultiWikiQA-da | Reading comprehension | F1 | — | ⏳ Queued |
-| Nordjylland News | Summarization | chrF++ | — | ⏳ Queued |
-| Danske Talemåder | Knowledge | Accuracy | — | ⏳ Queued |
-| Danish Citizen Tests | Knowledge | Accuracy | — | ⏳ Queued |
-| HellaSwag-da | Common sense reasoning | Accuracy | — | ⏳ Queued |
-| IFEval-da | Instruction following | Instruction accuracy | — | ⏳ Queued |
-| ValEU-da | European values | Alignment score | — | ⏳ Queued |
+| Benchmark            | Task                     | Metric               | Score (± CI) | Status               |
+| -------------------- | ------------------------ | -------------------- | ------------ | -------------------- |
+| AngryTweets          | Sentiment classification | MCC                  | —            | 🏃 Currently running |
+| ScaLA-da             | Linguistic acceptability | MCC                  | —            | ⏳ Queued            |
+| DANSK                | Named entity recognition | Micro F1             | —            | ⏳ Queued            |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | —            | ⏳ Queued            |
+| Nordjylland News     | Summarization            | chrF++               | —            | ⏳ Queued            |
+| Danske Talemåder     | Knowledge                | Accuracy             | —            | ⏳ Queued            |
+| Danish Citizen Tests | Knowledge                | Accuracy             | —            | ⏳ Queued            |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | —            | ⏳ Queued            |
+| IFEval-da            | Instruction following    | Instruction accuracy | —            | ⏳ Queued            |
+| ValEU-da             | European values          | Alignment score      | —            | ⏳ Queued            |
 
 **Training metrics** (step 625/625):
+
 - Final loss: `0.6176`
 - Grad norm: `0.1116`
 - Reward margin: `2.451`
@@ -68,12 +71,12 @@ Identical to [Length-Normalised](05-length-normalised.md) except loss type hint:
 
 ## Timeline
 
-| Date | Milestone |
-|------|----------|
-| 2026-07-01 09:59 | Training started (step 0/625) |
-| 2026-07-02 17:20 | Training at step 622/625 (99.5%) |
-| ~2026-07-02 17:25 | Training completes (ETA) |
-| ~2026-07-02 19:15 | Evals complete (ETA) |
+| Date              | Milestone                        |
+| ----------------- | -------------------------------- |
+| 2026-07-01 09:59  | Training started (step 0/625)    |
+| 2026-07-02 17:20  | Training at step 622/625 (99.5%) |
+| ~2026-07-02 17:25 | Training completes (ETA)         |
+| ~2026-07-02 19:15 | Evals complete (ETA)             |
 
 ## Related
 
@@ -83,4 +86,4 @@ Identical to [Length-Normalised](05-length-normalised.md) except loss type hint:
 
 ---
 
-*Created: 2026-07-02 | Updated: 2026-07-02 17:25 CEST*
+_Created: 2026-07-02 | Updated: 2026-07-02 17:25 CEST_

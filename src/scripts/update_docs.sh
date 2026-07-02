@@ -43,8 +43,11 @@ DATA = json.loads(match.group(1))
 gfx = Path("docs/gfx")
 gfx.mkdir(exist_ok=True)
 
-COLOURS = {"max_reward": "#1f77b4", "gold_chosen": "#d62728",
-           "generated": "#ff7f0e", "label_smoothing": "#2ca02c"}
+# Keep in sync with the COLOURS map in build_dashboard.py's HTML template.
+COLOURS = {"max_reward": "#1f77b4", "gold_chosen": "#d62728", "base": "#7f7f7f",
+           "generated": "#ff7f0e", "label_smoothing": "#2ca02c",
+           "sigmoid_norm": "#9467bd", "grpo": "#8c564b",
+           "simpo_tuned": "#e377c2", "simpo_full": "#17becf"}
 
 # 1. Training dynamics
 for name, key, title, ylab in [
@@ -56,7 +59,8 @@ for name, key, title, ylab in [
     for mode, data in DATA["training"].items():
         if key in data and data[key]:
             fig.add_trace(go.Scatter(x=data["steps"], y=data[key],
-                mode="lines+markers", name=mode, marker=dict(size=4)))
+                mode="lines+markers", name=mode, marker=dict(size=4),
+                line=dict(color=COLOURS.get(mode))))
     fig.update_layout(title=title, xaxis_title="step", yaxis_title=ylab,
         height=400, width=1200, legend=dict(orientation="h", y=-0.2))
     if name == "accuracy": fig.update_yaxes(range=[0, 1])
@@ -84,7 +88,7 @@ for dataset, metric in ALL_METRICS:
     spread = 4
     for i, (mode, pts) in enumerate(present):
         dx = (i - (len(present)-1)/2) * spread
-        has_ci = all(p.get("lower") and p.get("upper") for p in pts)
+        has_ci = all(p.get("lower") is not None and p.get("upper") is not None for p in pts)
         fig.add_trace(go.Scatter(x=[p["step"]+dx for p in pts], y=[p["score"] for p in pts],
             customdata=[p["step"] for p in pts], mode="lines+markers", name=mode,
             line=dict(color=COLOURS.get(mode)), marker=dict(size=5),
@@ -98,27 +102,33 @@ for dataset, metric in ALL_METRICS:
     fig.write_image(gfx / f"curve_{safe}.png", scale=2)
     print(f"  Exported: curve_{safe}.png")
 
-# 3. Final comparison
-all_benchmarks = set()
-for exp, scores in DATA["finals"].items(): all_benchmarks.update(scores.keys())
-experiments = [k for k in DATA["finals"] if not k.startswith("base")]
+# 3. Final comparison — base model plus every mode evaluated on all its benchmarks.
+# Base is included so the before/after gap (and thus significance) is visible; a
+# mode still being benchmarked (partial coverage) is skipped until it is complete.
+all_benchmarks = sorted(set().union(*(s.keys() for s in DATA["finals"].values())))
+base_label = next((k for k in DATA["finals"] if k.startswith("base")), None)
+base_keys = set(DATA["finals"][base_label]) if base_label else set(all_benchmarks)
+modes = ([base_label] if base_label else []) + sorted(
+    label for label in DATA["finals"]
+    if label != base_label and base_keys.issubset(DATA["finals"][label]))
+pretty = lambda b: f'{b.split("||")[0]} / {b.split("||")[1].replace("test_", "")}'
 fig = go.Figure()
-for exp in experiments:
-    scores = DATA["finals"][exp]
-    y, emin, emax, labels = [], [], [], []
-    for b in sorted(all_benchmarks):
-        if b in scores:
-            r = scores[b]
-            y.append(r["score"])
-            emin.append(r["score"] - r.get("lower", r["score"]))
-            emax.append(r.get("upper", r["score"]) - r["score"])
-            labels.append(b)
-    fig.add_trace(go.Bar(name=exp, x=labels, y=y,
+for label in modes:
+    scores = DATA["finals"][label]
+    y, emin, emax = [], [], []
+    for b in all_benchmarks:
+        r = scores.get(b)
+        y.append(r["score"] if r else None)
+        emin.append(r["score"] - r["lower"] if r and r.get("lower") is not None else 0)
+        emax.append(r["upper"] - r["score"] if r and r.get("upper") is not None else 0)
+    colour = COLOURS.get("base" if label.startswith("base") else label, "#000")
+    fig.add_trace(go.Bar(name=label, x=[pretty(b) for b in all_benchmarks], y=y,
         error_y=dict(type='data', symmetric=False, array=emax, arrayminus=emin,
-                    width=0.5, thickness=1.5), marker_color=COLOURS.get(exp, "#000")))
-fig.update_layout(title="Final EuroEval Comparison", xaxis_title="Benchmark",
-    yaxis_title="Score (95% CI)", barmode="group", height=500, width=1400,
-    legend=dict(orientation="h", y=-0.15), xaxis=dict(tickangle=-45, tickfont=dict(size=8)))
+                    width=0.5, thickness=1.5), marker_color=colour))
+fig.update_layout(title="Final EuroEval comparison (mean ± 95% CI)",
+    xaxis_title="Benchmark / metric", yaxis_title="Score", barmode="group",
+    height=500, width=1400, legend=dict(orientation="h", y=-0.15),
+    xaxis=dict(tickangle=-45, tickfont=dict(size=8)))
 fig.write_image(gfx / "final_comparison.png", scale=2)
 print(f"  Exported: final_comparison.png")
 

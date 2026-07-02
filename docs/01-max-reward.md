@@ -28,6 +28,17 @@ clear reward margin.
    generation)
 4. **Rejected**: candidate closest to (mean − 2×σ) of generated candidates
 
+### Hardware & Runtime
+
+- **GPU:** NVIDIA GB10
+- **Training time:** ~6.5 hours
+- **Framework:** TRL 1.7.0 + vLLM for generation
+- **LoRA:** r=16, α=32, dropout=0.05 (~1% trainable params)
+
+- Final loss: `0.5190`
+- Reward accuracy: variable (see training dynamics)
+- Eval: 3 iterations on full EuroEval suite
+
 ### Training
 
 - **[DPO](https://arxiv.org/abs/2305.18290)** with
@@ -86,3 +97,26 @@ dpo:
 - [Llama RM ablation](04-llama-rm.md) — tests alternative reward model
 
 ---
+
+
+
+## Reproduction
+
+```bash
+# 1. Run full pipeline (build + train + eval)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml
+
+# 2. Or resume from existing cache (skip build step)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --skip-build
+
+# 3. Run evals only (3 iterations)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --eval-only --eval.num-iterations 3
+
+# 4. Evaluate specific checkpoint
+uv run src/scripts/eval_checkpoints.py -m models/<MODEL_DIR> -l da --num-iterations 3
+```
+
+**Tips:**
+- `--skip-build` reuses cached `candidates_cache.jsonl` and `pairs_*.jsonl`
+- Remove `--skip-build` to regenerate candidates with new generation params
+- See `config/danish-apertus.yaml` for full hyperparameters

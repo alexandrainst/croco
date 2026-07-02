@@ -33,6 +33,13 @@ label_rejected = α = 0.05
 This regularizes the model against overfitting to potentially noisy reward model
 judgments.
 
+### Hardware & Runtime
+
+- **GPU:** NVIDIA GB10
+- **Training time:** ~8.6 hours
+- **Framework:** TRL 1.7.0 + vLLM for generation
+- **LoRA:** r=16, α=32, dropout=0.05 (~1% trainable params)
+
 ### Training
 
 - **β = 0.1** (held constant for clean ablation)
@@ -94,3 +101,26 @@ biased preference data, as is common in practice.
 - [Max Reward](01-max-reward.md) — standard DPO baseline (no smoothing)
 
 ---
+
+
+
+## Reproduction
+
+```bash
+# 1. Run full pipeline (build + train + eval)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml
+
+# 2. Or resume from existing cache (skip build step)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml --skip-build
+
+# 3. Run evals only (3 iterations)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml --eval-only --eval.num-iterations 3
+
+# 4. Evaluate specific checkpoint
+uv run src/scripts/eval_checkpoints.py -m models/<MODEL_DIR> -l da --num-iterations 3
+```
+
+**Tips:**
+- `--skip-build` reuses cached `candidates_cache.jsonl` and `pairs_*.jsonl`
+- Remove `--skip-build` to regenerate candidates with new generation params
+- See `config/danish-apertus-ls.yaml` for full hyperparameters

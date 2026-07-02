@@ -23,6 +23,17 @@ generated outputs.
 - No candidate generation or reward scoring required
 - Tests whether human expertise > reward model optimisation
 
+### Hardware & Runtime
+
+- **GPU:** NVIDIA GB10
+- **Training time:** ~6 hours
+- **Framework:** TRL 1.7.0 + vLLM for generation
+- **LoRA:** r=16, α=32, dropout=0.05 (~1% trainable params)
+
+- Final loss: `0.0123` (extremely low, suggests overfitting possible)
+- Reward accuracy: see training dynamics
+- Eval: 3 iterations on full EuroEval suite
+
 ### Training
 
 Identical to [Max Reward](01-max-reward.md):
@@ -80,3 +91,26 @@ human-curated high-quality responses.
 - [Generated](03-generated.md) — standard generated mode without max selection
 
 ---
+
+
+
+## Reproduction
+
+```bash
+# 1. Run full pipeline (build + train + eval)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml
+
+# 2. Or resume from existing cache (skip build step)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml --skip-build
+
+# 3. Run evals only (3 iterations)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml --eval-only --eval.num-iterations 3
+
+# 4. Evaluate specific checkpoint
+uv run src/scripts/eval_checkpoints.py -m models/<MODEL_DIR> -l da --num-iterations 3
+```
+
+**Tips:**
+- `--skip-build` reuses cached `candidates_cache.jsonl` and `pairs_*.jsonl`
+- Remove `--skip-build` to regenerate candidates with new generation params
+- See `config/danish-apertus-gold.yaml` for full hyperparameters

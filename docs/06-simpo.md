@@ -89,3 +89,25 @@ eval, 3 for checkpoints).
   change)
 
 ---
+
+
+## Reproduction
+
+```bash
+# 1. Run full pipeline (build + train + eval)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo.yaml
+
+# 2. Or resume from existing cache (skip build step)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo.yaml --skip-build
+
+# 3. Run evals only (3 iterations)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo.yaml --eval-only --eval.num-iterations 3
+
+# 4. Evaluate specific checkpoint
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-simpo -l da --num-iterations 3
+```
+
+**Tips:**
+- `--skip-build` reuses cached candidate pairs
+- See `config/danish-apertus-simpo.yaml` for full hyperparameters
+```

@@ -116,6 +116,9 @@ All scores from EuroEval (3 iterations, 95% CI). See individual docs for full ta
 
 **Legend:** ▲ significantly better than base (p<0.05), ▼ significantly worse
 
+**Statistical methodology:** Significance via non-overlapping 95% CIs (bootstrap, 1000
+samples). EuroEval v17.5.0 with fixed seeds; scores are mean across 3 independent runs.
+
 ---
 
 ## Configs

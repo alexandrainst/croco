@@ -41,8 +41,20 @@ judgments.
 
 ## Motivation
 
-Reward models tend to prefer longer responses (verbosity bias). Length normalisation
-ensures the policy isn't rewarded simply for generating more tokens.
+Reward models can produce noisy or inconsistent judgments, especially when the difference
+between chosen and rejected responses is subtle. Per Robust DPO (Xu et al., 2024), label
+smoothing provides two key benefits:
+
+1. **Robustness to noisy RM labels**: By softening the hard 1.0/0.0 labels to 0.95/0.05,
+   the model is less sensitive to individual mislabeled preferences from the reward model.
+
+2. **Regularization against spurious signals**: Prevents the policy from overfitting to
+   potentially arbitrary or superficial patterns that the reward model may have learned
+   (e.g., writing style quirks, formatting preferences, or topic biases) rather than
+   genuine quality differences.
+
+This is particularly relevant when the reward model itself was trained on limited or
+biased preference data, as is common in practice.
 
 ## Results
 

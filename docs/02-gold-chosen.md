@@ -118,10 +118,20 @@ uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-gold 
 
 **Dashboard:** `ssh sparkie ~/croco/croco_dashboard.html` (auto-refreshes every 60s)
 
-Interactive Plotly charts:
+### DPO Loss
 
-- **DPO loss curves** — per-step training loss across all experiments
-- **Reward margins** — chosen vs rejected separation over training
+![DPO loss curves](gfx/training_loss.png)
+
+### Preference Accuracy
+
+![Preference accuracy](gfx/training_accuracy.png)
+
+### Reward Margin
+
+![Reward margin](gfx/training_margins.png)
+
+Interactive Plotly charts in the dashboard:
+
 - **EuroEval learning curves** — checkpoint-by-checkpoint benchmark performance
 - **Final comparison** — all experiments with 95% CIs
 

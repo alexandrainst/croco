@@ -15,7 +15,7 @@
 Experiments with the CroCo post-training method.
 
 ______________________________________________________________________
-[![Code Coverage](https://img.shields.io/badge/Coverage-61%25-yellow.svg)](https://github.com/alexandrainst/croco/tree/main/tests)
+[![Code Coverage](https://img.shields.io/badge/Coverage-70%25-yellow.svg)](https://github.com/alexandrainst/croco/tree/main/tests)
 [![License](https://img.shields.io/github/license/alexandrainst/croco)](https://github.com/alexandrainst/croco/blob/main/LICENSE)
 [![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/croco)](https://github.com/alexandrainst/croco/commits/main)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg)](https://github.com/alexandrainst/croco/blob/main/CODE_OF_CONDUCT.md)

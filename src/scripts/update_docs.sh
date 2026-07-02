@@ -18,7 +18,7 @@
 #   - plotly, kaleido installed in current environment
 
 set -euo pipefail
-cd "$(dirname "$0")/.."
+cd "$(dirname "$0")/../.."
 
 SCRIPT_DIR="$(pwd)"
 GFX_DIR="docs/gfx"

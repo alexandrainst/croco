@@ -215,3 +215,50 @@ Sparkie-specific:
 - `models/` — Checkpoint output (symlinked to NFS storage)
 
 Copy `.env.example` to `.env` and fill in Hugging Face token if needed.
+
+## Configuration Optimization Tips
+
+Based on TRL 1.7.0 feature investigation:
+
+### Speed Optimizations
+
+```yaml
+dpo:
+  precompute_ref_log_probs: true  # Skip ref forward pass per step (~30-50% faster)
+  torch_compile: true              # PyTorch compilation (~30-50% faster after warmup)
+  dataloader_num_workers: 4        # Parallel data loading
+```
+
+### Memory Optimizations
+
+```yaml
+dpo:
+  gradient_checkpointing: true      # Already default
+  activation_offloading: true       # +20-30% GPU memory free, ~15% slower
+```
+
+### Quality Improvements
+
+```yaml
+dpo:
+  loss_type: sigmoid_norm    # SimPO length-normalized loss (reduces verbosity bias)
+  label_smoothing: 0.05      # Robust to noisy reward scores
+  use_weighting: true        # WPO-style preference weighting
+```
+
+**Notes:**
+
+- `sigmoid_norm`: Available in TRL 1.7.0 via [`DPOConfig`](https://github.com/huggingface/trl/blob/main/trl/trainer/dpo_config.py). Implements SimPO's length-normalized loss but still uses reference model.
+- `torch_compile`: First run slow (compilation), subsequent runs faster.
+- `activation_offloading`: Only enable if OOM — trades speed for memory.
+
+### Algorithm Support (TRL 1.7.0)
+
+| Algorithm | Support | Use Case |
+|-----------|---------|----------|
+| **DPO** | ✅ Full | Solid baseline |
+| **SimPO** | ⚠️ Partial (`sigmoid_norm`) | Length normalization |
+| **KTO** | ✅ Full | If reward noise is an issue |
+| **GRPO** | ✅ Full | If verifiable rewards available |
+| **ORPO** | ❌ Not in TRL 1.7.0 | Skip |
+

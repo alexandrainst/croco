@@ -51,12 +51,13 @@ Qwen-based RM.
 
 ## Timeline
 
-**Status:** Config exists (`config/danish-apertus-llama-rm.yaml`) but experiment was **never started**.
+**Status:** ⏳ **Queued** — ready to launch after ls/simpo ablations complete.
 
 | Date       | Milestone                    |
 | ---------- | ---------------------------- |
 | 2026-07-01 | Config created               |
-| —          | **Never queued or executed** |
+| 2026-07-02 | Queue script created         |
+| —          | **Awaiting ls/simpo winner** |
 | 2026-07-02 | Evals pending                |
 
 ## Related

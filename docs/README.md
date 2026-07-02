@@ -36,7 +36,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | [**Max Reward**](01-max-reward.md)   | `max_reward` construction: generate 4 candidates, select best as chosen | ✅ Complete |
 | [**Gold Chosen**](02-gold-chosen.md) | Use gold (expert) outputs as chosen instead of max-reward candidates    | ✅ Complete |
 | [**Generated**](03-generated.md)     | Standard generated mode: keep all candidates, score against prompts     | ✅ Complete |
-| [**Llama RM**](04-llama-rm.md)       | Substitute Skywork RM with Llama-3-based reward model                   | ⏳ Queued   |
+| [**Llama RM**](04-llama-rm.md)       | Substitute Skywork RM with Llama-3-based reward model                   | 🏃 Running  |
 
 ### Loss Function Ablations
 

@@ -123,3 +123,28 @@ uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-ls -l
 - `--skip-build` reuses cached `candidates_cache.jsonl` and `pairs_*.jsonl`
 - Remove `--skip-build` to regenerate candidates with new generation params
 - See `config/danish-apertus-ls.yaml` for full hyperparameters
+
+## Training Dynamics
+
+**Dashboard:** `croco_dashboard.html` — regenerate with `python src/scripts/build_dashboard.py`
+
+### DPO Loss
+
+![DPO loss curves](gfx/training_loss.png)
+
+### Preference Accuracy
+
+![Preference accuracy](gfx/training_accuracy.png)
+
+### Reward Margin
+
+![Reward margin](gfx/training_margins.png)
+
+Interactive Plotly charts in the dashboard:
+
+- **EuroEval learning curves** — checkpoint-by-checkpoint benchmark performance
+- **Final comparison** — all experiments with 95% CIs
+
+Hover any chart and click the camera icon (📷) to export as PNG.
+
+**Learning curves:** See [README](../README.md#learning-curves) for all 10 benchmark checkpoint curves.

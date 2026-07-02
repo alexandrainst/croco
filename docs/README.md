@@ -34,7 +34,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | Experiment                           | Description                                                             | Status      |
 | ------------------------------------ | ----------------------------------------------------------------------- | ----------- |
 | [**Max Reward**](01-max-reward.md)   | `max_reward` construction: generate 4 candidates, select best as chosen | ✅ Complete |
-| [**Gold Chosen**](02-gold-chosen.md) | Use gold (expert) outputs as chosen instead of max-reward candidates    | ✅ Complete |
+| [**Gold Chosen**](02-gold-chosen.md) | Use Qwen3-235B outputs as chosen instead of policy generations          | ✅ Complete |
 | [**Generated**](03-generated.md)     | Standard generated mode: keep all candidates, score against prompts     | ✅ Complete |
 | [**Llama RM**](04-llama-rm.md)       | Substitute Skywork RM with Llama-3-based reward model                   | 🏃 Running  |
 
@@ -75,11 +75,11 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 ### Construction Mode (vs Munin-Apertus-8B base)
 
-| Experiment      | Best Result      | Significant Improvements ▲ | Significant Degradations ▼                       |
-| --------------- | ---------------- | -------------------------- | ------------------------------------------------ |
-| **Max Reward**  | IFEval-da: 56.13 | Instruction following      | —                                                |
-| **Gold Chosen** | IFEval-da: 54.25 | Instruction following      | ScaLA-da (-13 MCC), Nordjylland News (-3 chrF++) |
-| **Generated**   | —                | —                          | — (no significant differences)                   |
+| Experiment      | Best Result      | Significant Improvements ▲ | Significant Degradations ▼     |
+| --------------- | ---------------- | -------------------------- | ------------------------------ |
+| **Max Reward**  | IFEval-da: 56.13 | Instruction following      | —                              |
+| **Gold Chosen** | IFEval-da: 54.25 | Instruction following      | ScaLA-da ▼, Nordjylland News ▼ |
+| **Generated**   | —                | —                          | — (no significant differences) |
 
 **Takeaway:** Generated mode is safest (no degradation), but Max Reward improves instruction following without trade-offs.
 
@@ -121,50 +121,52 @@ samples). [EuroEval](https://euroeval.com) v17.5.0 with fixed seeds; scores are 
 
 ---
 
-## Configs
+## Dashboard
 
-All configs in `config/` directory:
+**Access:** Generate locally with `python src/scripts/build_dashboard.py`
 
-```
-config/
-├── danish-apertus.yaml          # Main run (max_reward)
-├── danish-apertus-gold.yaml     # Gold chosen ablation
-├── danish-apertus-generated.yaml # Generated mode
-├── danish-apertus-llama-rm.yaml # Llama-based RM
-├── danish-apertus-ls.yaml       # Length-normalised loss
-├── danish-apertus-simpo.yaml    # SimPO β=0.1
-├── danish-apertus-simpo-tuned.yaml  # SimPO β=2.0
-├── danish-apertus-simpo-full.yaml   # Ref-free SimPO + γ=0.5
-├── danish-apertus-grpo.yaml     # GRPO online RL
-└── danish-micro-*.yaml          # Smoke tests (10-16 samples)
-```
+Interactive Plotly dashboard with:
 
----
+- **Training dynamics** — loss, reward accuracy, reward margin per step
+- **EuroEval learning curves** — checkpoint-by-checkpoint performance (10 datasets)
+- **Final comparison** — all experiments with 95% confidence intervals
 
-## Running Experiments
+**Export:** Hover any chart → click camera icon (📷) → download as PNG (2x scale).
 
-```bash
-# Single experiment
-uv run src/scripts/run_pipeline.py -c config/danish-apertus.yaml
+Dashboard HTML is self-contained with embedded data.
 
-# With custom dataset output
-uv run src/scripts/run_pipeline.py -c config/danish-apertus.yaml \
-  --dataset-output data/pairs_apertus.jsonl --skip-build
+### Embedded Plots
 
-# Resume after pre-flight (auto-launches queued runs)
-# Monitor runs via tmux sessions: queue, tqueue, grpo
-```
+Each completed experiment doc includes training dynamics plots:
 
----
+- [Max Reward](01-max-reward.md), [Gold Chosen](02-gold-chosen.md),
+  [Generated](03-generated.md), [Label Smoothing](05-label-smoothing.md)
+- **DPO Loss**, **Preference Accuracy**, **Reward Margin** (PNG exports from dashboard)
 
-## Timeline
+### Final Comparison
 
-| Date             | Milestone                                  |
-| ---------------- | ------------------------------------------ |
-| 2026-06-28       | Initial CroCo runs (main, gold, generated) |
-| 2026-06-29       | RM ablation (Llama vs Skywork)             |
-| 2026-06-30       | Loss ablations started (ls, simpo)         |
-| 2026-07-02       | SimPO ablations queued (tuned, full)       |
-| 2026-07-04 (est) | GRPO baseline completes                    |
+![Final EuroEval comparison with 95% CIs](gfx/final_comparison.png)
 
----
+_Bars show mean scores; error bars are 95% confidence intervals (bootstrap, 1000 samples).
+Significance determined by non-overlapping CIs._
+
+### Learning Curves
+
+Checkpoint-by-checkpoint performance across all 10 [EuroEval](https://euroeval.com) benchmarks:
+
+
+| Dataset | Description |
+|---------|-------------|
+| ![Angry Tweets](gfx/curve_angry-tweets.png) | Sentiment classification on Danish tweets |
+| ![Danish Citizen Tests](gfx/curve_danish-citizen-tests.png) | Multiple choice civics knowledge |
+| ![Danske Talemåder](gfx/curve_danske-talemaader.png) | Danish idiom completion |
+| ![Dansk](gfx/curve_dansk.png) | Named entity recognition |
+| ![Hellaswag-da](gfx/curve_hellaswag-da.png) | Commonsense inference |
+| ![IFEval-da](gfx/curve_ifeval-da.png) | Instruction following |
+| ![Multi-Wiki QA-da](gfx/curve_multi-wiki-qa-da.png) | Open-domain question answering |
+| ![Nordjylland News](gfx/curve_nordjylland-news.png) | News article generation |
+| ![ScaLA-da](gfx/curve_scala-da.png) | Language understanding |
+| ![ValEU-da](gfx/curve_valeu-da.png) | European values alignment |
+
+*Error bars show 95% CIs (bootstrap, 1000 samples); runs dodged horizontally for visibility.*
+

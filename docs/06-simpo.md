@@ -85,6 +85,7 @@ eval, 3 for checkpoints).
 
 - [SimPO Tuned](07-simpo-tuned.md) — β raised to 2.0
 - [SimPO Full](08-simpo-full.md) — ref-free loss + target margin γ=0.5
-- [Label Smoothing](05-label-smoothing.md) — sibling ablation (different single-variable change)
+- [Label Smoothing](05-label-smoothing.md) — sibling ablation (different single-variable
+  change)
 
 ---

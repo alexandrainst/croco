@@ -31,6 +31,8 @@ class TestResultMode:
             "models/croco-munin-apertus-8b-da-gold": "gold_chosen",
             "models/croco-munin-apertus-8b-da-generated": "generated",
             "models/croco-munin-apertus-8b-da-ls": "label_smoothing",
+            "models/croco-munin-apertus-8b-da-simpo-tuned": "simpo_tuned",
+            "models/croco-munin-apertus-8b-da-simpo-full": "simpo_full",
             "models/croco-munin-apertus-8b-da-simpo": "sigmoid_norm",
             "models/croco-munin-apertus-8b-da-grpo": "grpo",
         }
@@ -44,6 +46,30 @@ class TestResultMode:
                 model_id="models/croco-munin-apertus-8b-da-ls/checkpoint-100"
             )
             == "label_smoothing"
+        )
+        assert (
+            build_dashboard._result_mode(
+                model_id="models/croco-munin-apertus-8b-da-simpo-tuned/checkpoint-100"
+            )
+            == "simpo_tuned"
+        )
+
+    def test_bare_simpo_dir_still_sigmoid_norm(self) -> None:
+        """The bare ``-simpo`` dir must keep its sigmoid_norm classification.
+
+        Regression guard for the most-specific-first marker ordering: the new
+        ``-simpo-tuned``/``-simpo-full`` markers must not shadow it, and the
+        bare ``-simpo`` marker must not swallow them.
+        """
+        assert (
+            build_dashboard._result_mode(
+                model_id="models/croco-munin-apertus-8b-da-simpo"
+            )
+            == "sigmoid_norm"
+        )
+        assert (
+            build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo")
+            == "sigmoid_norm"
         )
 
     def test_unrelated_model_is_ignored(self) -> None:
@@ -64,5 +90,13 @@ class TestModeLabel:
         assert (
             build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo")
             == "sigmoid_norm"
+        )
+        assert (
+            build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-tuned")
+            == "simpo_tuned"
+        )
+        assert (
+            build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-full")
+            == "simpo_full"
         )
         assert build_dashboard._mode_label("croco-munin-apertus-8b-da-grpo") == "grpo"

@@ -40,11 +40,15 @@ logger = logging.getLogger(__name__)
 _CHECKPOINT_RE = re.compile(r"checkpoint-(\d+)")
 # Ordered most-specific first: each construction-mode / ablation maps to the
 # unique tail of its model directory. ``max_reward`` is the bare suffix, so it
-# must be matched last or it would swallow the ``-gold``/``-ls``/``-simpo`` ones.
+# must be matched last or it would swallow the ``-gold``/``-ls``/``-simpo`` ones;
+# likewise ``-simpo`` must come after ``-simpo-tuned``/``-simpo-full`` so it does
+# not swallow those SimPO ablation tails.
 _MODE_MARKERS = (
     ("croco-munin-apertus-8b-da-gold", "gold_chosen"),
     ("croco-munin-apertus-8b-da-generated", "generated"),
     ("croco-munin-apertus-8b-da-ls", "label_smoothing"),
+    ("croco-munin-apertus-8b-da-simpo-tuned", "simpo_tuned"),
+    ("croco-munin-apertus-8b-da-simpo-full", "simpo_full"),
     ("croco-munin-apertus-8b-da-simpo", "sigmoid_norm"),
     ("croco-munin-apertus-8b-da-grpo", "grpo"),
     ("croco-munin-apertus-8b-da", "max_reward"),
@@ -532,7 +536,7 @@ _HTML_TEMPLATE = r"""<!doctype html>
 const DATA = __DATA__;
 const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f",
   generated: "#ff7f0e", label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd",
-  grpo: "#8c564b"};
+  grpo: "#8c564b", simpo_tuned: "#e377c2", simpo_full: "#17becf"};
 // Significance of a score relative to the base policy via non-overlapping 95%
 // CIs: returns +1 (significantly better), -1 (significantly worse) or 0.
 function sigVsBase(rec, baseRec) {

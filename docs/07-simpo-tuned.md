@@ -68,9 +68,10 @@ We chose **2.0** (conservative, matches base models).
 
 ## References
 
-- **SimPO**: Meng et al. (2024) — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
-  - Table 7: Hyperparameter recommendations for base/instruct models
-- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- SimPO: Meng et al. (2024), "SimPO: Simple Preference Optimization with a Reference-Free Reward" — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)  
+  - Section 4.1: Beta ablation study
+  - Official implementation: [princeton-nlp/SimPO](https://github.com/princeton-nlp/SimPO) (recommends β=2.0–2.5)
+- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
 
 ---
 

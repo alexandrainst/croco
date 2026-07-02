@@ -51,8 +51,8 @@ _Results pending._
 
 ## References
 
-- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- **Curriculum**: Bengio et al. (2009) — [ICML 2009](https://doi.org/10.1145/1553374.1553380)
+- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- Curriculum: Bengio et al. (2009), "Curriculum Learning" — [ICML 2009](https://doi.org/10.1145/1553374.1553380)
 
 ---
 

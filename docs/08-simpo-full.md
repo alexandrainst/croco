@@ -84,12 +84,13 @@ Custom code in `src/croco/dpo.py`:
 
 ## References
 
-- **SimPO**: Meng et al. (2024) — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
-  - Section 2.3: Target reward margin derivation
-  - Section 4.3: γ ablation study (Figure 3)
-  - Appendix A: Hyperparameter table (β=2.0–10, γ/β=0.1–0.8)
-- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- **LoRA**: Hu et al. (2021) — [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
+- SimPO: Meng et al. (2024), "SimPO: Simple Preference Optimization with a Reference-Free Reward" — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)  
+  - Section 2.3: Derives target reward margin objective with γ
+  - Section 4.3: γ ablation shows reward accuracy ↑ with γ, win rate follows inverted-U  
+  - Figure 3(a): Win rate vs γ/β ratio (optimal ~0.5–0.8)
+  - Official implementation: [princeton-nlp/SimPO](https://github.com/princeton-nlp/SimPO) (recommends γ/β starting at 0.5)
+- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- LoRA: Hu et al. (2021), "LoRA: Low-Rank Adaptation of Large Language Models" — [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
 
 ---
 

@@ -68,10 +68,10 @@ _Results pending — training completed, evals in progress._
 
 ## References
 
-- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- **LoRA**: Hu et al. (2021) — [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
-- **Curriculum**: Bengio et al. (2009) — [ICML 2009](https://doi.org/10.1145/1553374.1553380)
-- **vLLM**: Kwon et al. (2023) — [GitHub](https://github.com/vllm-project/vllm)
+- DPO: Rafailov et al. (2023), "Direct Preference Optimization: Your Language Model is Secretly a Reward Model" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- LoRA: Hu et al. (2021), "LoRA: Low-Rank Adaptation of Large Language Models" — [arXiv:2106.09685](https://arxiv.org/abs/2106.09685)
+- Curriculum Learning: Bengio et al. (2009), "Curriculum Learning" — [ICML 2009](https://doi.org/10.1145/1553374.1553380)
+- vLLM: Kwon et al. (2023), "vLLM: Easy, Fast, and Cheap LLM Serving with PagedAttention" — [GitHub](https://github.com/vllm-project/vllm)
 
 ---
 

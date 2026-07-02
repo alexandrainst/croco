@@ -48,9 +48,9 @@ _Results pending._
 
 ## References
 
-- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- **Skywork-Reward-V2**: Skywork AI (2024) — [Hugging Face](https://huggingface.co/Skywork/Skywork-Reward-V2-Qwen3-8B)
-- **Llama 3**: Meta AI (2024) — [Hugging Face](https://huggingface.co/meta-llama/Meta-Llama-3-8B)
+- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- Skywork-Reward-V2-Qwen3-8B: Skywork AI (2024) — [Hugging Face](https://huggingface.co/Skywork/Skywork-Reward-V2-Qwen3-8B)
+- Llama 3: Meta AI (2024), "Llama 3 Model Card" — [Hugging Face](https://huggingface.co/meta-llama/Meta-Llama-3-8B)
 
 ---
 

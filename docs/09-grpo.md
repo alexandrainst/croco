@@ -78,10 +78,10 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 
 ## References
 
-- **GRPO**: Shao et al. (2024) — *DeepSeekMath* [arXiv:2402.03300](https://arxiv.org/abs/2402.03300)
-  - Appendix A.3: GRPO algorithm details
-- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- **vLLM**: Kwon et al. (2023) — [GitHub](https://github.com/vllm-project/vllm)
+- GRPO: Shao et al. (2024), "DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models" — [arXiv:2402.03300](https://arxiv.org/abs/2402.03300)  
+  - Appendix A.3: Group Relative Policy Optimization algorithm
+- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- vLLM: Kwon et al. (2023), "vLLM: Easy, Fast, and Cheap LLM Serving with PagedAttention" — [GitHub](https://github.com/vllm-project/vllm)
 
 ---
 

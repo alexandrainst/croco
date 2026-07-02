@@ -54,9 +54,9 @@ _Results pending — training completed, evals in progress._
 
 ## References
 
-- **DPO**: Rafailov et al. (2023) — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
-- **Length normalization**: Koehn & Knowles (2017) — [ACL Workshop](https://aclanthology.org/W17-3206/)
-- **SimPO**: Meng et al. (2024) — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
+- DPO: Rafailov et al. (2023), "Direct Preference Optimization" — [arXiv:2305.18290](https://arxiv.org/abs/2305.18290)
+- Length normalization: Koehn & Knowles (2017), "Six Challenges for NMT" — [ACL Workshop](https://aclanthology.org/W17-3206/)
+- SimPO: Meng et al. (2024), "SimPO: Simple Preference Optimization with a Reference-Free Reward" — [arXiv:2405.14734](https://arxiv.org/abs/2405.14734)
 
 ---
 

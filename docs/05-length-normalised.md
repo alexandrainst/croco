@@ -10,9 +10,6 @@ output: models/croco-munin-apertus-8b-da-ls
 
 # Length-Normalised Loss Ablation
 
-**Config:** `config/danish-apertus-ls.yaml`  
-**Output:** `models/croco-munin-apertus-8b-da-ls`
-
 ## Hypothesis
 
 Length-normalised DPO loss reduces verbosity bias compared to standard DPO.

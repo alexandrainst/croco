@@ -12,9 +12,6 @@ eta_start: 2026-07-03 08:30 CEST
 
 # SimPO Full Ablation (Ref-Free + γ=0.5)
 
-**Config:** `config/danish-apertus-simpo-full.yaml`  
-**Output:** `models/croco-munin-apertus-8b-da-simpo-full`
-
 ## Hypothesis
 
 True reference-free SimPO loss (no reference model) with target margin γ=0.5 outperforms

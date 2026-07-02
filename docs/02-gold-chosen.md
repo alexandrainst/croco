@@ -10,9 +10,6 @@ output: models/croco-munin-apertus-8b-da-gold
 
 # Gold Chosen Ablation
 
-**Config:** `config/danish-apertus-gold.yaml`  
-**Output:** `models/croco-munin-apertus-8b-da-gold`
-
 ## Hypothesis
 
 Expert-written (gold) outputs are better preference signals than reward-maximising

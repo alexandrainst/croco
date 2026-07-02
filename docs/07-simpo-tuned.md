@@ -11,9 +11,6 @@ eta_start: 2026-07-02 19:15 CEST
 
 # SimPO Tuned Ablation (β=2.0)
 
-**Config:** `config/danish-apertus-simpo-tuned.yaml`  
-**Output:** `models/croco-munin-apertus-8b-da-simpo-tuned`
-
 ## Hypothesis
 
 Raising β to SimPO-recommended range (2.0) unlocks the full benefit of length-normalised

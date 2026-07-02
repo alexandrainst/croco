@@ -10,9 +10,6 @@ output: models/croco-munin-apertus-8b-da-llama-rm
 
 # Llama RM Ablation
 
-**Config:** `config/danish-apertus-llama-rm.yaml`  
-**Output:** `models/croco-munin-apertus-8b-da-llama-rm`
-
 ## Hypothesis
 
 A Llama-3-based reward model produces different (potentially better) preference signals

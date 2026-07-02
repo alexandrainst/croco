@@ -11,9 +11,6 @@ eta_start: 2026-07-04 21:30 CEST
 
 # GRPO Online RL Baseline
 
-**Config:** `config/danish-apertus-grpo.yaml`  
-**Output:** `models/croco-munin-apertus-8b-da-grpo`
-
 ## Hypothesis
 
 Online RL (GRPO) eliminates the need for offline preference dataset construction while

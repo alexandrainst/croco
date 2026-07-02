@@ -10,9 +10,6 @@ output: models/croco-munin-apertus-8b-da
 
 # Max Reward Ablation
 
-**Config:** `config/danish-apertus.yaml`  
-**Output:** `models/croco-munin-apertus-8b-da`
-
 ## Hypothesis
 
 The standard CroCo pipeline with `max_reward` construction mode produces preference

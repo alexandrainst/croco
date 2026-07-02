@@ -11,9 +11,6 @@ started: 2026-07-01 09:59
 
 # SimPO Ablation (β=0.1)
 
-**Config:** `config/danish-apertus-simpo.yaml`  
-**Output:** `models/croco-munin-apertus-8b-da-simpo`
-
 ## Hypothesis
 
 Length-normalised loss with low β (0.1) provides a clean single-variable ablation

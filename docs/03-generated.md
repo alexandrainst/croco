@@ -10,9 +10,6 @@ output: models/croco-munin-apertus-8b-da-generated
 
 # Generated Mode Ablation
 
-**Config:** `config/danish-apertus-generated.yaml`  
-**Output:** `models/croco-munin-apertus-8b-da-generated`
-
 ## Hypothesis
 
 Standard generated mode (no max-reward selection, no gold outputs) provides a valid

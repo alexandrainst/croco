@@ -37,7 +37,7 @@ clear reward margin.
 
 - Final loss: `0.5190`
 - Reward accuracy: variable (see training dynamics)
-- Eval: 3 iterations on full EuroEval suite
+- Eval: 10 iterations on full EuroEval suite
 
 ### Training
 
@@ -66,7 +66,7 @@ dpo:
 
 ## Results
 
-**Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 3 iterations each.
+**Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 10 iterations each.
 **Note:** Significance compared to **Munin-Apertus-8B base model** (pre-CroCo), not to this experiment.
 
 | Benchmark            | Task                     | Metric               |     Score | vs Base Model | Status      |
@@ -134,11 +134,11 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml
 # 2. Or resume from existing cache (skip build step)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --skip-build
 
-# 3. Run evals only (3 iterations)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --eval-only --eval.num-iterations 3
+# 3. Run evals only (10 iterations)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --eval-only --eval.num-iterations 10
 
 # 4. Evaluate specific checkpoint
-uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da -l da --num-iterations 3
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da -l da --num-iterations 10
 ```
 
 **Tips:**

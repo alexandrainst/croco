@@ -56,7 +56,7 @@ Qwen-based RM.
 
 **Status:** 🏃 **In progress** — step 1 (candidate cache re-scoring) running.
 
-**Evaluation suite (planned):** Same 10 Danish benchmarks as Max Reward (3 iterations each).
+**Evaluation suite (planned):** Same 10 Danish benchmarks as Max Reward (10 iterations each).
 
 | Benchmark      | Task | Metric | Score | Status     |
 | -------------- | ---- | ------ | ----: | ---------- |

@@ -35,8 +35,8 @@ run uv run src/scripts/run_pipeline.py \
 
 log "===== Llama RM: final eval (local adapter, 3 iterations) ====="
 run uv run euroeval --model "models/$DIR" \
-  --language da --num-iterations 3 --gpu-memory-utilization $GMEM --save-results
+  --language da --num-iterations 10 --gpu-memory-utilization $GMEM --save-results
 log "===== Llama RM: checkpoint evals (3 iterations) ====="
 run uv run src/scripts/eval_checkpoints.py -m "models/$DIR" \
-  -l da --num-iterations 3 --gpu-memory-utilization $GMEM --no-include-final
+  -l da --num-iterations 10 --gpu-memory-utilization $GMEM --no-include-final
 log "===== Llama RM DONE ====="

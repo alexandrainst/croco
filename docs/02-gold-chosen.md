@@ -32,7 +32,7 @@ are better preference signals than reward-maximising generated outputs.
 
 - Final loss: `0.0123` (extremely low, suggests overfitting possible)
 - Reward accuracy: see training dynamics
-- Eval: 3 iterations on full EuroEval suite
+- Eval: 10 iterations on full EuroEval suite
 
 ### Training
 
@@ -61,7 +61,7 @@ higher-capacity model generations.
 
 ## Results
 
-**Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 3 iterations each.
+**Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 10 iterations each.
 **Legend:** ▲ significantly better than base Munin-Apertus-8B, ▼ significantly worse (non-overlapping 95% CIs).
 
 | Benchmark            | Task                     | Metric               |     Score | vs Base Model | Status      |
@@ -128,11 +128,11 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml
 # 2. Or resume from existing cache (skip build step)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml --skip-build
 
-# 3. Run evals only (3 iterations)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml --eval-only --eval.num-iterations 3
+# 3. Run evals only (10 iterations)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml --eval-only --eval.num-iterations 10
 
 # 4. Evaluate specific checkpoint
-uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-gold -l da --num-iterations 3
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-gold -l da --num-iterations 10
 ```
 
 **Tips:**

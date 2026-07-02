@@ -32,5 +32,5 @@ run uv run euroeval --model "models/$DIR" \
   --language da --num-iterations 10 --gpu-memory-utilization $GMEM --save-results
 log "===== GRPO: checkpoint evals (3 iterations) ====="
 run uv run src/scripts/eval_checkpoints.py -m "models/$DIR" \
-  -l da --num-iterations 3 --gpu-memory-utilization $GMEM --no-include-final
+  -l da --num-iterations 10 --gpu-memory-utilization $GMEM --no-include-final
 log "===== GRPO DONE ====="

@@ -152,21 +152,74 @@ Significance determined by non-overlapping CIs._
 
 ### Learning Curves
 
-Checkpoint-by-checkpoint performance across all 10 [EuroEval](https://euroeval.com) benchmarks:
+All 18 dataset-metric combinations (checkpoint-by-checkpoint performance):
 
 
-| Dataset | Description |
-|---------|-------------|
-| ![Angry Tweets](gfx/curve_angry-tweets.png) | Sentiment classification on Danish tweets |
-| ![Danish Citizen Tests](gfx/curve_danish-citizen-tests.png) | Multiple choice civics knowledge |
-| ![Danske Talemåder](gfx/curve_danske-talemaader.png) | Danish idiom completion |
-| ![Dansk](gfx/curve_dansk.png) | Named entity recognition |
-| ![Hellaswag-da](gfx/curve_hellaswag-da.png) | Commonsense inference |
-| ![IFEval-da](gfx/curve_ifeval-da.png) | Instruction following |
-| ![Multi-Wiki QA-da](gfx/curve_multi-wiki-qa-da.png) | Open-domain question answering |
-| ![Nordjylland News](gfx/curve_nordjylland-news.png) | News article generation |
-| ![ScaLA-da](gfx/curve_scala-da.png) | Language understanding |
-| ![ValEU-da](gfx/curve_valeu-da.png) | European values alignment |
+| Dataset & Metric | Learning Curve | Dataset & Metric | Learning Curve |
+|------------------|----------------|------------------|----------------|
+| **Angry Tweets**<br>Macro F1 | ![angry-macro](gfx/curve_angry-tweets-test_macro_f1.png) | **Angry Tweets**<br>MCC | ![angry-mcc](gfx/curve_angry-tweets-test_mcc.png) |
+| **Danish Citizen Tests**<br>Accuracy | ![dct-acc](gfx/curve_danish-citizen-tests-test_accuracy.png) | **Danish Citizen Tests**<br>MCC | ![dct-mcc](gfx/curve_danish-citizen-tests-test_mcc.png) |
+| **Dansk (NER)**<br>Micro F1 | ![dansk-f1](gfx/curve_dansk-test_micro_f1.png) | **Dansk (NER)**<br>Micro F1 (no misc) | ![dansk-f1-nm](gfx/curve_dansk-test_micro_f1_no_misc.png) |
+| **Danske Talemåder**<br>Accuracy | ![dt-acc](gfx/curve_danske-talemaader-test_accuracy.png) | **Danske Talemåder**<br>MCC | ![dt-mcc](gfx/curve_danske-talemaader-test_mcc.png) |
+| **Hellaswag-da**<br>Accuracy | ![hs-acc](gfx/curve_hellaswag-da-test_accuracy.png) | **Hellaswag-da**<br>MCC | ![hs-mcc](gfx/curve_hellaswag-da-test_mcc.png) |
+| **IFEval-da**<br>Instruction Accuracy | ![ifeval](gfx/curve_ifeval-da-test_instruction_accuracy.png) | **Multi-Wiki QA-da**<br>Exact Match | ![mw-em](gfx/curve_multi-wiki-qa-da-test_em.png) |
+| **Multi-Wiki QA-da**<br>F1 | ![mw-f1](gfx/curve_multi-wiki-qa-da-test_f1.png) | **Nordjylland News**<br>chrF3++ | ![nn-f3](gfx/curve_nordjylland-news-test_chr_f3pp.png) |
+| **Nordjylland News**<br>chrF4++ | ![nn-f4](gfx/curve_nordjylland-news-test_chr_f4pp.png) | **ScaLA-da**<br>Macro F1 | ![scala-f1](gfx/curve_scala-da-test_macro_f1.png) |
+| **ScaLA-da**<br>MCC | ![scala-mcc](gfx/curve_scala-da-test_mcc.png) | **ValEU-da**<br>European Values | ![valeu](gfx/curve_valeu-da-test_european_values.png) |
 
 *Error bars show 95% CIs (bootstrap, 1000 samples); runs dodged horizontally for visibility.*
 
+
+---
+
+## Configs
+
+All configs in `config/` directory:
+
+| Config                           | Construction Mode | Description                      |
+| -------------------------------- | ----------------- | -------------------------------- |
+| `danish-apertus.yaml`            | `max_reward`      | Select best-scoring candidate    |
+| `danish-apertus-gold.yaml`       | `gold_chosen`     | Use Qwen3-235B outputs as chosen |
+| `danish-apertus-generated.yaml`  | `generated`       | Keep all candidates, score all   |
+| `danish-apertus-ls.yaml`         | `max_reward`      | DPO with label smoothing (α=0.05)|
+| `danish-apertus-simpo.yaml`      | `max_reward`      | SimPO loss (γ=0.5, β=2.0)        |
+| `danish-apertus-llama-rm.yaml`   | `max_reward`      | Llama-3-based reward model       |
+
+---
+
+## Timeline
+
+| Date             | Milestone                                  |
+| ---------------- | ------------------------------------------ |
+| 2026-06-28       | Initial CroCo runs (main, gold, generated) |
+| 2026-06-29       | RM ablation (Llama vs Skywork)             |
+| 2026-06-30       | Loss ablations started (ls, simpo)         |
+| 2026-07-02       | SimPO ablations queued (tuned, full)       |
+| 2026-07-04 (est) | GRPO baseline completes                    |
+
+---
+
+## Configs
+
+All configs in `config/` directory:
+
+| Config                           | Construction Mode | Description                      |
+| -------------------------------- | ----------------- | -------------------------------- |
+| `danish-apertus.yaml`            | `max_reward`      | Select best-scoring candidate    |
+| `danish-apertus-gold.yaml`       | `gold_chosen`     | Use Qwen3-235B outputs as chosen |
+| `danish-apertus-generated.yaml`  | `generated`       | Keep all candidates, score all   |
+| `danish-apertus-ls.yaml`         | `max_reward`      | DPO with label smoothing (α=0.05)|
+| `danish-apertus-simpo.yaml`      | `max_reward`      | SimPO loss (γ=0.5, β=2.0)        |
+| `danish-apertus-llama-rm.yaml`   | `max_reward`      | Llama-3-based reward model       |
+
+---
+
+## Timeline
+
+| Date             | Milestone                                  |
+| ---------------- | ------------------------------------------ |
+| 2026-06-28       | Initial CroCo runs (main, gold, generated) |
+| 2026-06-29       | RM ablation (Llama vs Skywork)             |
+| 2026-06-30       | Loss ablations started (ls, simpo)         |
+| 2026-07-02       | SimPO ablations queued (tuned, full)       |
+| 2026-07-04 (est) | GRPO baseline completes                    |

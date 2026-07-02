@@ -58,15 +58,44 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --eval-on
 
 ### Queue/Runner Scripts
 
-All in `src/scripts/`:
+All executable scripts are in `src/scripts/`. Run via:
 
-| Script                        | Purpose                                 |
-| ----------------------------- | --------------------------------------- |
-| `grpo_queue.sh`               | GRPO baseline training                  |
-| `llama_rm_queue.sh`           | Llama RM ablation (rescore → train)     |
-| `resume_ls_simpo.sh`          | Resume label smoothing / SimPO runs     |
-| `resume_tuned_simpo.sh`       | SimPO tuned → full ablation chain       |
-| `update_docs.sh`              | Export dashboard plots to `docs/gfx/`   |
+```bash
+uv run src/scripts/<script>.sh
+# or on sparkie:
+bash src/scripts/<script>.sh
+```
+
+| Script | Purpose | Status |
+|--------|---------|--------|
+| `grpo_queue.sh` | GRPO baseline (micro → apertus) | ⏳ Queued |
+| `llama_rm_queue.sh` | Llama-3.1 RM ablation (rescore cache → train) | 🏃 Running |
+| `update_docs.sh` | Export all 22 plots from dashboard | ✅ Ready |
+
+**Removed scripts:**
+
+- `resume_ls_simpo.sh` — ls/simpo ablations complete
+- `resume_tuned_simpo.sh` — SimPO tuned/full complete
+
+### update_docs.sh Details
+
+Exports 22 plots total:
+
+1. **Training dynamics** (3): `training_loss.png`, `training_accuracy.png`, `training_margins.png`
+2. **Learning curves** (18): All dataset-metric combinations:
+   - Angry Tweets (macro_f1, mcc)
+   - Danish Citizen Tests (accuracy, mcc)
+   - Dansk NER (micro_f1, micro_f1_no_misc)
+   - Danske Talemåder (accuracy, mcc)
+   - Hellaswag-da (accuracy, mcc)
+   - IFEval-da (instruction_accuracy)
+   - Multi-Wiki QA-da (em, f1)
+   - Nordjylland News (chr_f3pp, chr_f4pp)
+   - ScaLA-da (macro_f1, mcc)
+   - ValEU-da (european_values)
+3. **Final comparison** (1): `final_comparison.png` (bar chart with 95% CIs)
+
+Requires: `plotly`, `kaleido` installed, `croco_dashboard.html` exists.
 
 ## Testing
 

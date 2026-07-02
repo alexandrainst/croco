@@ -33,6 +33,19 @@ Identical to [Max Reward](01-max-reward.md):
 - β = 0.1, [LoRA](https://arxiv.org/abs/2106.09685) r=16, LR 5e-6
 - Construction mode: `max_reward`
 
+### Hardware & Runtime
+
+- **GPU:** NVIDIA GB10 (expected, matching other experiments)
+- **Training time:** ~6.5 hours (estimated from Max Reward baseline)
+- **Framework:** TRL 1.7.0 + vLLM for candidate re-scoring
+- **LoRA:** r=16, α=32, dropout=0.05 (~1% trainable params)
+
+**Training metrics:** ⏳ Pending (experiment not started)
+
+- Expected final loss: ~0.52 (based on Max Reward: 0.5190)
+- Expected reward margin: ~1.7-2.0
+- Expected eval iterations: 3 on full [EuroEval](https://euroeval.com) suite
+
 ## Motivation
 
 Reward models are trained on different datasets and may have cultural/linguistic biases.

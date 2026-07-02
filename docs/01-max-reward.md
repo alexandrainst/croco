@@ -55,7 +55,8 @@ dpo:
 
 ## Results
 
-**Evaluation suite:** 10 Danish benchmarks from EuroEval, 3 iterations each:
+**Evaluation suite:** 10 Danish benchmarks from EuroEval, 3 iterations each.
+**Note:** This is the **baseline** for significance comparisons in sibling experiments.
 
 | Benchmark            | Task                     | Metric               |     Score | Status      |
 | -------------------- | ------------------------ | -------------------- | --------: | ----------- |

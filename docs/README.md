@@ -143,6 +143,25 @@ Each completed experiment doc includes training dynamics plots:
   [Generated](03-generated.md), [Label Smoothing](05-label-smoothing.md)
 - **DPO Loss**, **Preference Accuracy**, **Reward Margin** (PNG exports from dashboard)
 
+### Final Comparison
+
+![Final EuroEval comparison with 95% CIs](gfx/final_comparison.png)
+
+_Bars show mean scores; error bars are 95% confidence intervals (bootstrap, 1000 samples).
+Significance determined by non-overlapping CIs._
+
+### Learning Curves
+
+Representative checkpoint-by-checkpoint performance:
+
+![Angry Tweets learning curve](gfx/curve_angry-tweets-test_mcc.png)
+
+![IFEval-da learning curve](gfx/curve_ifeval-da.png)
+
+![ScaLA-da learning curve](gfx/curve_scala-da-test_mcc.png)
+
+_Error bars show 95% CIs; runs dodged horizontally for visibility._
+
 ---
 
 ## Configs
@@ -192,3 +211,10 @@ uv run src/scripts/run_pipeline.py -c config/danish-apertus.yaml \
 | 2026-07-04 (est) | GRPO baseline completes                    |
 
 ---
+
+### Final Comparison
+
+![Final EuroEval comparison with 95% CIs](gfx/final_comparison.png)
+
+_Bars show mean scores; error bars are 95% confidence intervals (bootstrap, 1000 samples).  
+Significance determined by non-overlapping CIs._

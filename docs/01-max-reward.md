@@ -142,3 +142,13 @@ Interactive Plotly charts in the dashboard:
 - **Final comparison** — all experiments with 95% CIs
 
 Hover any chart and click the camera icon (📷) to export as PNG.
+
+### Learning Curves
+
+![Angry Tweets checkpoint performance](gfx/curve_angry-tweets-test_mcc.png)
+
+![IFEval-da checkpoint performance](gfx/curve_ifeval-da.png)
+
+![ScaLA-da checkpoint performance](gfx/curve_scala-da-test_mcc.png)
+
+_Full interactive curves in dashboard._

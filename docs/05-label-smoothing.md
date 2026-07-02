@@ -1,6 +1,6 @@
 ---
-title: Length-Normalised Loss Ablation
-description: Tests length_norm loss type vs standard DPO
+title: Label Smoothing Ablation
+description: Tests label smoothing (0.05) for robustness to noisy RM labels
 created: 2026-07-02
 updated: 2026-07-02
 status: evals-in-progress
@@ -8,37 +8,35 @@ config: config/danish-apertus-ls.yaml
 output: models/croco-munin-apertus-8b-da-ls
 ---
 
-# Length-Normalised Loss Ablation
+# Label Smoothing Ablation
 
 ## Hypothesis
 
-Length-normalised DPO loss reduces verbosity bias compared to standard DPO.
+Label smoothing (α=0.05) improves robustness to noisy reward model labels, reducing
+overfitting to spurious reward signals.
 
 ## Method
 
-### Loss Function: `loss_type: length_norm`
+### Loss Function: Standard DPO with Label Smoothing
 
-Standard [DPO](https://arxiv.org/abs/2305.18290) computes log-probabilities over full
-sequences:
+[DPO](https://arxiv.org/abs/2305.18290) with **label smoothing** (α=0.05) from Robust
+DPO ([Xu et al., 2024](https://arxiv.org/abs/2403.00409)):
 
-```
-log p(y|x) = Σ log p(y_i | x, y_{<i})
-```
-
-Length-normalised divides by sequence length (a standard technique to counter verbosity
-bias [Koehn & Knowles, 2017](https://aclanthology.org/W17-3206/)):
+Instead of treating preference labels as hard (1.0 for chosen, 0.0 for rejected), labels
+are smoothed:
 
 ```
-log p_norm(y|x) = (1/|y|) × Σ log p(y_i | x, y_{<i})
+label_chosen = 1.0 - α = 0.95
+label_rejected = α = 0.05
 ```
 
-This removes the advantage that longer responses have in accumulating higher total
-log-prob.
+This regularizes the model against overfitting to potentially noisy reward model
+judgments.
 
 ### Training
 
 - **β = 0.1** (held constant for clean ablation)
-- `loss_type: length_norm` (TRL builtin)
+- **`label_smoothing: 0.05`** (Robust DPO)
 - All other settings identical to [Max Reward](01-max-reward.md)
 
 ## Motivation
@@ -78,7 +76,7 @@ ensures the policy isn't rewarded simply for generating more tokens.
 
 ## Related
 
-- [SimPO](06-simpo.md) — extends length-normalisation with reference-free loss
-- [Max Reward](01-max-reward.md) — standard DPO baseline
+- [SimPO](06-simpo.md) — uses `sigmoid_norm` loss (actual length-normalization)
+- [Max Reward](01-max-reward.md) — standard DPO baseline (no smoothing)
 
 ---

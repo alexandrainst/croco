@@ -36,7 +36,7 @@ This is **under-powered** by SimPO standards (paper recommends β=2.0–2.5). Pu
 
 ## Training
 
-Identical to [Length-Normalised](05-length-normalised.md) except loss type hint:
+Identical to [Label Smoothing](05-label-smoothing.md) except loss type hint:
 
 - DPO with curriculum learning
 - LoRA r=16, LR 5e-6
@@ -85,6 +85,6 @@ eval, 3 for checkpoints).
 
 - [SimPO Tuned](07-simpo-tuned.md) — β raised to 2.0
 - [SimPO Full](08-simpo-full.md) — ref-free loss + target margin γ=0.5
-- [Length-Normalised](05-length-normalised.md) — predecessor ablation
+- [Label Smoothing](05-label-smoothing.md) — sibling ablation (different single-variable change)
 
 ---

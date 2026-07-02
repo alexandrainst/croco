@@ -34,7 +34,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | Experiment                           | Description                                                             | Status      |
 | ------------------------------------ | ----------------------------------------------------------------------- | ----------- |
 | [**Max Reward**](01-max-reward.md)   | `max_reward` construction: generate 4 candidates, select best as chosen | ✅ Complete |
-| [**Gold Chosen**](02-gold-chosen.md) | Use gold (expert) outputs as chosen instead of max-reward candidates    | ✅ Complete |
+| [**Gold Chosen**](02-gold-chosen.md) | Use Qwen3-235B outputs as chosen instead of policy generations          | ✅ Complete |
 | [**Generated**](03-generated.md)     | Standard generated mode: keep all candidates, score against prompts     | ✅ Complete |
 | [**Llama RM**](04-llama-rm.md)       | Substitute Skywork RM with Llama-3-based reward model                   | 🏃 Running  |
 
@@ -75,11 +75,11 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 ### Construction Mode (vs Munin-Apertus-8B base)
 
-| Experiment      | Best Result      | Significant Improvements ▲ | Significant Degradations ▼                       |
-| --------------- | ---------------- | -------------------------- | ------------------------------------------------ |
-| **Max Reward**  | IFEval-da: 56.13 | Instruction following      | —                                                |
-| **Gold Chosen** | IFEval-da: 54.25 | Instruction following      | ScaLA-da (-13 MCC), Nordjylland News (-3 chrF++) |
-| **Generated**   | —                | —                          | — (no significant differences)                   |
+| Experiment      | Best Result      | Significant Improvements ▲ | Significant Degradations ▼     |
+| --------------- | ---------------- | -------------------------- | ------------------------------ |
+| **Max Reward**  | IFEval-da: 56.13 | Instruction following      | —                              |
+| **Gold Chosen** | IFEval-da: 54.25 | Instruction following      | ScaLA-da ▼, Nordjylland News ▼ |
+| **Generated**   | —                | —                          | — (no significant differences) |
 
 **Takeaway:** Generated mode is safest (no degradation), but Max Reward improves instruction following without trade-offs.
 

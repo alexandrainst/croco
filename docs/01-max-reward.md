@@ -122,7 +122,7 @@ uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da -l da
 
 ## Training Dynamics
 
-**Dashboard:** `ssh sparkie ~/croco/croco_dashboard.html` (auto-refreshes every 60s)
+**Dashboard:** `croco_dashboard.html` — regenerate with `python src/scripts/build_dashboard.py`
 
 ### DPO Loss
 

@@ -123,9 +123,9 @@ samples). [EuroEval](https://euroeval.com) v17.5.0 with fixed seeds; scores are 
 
 ## Dashboard
 
-**Access:** `ssh sparkie ~/croco/croco_dashboard.html`
+**Access:** Generate locally with `python src/scripts/build_dashboard.py`
 
-Auto-refreshing dashboard with interactive Plotly charts:
+Interactive Plotly dashboard with:
 
 - **Training dynamics** — loss, reward accuracy, reward margin per step
 - **EuroEval learning curves** — checkpoint-by-checkpoint performance (10 datasets)
@@ -133,7 +133,7 @@ Auto-refreshing dashboard with interactive Plotly charts:
 
 **Export:** Hover any chart → click camera icon (📷) → download as PNG (2x scale).
 
-Dashboard regenerates automatically; browser page refreshes every 60s.
+Dashboard HTML is self-contained with embedded data.
 
 ### Embedded Plots
 

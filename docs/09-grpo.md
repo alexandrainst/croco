@@ -50,6 +50,15 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 - Same memory footprint as full run
 - Catches OOM before committing GPU hours
 
+## Timeline
+
+| Date | Milestone |
+|------|----------|
+| 2026-07-04 21:30 (est) | Micro smoke test (16 prompts, 4 steps) |
+| 2026-07-04 21:40 (est) | Training starts (if smoke passes) |
+| 2026-07-05 09:40 (est) | Training completes |
+| 2026-07-05 11:40 (est) | Evals complete |
+
 ## Current Status
 
 ⏳ **Queued** — auto-launches after SimPO ablations complete (~21:30 CEST Friday).
@@ -76,4 +85,4 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 
 ---
 
-*Created: 2026-07-02*
+*Created: 2026-07-02 | Updated: 2026-07-02*

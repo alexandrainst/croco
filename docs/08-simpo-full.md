@@ -53,6 +53,15 @@ Custom code in `src/croco/dpo.py`:
 - Micro pre-flight: 10 samples (~10 min, gates full run)
 - Full run: 625 steps (~11h training + ~2h evals)
 
+## Timeline
+
+| Date | Milestone |
+|------|----------|
+| 2026-07-02 19:00 (est) | Micro pre-flight (10 samples) |
+| 2026-07-03 08:30 (est) | Training starts (if pre-flight passes) |
+| 2026-07-03 19:30 (est) | Training completes |
+| 2026-07-03 21:30 (est) | Evals complete |
+
 ## Current Status
 
 ⏳ **Queued** — auto-launches after simpo-tuned (~08:30 CEST Friday).
@@ -84,4 +93,4 @@ Custom code in `src/croco/dpo.py`:
 
 ---
 
-*Created: 2026-07-02*
+*Created: 2026-07-02 | Updated: 2026-07-02*

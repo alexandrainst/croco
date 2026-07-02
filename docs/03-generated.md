@@ -36,6 +36,14 @@ of the reward model's selection.
 
 _Results pending._
 
+## Timeline
+
+| Date | Milestone |
+|------|----------|
+| 2026-06-28 | Training started |
+| 2026-06-29 | Training completed |
+| 2026-07-02 | Evals pending |
+
 ## Related
 
 - [Main CroCo](01-main-croco.md) — max-reward selection
@@ -48,4 +56,4 @@ _Results pending._
 
 ---
 
-*Created: 2026-07-02*
+*Created: 2026-07-02 | Updated: 2026-07-02*

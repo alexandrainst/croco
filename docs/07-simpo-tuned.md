@@ -38,6 +38,14 @@ We chose **2.0** (conservative, matches base models).
 - LoRA r=16, LR 5e-6
 - 625 steps (~11h training + ~2h evals)
 
+## Timeline
+
+| Date | Milestone |
+|------|----------|
+| 2026-07-02 19:15 (est) | Training starts (auto-launch) |
+| 2026-07-03 06:15 (est) | Training completes |
+| 2026-07-03 08:15 (est) | Evals complete |
+
 ## Current Status
 
 ⏳ **Queued** — auto-launches after current simpo run completes (~19:15 CEST).
@@ -66,4 +74,4 @@ We chose **2.0** (conservative, matches base models).
 
 ---
 
-*Created: 2026-07-02*
+*Created: 2026-07-02 | Updated: 2026-07-02*

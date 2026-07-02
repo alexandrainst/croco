@@ -38,6 +38,15 @@ Identical to [Length-Normalised](05-length-normalised.md) except loss type hint:
 
 _Results pending — evals start after training completes (~2h)._
 
+## Timeline
+
+| Date | Milestone |
+|------|----------|
+| 2026-07-01 09:59 | Training started (step 0/625) |
+| 2026-07-02 17:20 | Training at step 622/625 (99.5%) |
+| ~2026-07-02 17:25 | Training completes (ETA) |
+| ~2026-07-02 19:15 | Evals complete (ETA) |
+
 ## Related
 
 - [SimPO Tuned](07-simpo-tuned.md) — β raised to 2.0
@@ -52,4 +61,4 @@ _Results pending — evals start after training completes (~2h)._
 
 ---
 
-*Created: 2026-07-02 | Updated: 2026-07-02 17:20 CEST*
+*Created: 2026-07-02 | Updated: 2026-07-02 17:25 CEST*

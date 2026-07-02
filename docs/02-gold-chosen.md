@@ -43,6 +43,14 @@ human-curated high-quality responses.
 
 _Results pending._
 
+## Timeline
+
+| Date | Milestone |
+|------|----------|
+| 2026-06-28 | Training started |
+| 2026-06-29 | Training completed |
+| 2026-07-02 | Evals pending |
+
 ## Comparison
 
 | Metric | Gold Chosen | Main CroCo |
@@ -63,4 +71,4 @@ _Results pending._
 
 ---
 
-*Created: 2026-07-02*
+*Created: 2026-07-02 | Updated: 2026-07-02*

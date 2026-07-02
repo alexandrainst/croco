@@ -44,6 +44,14 @@ dpo:
 
 _Results pending — training completed, evals in progress._
 
+## Timeline
+
+| Date | Milestone |
+|------|----------|
+| 2026-06-28 | Training started |
+| 2026-06-29 | Training completed, evals started |
+| 2026-07-02 | Evals in progress |
+
 ## Comparison
 
 | Metric | Main CroCo | Gold Chosen | Generated |
@@ -67,4 +75,4 @@ _Results pending — training completed, evals in progress._
 
 ---
 
-*Created: 2026-07-02*
+*Created: 2026-07-02 | Updated: 2026-07-02*

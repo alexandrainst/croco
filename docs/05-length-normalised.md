@@ -39,6 +39,14 @@ ensures the policy isn't rewarded simply for generating more tokens.
 
 _Results pending — training completed, evals in progress._
 
+## Timeline
+
+| Date | Milestone |
+|------|----------|
+| 2026-06-30 | Training started |
+| 2026-07-01 | Training completed |
+| 2026-07-02 | Evals in progress |
+
 ## Related
 
 - [SimPO](06-simpo.md) — extends length-normalisation with reference-free loss
@@ -52,4 +60,4 @@ _Results pending — training completed, evals in progress._
 
 ---
 
-*Created: 2026-07-02*
+*Created: 2026-07-02 | Updated: 2026-07-02*

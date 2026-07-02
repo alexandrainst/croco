@@ -49,13 +49,24 @@ We chose **2.0** (conservative, matches base models).
 - LoRA r=16, LR 5e-6
 - 625 steps (~11h training + ~2h evals)
 
-## Timeline
+## Expected Results
 
-| Date | Milestone |
-|------|----------|
-| 2026-07-02 19:15 (est) | Training starts (auto-launch) |
-| 2026-07-03 06:15 (est) | Training completes |
-| 2026-07-03 08:15 (est) | Evals complete |
+**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3 checkpoint).
+
+| Benchmark | Task | Metric | Target |
+|-----------|------|--------|--------|
+| AngryTweets | Sentiment classification | MCC | > Main CroCo |
+| ScaLA-da | Linguistic acceptability | MCC | > Main CroCo |
+| DANSK | Named entity recognition | Micro F1 | > Main CroCo |
+| MultiWikiQA-da | Reading comprehension | F1 | > Main CroCo |
+| Nordjylland News | Summarization | chrF++ | > Main CroCo |
+| Danske Talemåder | Knowledge | Accuracy | > Main CroCo |
+| Danish Citizen Tests | Knowledge | Accuracy | > Main CroCo |
+| HellaSwag-da | Common sense reasoning | Accuracy | > Main CroCo |
+| IFEval-da | Instruction following | Instruction accuracy | > Main CroCo |
+| ValEU-da | European values | Alignment score | > Main CroCo |
+
+**Hypothesis:** β=2.0 should improve reward margin and downstream task performance vs β=0.1.
 
 ## Current Status
 

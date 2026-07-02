@@ -47,7 +47,27 @@ Identical to [Length-Normalised](05-length-normalised.md) except loss type hint:
 
 ## Results
 
-_Results pending — evals start after training completes (~2h)._
+**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations for final eval, 3 for checkpoints).
+
+| Benchmark | Task | Metric | Score (± CI) | Status |
+|-----------|------|--------|--------------|--------|
+| AngryTweets | Sentiment classification | MCC | — | 🏃 Currently running |
+| ScaLA-da | Linguistic acceptability | MCC | — | ⏳ Queued |
+| DANSK | Named entity recognition | Micro F1 | — | ⏳ Queued |
+| MultiWikiQA-da | Reading comprehension | F1 | — | ⏳ Queued |
+| Nordjylland News | Summarization | chrF++ | — | ⏳ Queued |
+| Danske Talemåder | Knowledge | Accuracy | — | ⏳ Queued |
+| Danish Citizen Tests | Knowledge | Accuracy | — | ⏳ Queued |
+| HellaSwag-da | Common sense reasoning | Accuracy | — | ⏳ Queued |
+| IFEval-da | Instruction following | Instruction accuracy | — | ⏳ Queued |
+| ValEU-da | European values | Alignment score | — | ⏳ Queued |
+
+**Training metrics** (step 625/625):
+- Final loss: `0.6176`
+- Grad norm: `0.1116`
+- Reward margin: `2.451`
+- Chosen log-prob: `-635.1`
+- Rejected log-prob: `-419.2`
 
 ## Timeline
 

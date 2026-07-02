@@ -51,7 +51,24 @@ human-curated high-quality responses.
 
 ## Results
 
-_Results pending._
+**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (3 iterations each).
+
+| Benchmark | Task | Metric | Score (± CI) |
+|-----------|------|--------|-------------|
+| AngryTweets | Sentiment classification | MCC | TBD |
+| ScaLA-da | Linguistic acceptability | MCC | TBD |
+| DANSK | Named entity recognition | Micro F1 | TBD |
+| MultiWikiQA-da | Reading comprehension | F1 | TBD |
+| Nordjylland News | Summarization | chrF++ | TBD |
+| Danske Talemåder | Knowledge | Accuracy | TBD |
+| Danish Citizen Tests | Knowledge | Accuracy | TBD |
+| HellaSwag-da | Common sense reasoning | Accuracy | TBD |
+| IFEval-da | Instruction following | Instruction accuracy | TBD |
+| ValEU-da | European values | Alignment score | TBD |
+
+**Training metrics** (step 625/625):
+- Final loss: TBD
+- Reward margin: TBD
 
 ## Timeline
 

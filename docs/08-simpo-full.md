@@ -65,14 +65,29 @@ Custom code in `src/croco/dpo.py`:
 - Micro pre-flight: 10 samples (~10 min, gates full run)
 - Full run: 625 steps (~11h training + ~2h evals)
 
-## Timeline
+## Expected Results
 
-| Date | Milestone |
-|------|----------|
-| 2026-07-02 19:00 (est) | Micro pre-flight (10 samples) |
-| 2026-07-03 08:30 (est) | Training starts (if pre-flight passes) |
-| 2026-07-03 19:30 (est) | Training completes |
-| 2026-07-03 21:30 (est) | Evals complete |
+**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3 checkpoint).
+
+| Benchmark | Task | Metric | Target |
+|-----------|------|--------|--------|
+| AngryTweets | Sentiment classification | MCC | > SimPO Tuned |
+| ScaLA-da | Linguistic acceptability | MCC | > SimPO Tuned |
+| DANSK | Named entity recognition | Micro F1 | > SimPO Tuned |
+| MultiWikiQA-da | Reading comprehension | F1 | > SimPO Tuned |
+| Nordjylland News | Summarization | chrF++ | > SimPO Tuned |
+| Danske Talemåder | Knowledge | Accuracy | > SimPO Tuned |
+| Danish Citizen Tests | Knowledge | Accuracy | > SimPO Tuned |
+| HellaSwag-da | Common sense reasoning | Accuracy | > SimPO Tuned |
+| IFEval-da | Instruction following | Instruction accuracy | > SimPO Tuned |
+| ValEU-da | European values | Alignment score | > SimPO Tuned |
+
+**Hypothesis:** Ref-free loss + γ=0.5 should improve sample efficiency and task performance.
+
+**Key metrics to watch:**
+- Reward margin (should exceed γ=0.5 consistently)
+- Training speed (no ref model = faster steps)
+- Memory footprint (no ref model = lower VRAM)
 
 ## Current Status
 

@@ -61,14 +61,32 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 - Same memory footprint as full run
 - Catches OOM before committing GPU hours
 
-## Timeline
+## Expected Results
 
-| Date | Milestone |
-|------|----------|
-| 2026-07-04 21:30 (est) | Micro smoke test (16 prompts, 4 steps) |
-| 2026-07-04 21:40 (est) | Training starts (if smoke passes) |
-| 2026-07-05 09:40 (est) | Training completes |
-| 2026-07-05 11:40 (est) | Evals complete |
+**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3 checkpoint).
+
+| Benchmark | Task | Metric | Target |
+|-----------|------|--------|--------|
+| AngryTweets | Sentiment classification | MCC | ≥ Main CroCo |
+| ScaLA-da | Linguistic acceptability | MCC | ≥ Main CroCo |
+| DANSK | Named entity recognition | Micro F1 | ≥ Main CroCo |
+| MultiWikiQA-da | Reading comprehension | F1 | ≥ Main CroCo |
+| Nordjylland News | Summarization | chrF++ | ≥ Main CroCo |
+| Danske Talemåder | Knowledge | Accuracy | ≥ Main CroCo |
+| Danish Citizen Tests | Knowledge | Accuracy | ≥ Main CroCo |
+| HellaSwag-da | Common sense reasoning | Accuracy | ≥ Main CroCo |
+| IFEval-da | Instruction following | Instruction accuracy | ≥ Main CroCo |
+| ValEU-da | European values | Alignment score | ≥ Main CroCo |
+
+**Hypothesis:** Online RL can match offline DPO quality without dataset construction cost.
+
+**Trade-offs:**
+| Aspect | Expected vs DPO |
+|--------|----------------|
+| Build cost | $0 (no offline construction) |
+| Training time | ~12h vs ~11h (similar) |
+| Memory | Higher (vLLM + RM resident) |
+| Data efficiency | Lower (no replay buffer) |
 
 ## Current Status
 

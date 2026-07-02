@@ -52,15 +52,27 @@ dpo:
 
 ## Results
 
-_Results pending — training completed, evals in progress._
+**Evaluation suite:** 10 Danish benchmarks from EuroEval, 3 iterations each:
 
-## Timeline
+| Benchmark | Task | Metric | Score (± CI) | Status |
+|-----------|------|--------|--------------|--------|
+| AngryTweets | Sentiment classification | MCC | TBD | 🏃 In progress |
+| ScaLA-da | Linguistic acceptability | MCC | TBD | ⏳ Pending |
+| DANSK | Named entity recognition | Micro F1 | TBD | ⏳ Pending |
+| MultiWikiQA-da | Reading comprehension | F1 | TBD | ⏳ Pending |
+| Nordjylland News | Summarization | chrF++ | TBD | ⏳ Pending |
+| Danske Talemåder | Knowledge | Accuracy | TBD | ⏳ Pending |
+| Danish Citizen Tests | Knowledge | Accuracy | TBD | ⏳ Pending |
+| HellaSwag-da | Common sense reasoning | Accuracy | TBD | ⏳ Pending |
+| IFEval-da | Instruction following | Instruction accuracy | TBD | ⏳ Pending |
+| ValEU-da | European values | Alignment score | TBD | ⏳ Pending |
 
-| Date | Milestone |
-|------|----------|
-| 2026-06-28 | Training started |
-| 2026-06-29 | Training completed, evals started |
-| 2026-07-02 | Evals in progress |
+**Training metrics** (step 625/625):
+- Final loss: TBD
+- Reward margin: TBD
+- Chosen log-prob: TBD
+
+
 
 ## Comparison
 

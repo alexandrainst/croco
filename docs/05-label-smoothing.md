@@ -1,6 +1,6 @@
 ---
 title: Label Smoothing Ablation
-description: Tests label smoothing (0.05) for robustness to noisy RM labels
+description: max_reward + label smoothing (α=0.05) for robustness to noisy RM labels
 created: 2026-07-02
 updated: 2026-07-02
 status: evals-complete
@@ -12,8 +12,8 @@ output: models/croco-munin-apertus-8b-da-ls
 
 ## Hypothesis
 
-Label smoothing (α=0.05) improves robustness to noisy reward model labels, reducing
-overfitting to spurious reward signals.
+Label smoothing (α=0.05) with `max_reward` construction improves robustness to noisy
+reward model labels, reducing overfitting to spurious reward signals.
 
 ## Method
 
@@ -32,6 +32,10 @@ label_rejected = α = 0.05
 
 This regularizes the model against overfitting to potentially noisy reward model
 judgments.
+
+**Construction mode:** [`max_reward`](01-max-reward.md) — generate 4 candidates, select
+highest-scoring as chosen. Label smoothing is applied to the DPO loss, NOT a separate
+construction mode.
 
 ### Hardware & Runtime
 

@@ -42,7 +42,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 | Experiment                                    | Description                                                                               | Status      |
 | --------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------- |
-| [**Label Smoothing**](05-label-smoothing.md)  | Test label smoothing (α=0.05) for robustness to noisy RM labels                           | ✅ Complete |
+| [**Label Smoothing**](05-label-smoothing.md)  | `max_reward` + label smoothing (α=0.05) for robustness to noisy RM labels       | ✅ Complete |
 | [**SimPO (β=0.1)**](06-simpo.md)              | Length-normalised loss with low β (clean single-variable ablation)                        | 🏃 Running  |
 | [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | Raise β to [SimPO](https://arxiv.org/abs/2405.14734)-recommended 2.0, keep `sigmoid_norm` | ⏳ Queued   |
 | [**SimPO Full (ref-free)**](08-simpo-full.md) | True ref-free SimPO loss + target margin γ=0.5                                            | ⏳ Queued   |
@@ -85,11 +85,11 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 ### Loss Functions (vs base)
 
-| Experiment          | Best Result      | Significant Improvements ▲ | Significant Degradations ▼ |
-| ------------------- | ---------------- | -------------------------- | -------------------------- |
-| **Label Smoothing** | IFEval-da: 54.47 | Instruction following      | —                          |
+| Experiment                       | Best Result      | Significant Improvements ▲ | Significant Degradations ▼ |
+| -------------------------------- | ---------------- | -------------------------- | -------------------------- |
+| **Label Smoothing** (max_reward) | IFEval-da: 54.47 | Instruction following      | —                          |
 
-**Takeaway:** Label smoothing (α=0.05) improves instruction following while maintaining parity elsewhere — validates Robust DPO approach.
+**Takeaway:** Label smoothing (α=0.05) with `max_reward` construction improves instruction following while maintaining parity elsewhere — validates Robust DPO approach.
 
 ### Online RL
 

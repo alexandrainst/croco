@@ -69,18 +69,18 @@ dpo:
 **Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 10 iterations each.
 **Note:** Significance compared to **Munin-Apertus-8B base model** (pre-CroCo), not to this experiment.
 
-| Benchmark            | Task                     | Metric               |     Score | vs Base Model | Status      |
-| -------------------- | ------------------------ | -------------------- | --------: | :-----------: | ----------- |
-| AngryTweets          | Sentiment classification | MCC                  | **48.68** |       •       | ✅ Complete |
-| ScaLA-da             | Linguistic acceptability | MCC                  | **35.70** |       •       | ✅ Complete |
-| DANSK                | Named entity recognition | Micro F1             | **45.20** |       •       | ✅ Complete |
-| MultiWikiQA-da       | Reading comprehension    | F1                   | **74.60** |       •       | ✅ Complete |
-| Nordjylland News     | Summarization            | chrF++               | **37.62** |       •       | ✅ Complete |
-| Danske Talemåder     | Knowledge                | Accuracy             | **70.78** |       •       | ✅ Complete |
-| Danish Citizen Tests | Knowledge                | Accuracy             | **84.44** |       •       | ✅ Complete |
-| HellaSwag-da         | Common sense reasoning   | Accuracy             | **54.96** |       •       | ✅ Complete |
-| IFEval-da            | Instruction following    | Instruction accuracy | **56.13** |       ▲       | ✅ Complete |
-| ValEU-da             | European values          | Alignment score      |  **5.45** |       •       | ✅ Complete |
+| Benchmark            | Task                     | Metric               |     Score |          95% CI | vs Base Model | Status      |
+| -------------------- | ------------------------ | -------------------- | --------: | --------------: | :-----------: | ----------- |
+| AngryTweets          | Sentiment classification | MCC                  | **48.05** |  [45.66, 50.43] |       •       | ✅ Complete |
+| ScaLA-da             | Linguistic acceptability | MCC                  | **35.70** |  [32.15, 39.26] |       •       | ✅ Complete |
+| DANSK                | Named entity recognition | Micro F1             | **45.20** |  [42.75, 47.64] |       •       | ✅ Complete |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | **74.60** |  [73.17, 76.02] |       •       | ✅ Complete |
+| Nordjylland News     | Summarization            | chrF++               | **37.62** |  [37.07, 38.18] |       •       | ✅ Complete |
+| Danske Talemåder     | Knowledge                | Accuracy             | **69.22** |  [66.84, 71.59] |       •       | ✅ Complete |
+| Danish Citizen Tests | Knowledge                | Accuracy             | **84.44** |  [81.60, 87.29] |       •       | ✅ Complete |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | **53.95** |  [50.02, 57.87] |       •       | ✅ Complete |
+| IFEval-da            | Instruction following    | Instruction accuracy | **56.13** |  [54.84, 57.41] |       ▲       | ✅ Complete |
+| ValEU-da             | European values          | Alignment score      |  **5.45** |  [-1.09, 11.98] |       •       | ✅ Complete |
 
 
 
@@ -134,8 +134,7 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml
 # 2. Or resume from existing cache (skip build step)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --skip-build
 
-# 3. Run evals (current standard: 10 iterations)
-#    Historical evals used 3 iterations — point estimates only
+# 3. Run evals (standard: 10 iterations, bootstrap 95% CIs)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --eval-only --eval.num-iterations 10
 
 # 4. Evaluate specific checkpoint

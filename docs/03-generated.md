@@ -19,15 +19,21 @@ baseline for comparing construction strategies.
 
 ### Construction Mode: `generated`
 
-1. Generate 4 candidates per prompt
-2. Keep **all** generated candidates (no selection)
-3. Use original prompt's existing output as **chosen** (if available)
-4. Generated candidates become **rejected**
+Paper-faithful CroCo construction (Eq. 2): **both chosen and rejected are policy
+self-generations**; the dataset's gold output is unused (`score_gold_output: false`).
 
-This is the **inverse** of `max_reward`:
+1. Generate 4 candidates per prompt (vLLM, temp=0.7)
+2. Score all candidates with Skywork-Reward-V2-Qwen3-8B
+3. **Chosen**: highest-reward generation
+4. **Rejected**: generation nearest (mean − 2×σ), strictly below the chosen reward
 
-- `max_reward`: best generated = chosen, original = rejected
-- `generated`: original = chosen, generated = rejected
+Contrast with `max_reward`, which folds the gold output into the chosen pool:
+
+- `max_reward`: chosen = argmax-reward over {gold} ∪ generations; rejected = (mean − 2×σ) candidate
+- `generated`: chosen = highest-reward generation; rejected = (mean − 2×σ) generation (gold unused)
+
+This isolates whether bringing the gold reference into the chosen set (as `max_reward`
+does) helps over pure on-policy self-generation.
 
 ### Hardware & Runtime
 
@@ -50,26 +56,26 @@ Identical to [Max Reward](01-max-reward.md):
 
 ## Motivation
 
-Tests whether the direction of preference (generated vs original) matters independently
-of the reward model's selection.
+Tests the fully on-policy CroCo baseline: whether folding the off-policy gold reference
+into the chosen pool (as `max_reward` does) actually helps over pure self-generation.
 
 ## Results
 
 **Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 10 iterations each.
 **Legend:** ▲ significantly better than base Munin-Apertus-8B, ▼ significantly worse (non-overlapping 95% CIs).
 
-| Benchmark            | Task                     | Metric               |     Score | vs Base Model | Status      |
-| -------------------- | ------------------------ | -------------------- | --------: | :-----------: | ----------- |
-| AngryTweets          | Sentiment classification | MCC                  | **47.38** |       •       | ✅ Complete |
-| ScaLA-da             | Linguistic acceptability | MCC                  | **34.58** |       •       | ✅ Complete |
-| DANSK                | Named entity recognition | Micro F1             | **43.77** |       •       | ✅ Complete |
-| MultiWikiQA-da       | Reading comprehension    | F1                   | **77.34** |       •       | ✅ Complete |
-| Nordjylland News     | Summarization            | chrF++               | **38.53** |       •       | ✅ Complete |
-| Danske Talemåder     | Knowledge                | Accuracy             | **74.48** |       •       | ✅ Complete |
-| Danish Citizen Tests | Knowledge                | Accuracy             | **89.63** |       •       | ✅ Complete |
-| HellaSwag-da         | Common sense reasoning   | Accuracy             | **52.08** |       •       | ✅ Complete |
-| IFEval-da            | Instruction following    | Instruction accuracy | **49.16** |       •       | ✅ Complete |
-| ValEU-da             | European values          | Alignment score      | **20.52** |       •       | ✅ Complete |
+| Benchmark            | Task                     | Metric               |     Score |          95% CI | vs Base Model | Status      |
+| -------------------- | ------------------------ | -------------------- | --------: | --------------: | :-----------: | ----------- |
+| AngryTweets          | Sentiment classification | MCC                  | **48.07** |  [45.62, 50.51] |       •       | ✅ Complete |
+| ScaLA-da             | Linguistic acceptability | MCC                  | **35.46** |  [32.56, 38.35] |       •       | ✅ Complete |
+| DANSK                | Named entity recognition | Micro F1             | **44.19** |  [42.34, 46.05] |       •       | ✅ Complete |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | **74.34** |  [72.73, 75.96] |       •       | ✅ Complete |
+| Nordjylland News     | Summarization            | chrF++               | **37.38** |  [36.80, 37.96] |       •       | ✅ Complete |
+| Danske Talemåder     | Knowledge                | Accuracy             | **67.97** |  [64.97, 70.97] |       •       | ✅ Complete |
+| Danish Citizen Tests | Knowledge                | Accuracy             | **83.56** |  [81.05, 86.07] |       •       | ✅ Complete |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | **52.62** |  [49.28, 55.96] |       •       | ✅ Complete |
+| IFEval-da            | Instruction following    | Instruction accuracy | **47.21** |  [45.62, 48.79] |       •       | ✅ Complete |
+| ValEU-da             | European values          | Alignment score      | **10.08** |   [2.19, 17.97] |       •       | ✅ Complete |
 
 ## Timeline
 
@@ -77,7 +83,7 @@ of the reward model's selection.
 | ---------- | ------------------ |
 | 2026-06-28 | Training started   |
 | 2026-06-29 | Training completed |
-| 2026-07-02 | Evals pending      |
+| 2026-07-02 | Evals complete     |
 
 ## Related
 
@@ -122,8 +128,7 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-generated.yaml
 # 2. Or resume from existing cache (skip build step)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-generated.yaml --skip-build
 
-# 3. Run evals (current standard: 10 iterations)
-#    Historical evals used 3 iterations — point estimates only
+# 3. Run evals (standard: 10 iterations, bootstrap 95% CIs)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-generated.yaml --eval-only --eval.num-iterations 10
 
 # 4. Evaluate specific checkpoint

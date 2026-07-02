@@ -43,7 +43,7 @@ We chose **2.0** (conservative, matches base models).
 
 - DPO with curriculum learning
 - LoRA r=16, LR 5e-6
-- 625 steps (~11h training + ~2h evals)
+- 625 steps (~7–9h training + ~2h evals; cf. completed DPO runs at 6.5–8.7h)
 
 ## Expected Results
 

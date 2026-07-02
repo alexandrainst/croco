@@ -3,7 +3,7 @@ title: Llama RM Ablation
 description: Reward model substitution (Skywork vs Llama-3-based)
 created: 2026-07-02
 updated: 2026-07-02
-status: running
+status: queued
 config: config/danish-apertus-llama-rm.yaml
 output: models/croco-munin-apertus-8b-da-llama-rm
 ---
@@ -19,10 +19,12 @@ than Skywork-Reward-V2-Qwen3-8B for Danish language tasks.
 
 ### Reward Model Substitution
 
-- **Default RM**: `Skywork/Skywork-Reward-V2-Qwen3-8B` (Qwen3-based, Chinese lab)
-- **Ablation RM**: Llama-3-based reward model (Western, English-trained)
+- **Default RM**: `Skywork/Skywork-Reward-V2-Qwen3-8B` (Qwen3-8B backbone)
+- **Ablation RM**: `Skywork/Skywork-Reward-V2-Llama-3.1-8B-40M` (Llama-3.1-8B backbone)
 
-Tests whether RM architecture/training data affects preference pair quality.
+Both are Skywork-Reward-V2 models, so this isolates the **reward-model backbone**
+(Qwen3 vs Llama-3.1), not the training lab. The Llama-3.1 variant beats the Qwen3 one on
+RewardBench-v2.
 
 ### Training
 
@@ -48,19 +50,18 @@ Identical to [Max Reward](01-max-reward.md):
 
 ## Motivation
 
-Reward models are trained on different datasets and may have cultural/linguistic biases.
-A Llama-3-based RM trained on Western data may score Danish outputs differently than a
-Qwen-based RM.
+A different reward-model backbone (Llama-3.1 vs Qwen3), trained on different preference
+data, may score Danish outputs differently and thus reshape the preference pairs.
 
 ## Results
 
-**Status:** 🏃 **In progress** — step 1 (candidate cache re-scoring) running.
+**Status:** ⏳ **Queued** — not yet started (awaiting the ls/simpo winner; see Timeline).
 
 **Evaluation suite (planned):** Same 10 Danish benchmarks as Max Reward (10 iterations each).
 
-| Benchmark      | Task | Metric | Score | Status     |
-| -------------- | ---- | ------ | ----: | ---------- |
-| All benchmarks | —    | —      |     — | 🏃 Running |
+| Benchmark      | Task | Metric | Score | Status    |
+| -------------- | ---- | ------ | ----: | --------- |
+| All benchmarks | —    | —      |     — | ⏳ Queued |
 
 ## Timeline
 

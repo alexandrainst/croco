@@ -72,18 +72,18 @@ biased preference data, as is common in practice.
 **Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 10 iterations each.
 **Legend:** ▲ significantly better than Max Reward (baseline), ▼ significantly worse (non-overlapping 95% CIs).
 
-| Benchmark            | Task                     | Metric               |     Score | vs Max Reward | Status      |
-| -------------------- | ------------------------ | -------------------- | --------: | :-----------: | ----------- |
-| AngryTweets          | Sentiment classification | MCC                  | **46.52** |       •       | ✅ Complete |
-| ScaLA-da             | Linguistic acceptability | MCC                  | **34.81** |       •       | ✅ Complete |
-| DANSK                | Named entity recognition | Micro F1             | **44.59** |       •       | ✅ Complete |
-| MultiWikiQA-da       | Reading comprehension    | F1                   | **77.92** |       •       | ✅ Complete |
-| Nordjylland News     | Summarization            | chrF++               | **38.51** |       •       | ✅ Complete |
-| Danske Talemåder     | Knowledge                | Accuracy             | **75.00** |       •       | ✅ Complete |
-| Danish Citizen Tests | Knowledge                | Accuracy             | **90.00** |  **▲ +5.56**  | ✅ Complete |
-| HellaSwag-da         | Common sense reasoning   | Accuracy             | **52.21** |       •       | ✅ Complete |
-| IFEval-da            | Instruction following    | Instruction accuracy | **54.51** |       •       | ✅ Complete |
-| ValEU-da             | European values          | Alignment score      | **23.78** | **▲ +18.33**  | ✅ Complete |
+| Benchmark            | Task                     | Metric               |     Score |          95% CI | vs Max Reward | Status      |
+| -------------------- | ------------------------ | -------------------- | --------: | --------------: | :-----------: | ----------- |
+| AngryTweets          | Sentiment classification | MCC                  | **47.76** |  [45.62, 49.90] |       •       | ✅ Complete |
+| ScaLA-da             | Linguistic acceptability | MCC                  | **32.37** |  [28.74, 36.00] |       •       | ✅ Complete |
+| DANSK                | Named entity recognition | Micro F1             | **44.79** |  [43.03, 46.55] |       •       | ✅ Complete |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | **74.07** |  [72.75, 75.39] |       •       | ✅ Complete |
+| Nordjylland News     | Summarization            | chrF++               | **37.59** |  [37.07, 38.11] |       •       | ✅ Complete |
+| Danske Talemåder     | Knowledge                | Accuracy             | **69.22** |  [66.15, 72.28] |       •       | ✅ Complete |
+| Danish Citizen Tests | Knowledge                | Accuracy             | **84.00** |  [80.95, 87.05] |       •       | ✅ Complete |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | **52.77** |  [48.70, 56.84] |       •       | ✅ Complete |
+| IFEval-da            | Instruction following    | Instruction accuracy | **54.47** |  [53.08, 55.85] |       •       | ✅ Complete |
+| ValEU-da             | European values          | Alignment score      |  **4.81** |  [-1.78, 11.40] |       •       | ✅ Complete |
 
 **Training metrics** (step 625/625):
 
@@ -97,7 +97,7 @@ biased preference data, as is common in practice.
 | ---------- | ------------------ |
 | 2026-06-30 | Training started   |
 | 2026-07-01 | Training completed |
-| 2026-07-02 | Evals in progress  |
+| 2026-07-02 | Evals complete     |
 
 ## Related
 
@@ -142,8 +142,7 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml
 # 2. Or resume from existing cache (skip build step)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml --skip-build
 
-# 3. Run evals (current standard: 10 iterations)
-#    Historical evals used 3 iterations — point estimates only
+# 3. Run evals (standard: 10 iterations, bootstrap 95% CIs)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml --eval-only --eval.num-iterations 10
 
 # 4. Evaluate specific checkpoint

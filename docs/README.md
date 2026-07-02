@@ -36,7 +36,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | [**Max Reward**](01-max-reward.md)   | `max_reward` construction: generate 4 candidates, select best as chosen | ✅ Complete |
 | [**Gold Chosen**](02-gold-chosen.md) | Use Qwen3-235B outputs as chosen instead of policy generations          | ✅ Complete |
 | [**Generated**](03-generated.md)     | Standard generated mode: keep all candidates, score against prompts     | ✅ Complete |
-| [**Llama RM**](04-llama-rm.md)       | Substitute Skywork RM with Llama-3-based reward model                   | 🏃 Running  |
+| [**Llama RM**](04-llama-rm.md)       | Swap the Skywork RM backbone (Qwen3 → Llama-3.1) via re-scoring         | ⏳ Queued   |
 
 ### Loss Function Ablations
 
@@ -67,7 +67,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | SimPO           | 0.1      | `sigmoid_norm`   | —                 | ✓          | ✓         |
 | SimPO Tuned     | 2.0      | `sigmoid_norm`   | —                 | ✓          | ✓         |
 | SimPO Full      | 2.0      | `simpo` (custom) | 0.5               | ✓          | ✗         |
-| GRPO            | 0.04     | GRPO loss        | —                 | ✓          | ✗         |
+| GRPO            | 0.04     | GRPO loss        | —                 | ✓          | ✓ (KL)    |
 
 ---
 
@@ -78,7 +78,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | Experiment      | Best Result      | Significant Improvements ▲ | Significant Degradations ▼     |
 | --------------- | ---------------- | -------------------------- | ------------------------------ |
 | **Max Reward**  | IFEval-da: 56.13 | Instruction following      | —                              |
-| **Gold Chosen** | IFEval-da: 54.25 | Instruction following      | ScaLA-da ▼, Nordjylland News ▼ |
+| **Gold Chosen** | IFEval-da: 54.25 | Instruction following      | ScaLA-da ▼, Nordjylland News ▼, ValEU-da ▼ |
 | **Generated**   | —                | —                          | — (no significant differences) |
 
 **Takeaway:** Generated mode is safest (no degradation), but Max Reward improves instruction following without trade-offs.
@@ -89,7 +89,10 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | -------------------------------- | ---------------- | -------------------------- | -------------------------- |
 | **Label Smoothing** (max_reward) | IFEval-da: 54.47 | Instruction following      | —                          |
 
-**Takeaway:** Label smoothing (α=0.05) with `max_reward` construction improves instruction following while maintaining parity elsewhere — validates Robust DPO approach.
+**Takeaway:** Label smoothing (α=0.05) tracks `max_reward` closely — like `max_reward` it
+beats the base model on instruction following, and head-to-head against `max_reward` it
+shows **no significant difference on any benchmark** (see [Label Smoothing](05-label-smoothing.md)).
+It neither helps nor hurts here.
 
 ### Online RL
 
@@ -103,28 +106,32 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 | Experiment | Iterations | CIs Available |
 |------------|------------|---------------|
-| Completed (01, 02, 03, 05) | 3 (historical) | Mean scores only — CIs require 10 iterations |
+| Completed (01, 02, 03, 05) | 10 (standard) | ✅ Yes — bootstrap 95% CIs |
 | Ongoing / Future | 10 (standard) | ✅ Yes — bootstrap 95% CIs |
 
-**Significance markers** (▲▼) in tables below based on non-overlapping 95% CIs where available; otherwise on point estimates.
+**Significance markers** (▲▼) in tables below are based on non-overlapping bootstrap 95% CIs.
 
-| Dataset              | Metric     | Base Model | Max Reward |    Gold | Generated | Label Smooth |
-| -------------------- | ---------- | ---------: | ---------: | ------: | --------: | -----------: |
-| AngryTweets          | MCC        |      48.05 |      48.68 |   46.60 |     47.38 |        46.52 |
-| ScaLA-da             | MCC        |      35.70 |      35.70 | 28.80 ▼ |     34.58 |        34.81 |
-| DANSK                | Micro F1   |      45.20 |      45.20 |   43.00 |     44.19 |        44.59 |
-| MultiWikiQA-da       | F1         |      74.60 |      74.60 |   77.47 |     77.34 |        77.92 |
-| Nordjylland News     | chrF++     |      37.62 |      37.62 | 34.20 ▼ |     37.38 |        37.59 |
-| Danske Talemåder     | Accuracy   |      62.62 |      70.78 |   75.00 |     74.48 |        75.00 |
-| Danish Citizen Tests | Accuracy   |      77.59 |      84.44 |   85.93 |     89.63 |        90.00 |
-| HellaSwag-da         | Accuracy   |      41.57 |      54.96 |   52.99 |     52.08 |        52.21 |
-| IFEval-da            | Instr. Acc |      56.13 |    56.13 ▲ | 57.76 ▲ |     49.16 |      54.51 ▲ |
-| ValEU-da             | Alignment  |      10.08 |       5.45 |   10.61 |     20.52 |        23.78 |
+_Each cell is the mean score with its bootstrap 95% CI in brackets. ▲/▼ mark scores
+whose CI does not overlap the base model's CI (significantly better / worse)._
 
-**Legend:** ▲ significantly better than base (p<0.05), ▼ significantly worse
+| Dataset | Metric | Base Model | Max Reward | Gold | Generated | Label Smooth |
+| --- | --- | --- | --- | --- | --- | --- |
+| AngryTweets | MCC | 48.51 [45.30, 51.71] | 48.05 [45.66, 50.43] | 48.68 [45.38, 51.97] | 48.07 [45.62, 50.51] | 47.76 [45.62, 49.90] |
+| ScaLA-da | MCC | 34.56 [32.06, 37.06] | 35.70 [32.15, 39.26] | 23.04 ▼ [18.50, 27.58] | 35.46 [32.56, 38.35] | 32.37 [28.74, 36.00] |
+| DANSK | Micro F1 | 43.96 [41.79, 46.14] | 45.20 [42.75, 47.64] | 42.25 [39.44, 45.07] | 44.19 [42.34, 46.05] | 44.79 [43.03, 46.55] |
+| MultiWikiQA-da | F1 | 75.73 [74.53, 76.92] | 74.60 [73.17, 76.02] | 74.35 [73.06, 75.63] | 74.34 [72.73, 75.96] | 74.07 [72.75, 75.39] |
+| Nordjylland News | chrF++ | 37.51 [37.01, 38.01] | 37.62 [37.07, 38.18] | 34.20 ▼ [33.43, 34.97] | 37.38 [36.80, 37.96] | 37.59 [37.07, 38.11] |
+| Danske Talemåder | Accuracy | 69.22 [66.05, 72.38] | 69.22 [66.84, 71.59] | 70.78 [68.45, 73.11] | 67.97 [64.97, 70.97] | 69.22 [66.15, 72.28] |
+| Danish Citizen Tests | Accuracy | 84.78 [82.16, 87.40] | 84.44 [81.60, 87.29] | 83.67 [81.15, 86.18] | 83.56 [81.05, 86.07] | 84.00 [80.95, 87.05] |
+| HellaSwag-da | Accuracy | 53.28 [49.54, 57.02] | 53.95 [50.02, 57.87] | 54.96 [51.05, 58.87] | 52.62 [49.28, 55.96] | 52.77 [48.70, 56.84] |
+| IFEval-da | Instr. Acc | 50.29 [48.75, 51.83] | 56.13 ▲ [54.84, 57.41] | 54.25 ▲ [53.55, 54.96] | 47.21 [45.62, 48.79] | 54.47 ▲ [53.08, 55.85] |
+| ValEU-da | Alignment | 12.46 [6.86, 18.07] | 5.45 [-1.09, 11.98] | 0.28 ▼ [-0.04, 0.61] | 10.08 [2.19, 17.97] | 4.81 [-1.78, 11.40] |
 
-**Statistical methodology:** Significance via non-overlapping 95% CIs (bootstrap, 1000
-samples). [EuroEval](https://euroeval.com) v17.5.0 with fixed seeds; scores are mean across 10 independent runs.
+**Legend:** ▲ better than base (base CI and this CI do not overlap), ▼ worse
+
+**Statistical methodology:** Each score is the mean over 10 EuroEval iterations with a
+bootstrap 95% CI. A result is marked ▲/▼ when its CI does not overlap the base model's CI
+— a conservative significance proxy. [EuroEval](https://euroeval.com) v17.5.0, fixed seeds.
 
 ---
 
@@ -189,35 +196,11 @@ All configs in `config/` directory:
 | `danish-apertus-gold.yaml`       | `gold_chosen`     | Use Qwen3-235B outputs as chosen |
 | `danish-apertus-generated.yaml`  | `generated`       | Keep all candidates, score all   |
 | `danish-apertus-ls.yaml`         | `max_reward`      | DPO with label smoothing (α=0.05)|
-| `danish-apertus-simpo.yaml`      | `max_reward`      | SimPO loss (γ=0.5, β=2.0)        |
-| `danish-apertus-llama-rm.yaml`   | `max_reward`      | Llama-3-based reward model       |
-
----
-
-## Timeline
-
-| Date             | Milestone                                  |
-| ---------------- | ------------------------------------------ |
-| 2026-06-28       | Initial CroCo runs (main, gold, generated) |
-| 2026-06-29       | RM ablation (Llama vs Skywork)             |
-| 2026-06-30       | Loss ablations started (ls, simpo)         |
-| 2026-07-02       | SimPO ablations queued (tuned, full)       |
-| 2026-07-04 (est) | GRPO baseline completes                    |
-
----
-
-## Configs
-
-All configs in `config/` directory:
-
-| Config                           | Construction Mode | Description                      |
-| -------------------------------- | ----------------- | -------------------------------- |
-| `danish-apertus.yaml`            | `max_reward`      | Select best-scoring candidate    |
-| `danish-apertus-gold.yaml`       | `gold_chosen`     | Use Qwen3-235B outputs as chosen |
-| `danish-apertus-generated.yaml`  | `generated`       | Keep all candidates, score all   |
-| `danish-apertus-ls.yaml`         | `max_reward`      | DPO with label smoothing (α=0.05)|
-| `danish-apertus-simpo.yaml`      | `max_reward`      | SimPO loss (γ=0.5, β=2.0)        |
-| `danish-apertus-llama-rm.yaml`   | `max_reward`      | Llama-3-based reward model       |
+| `danish-apertus-simpo.yaml`      | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=0.1) |
+| `danish-apertus-simpo-tuned.yaml`| `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=2.0) |
+| `danish-apertus-simpo-full.yaml` | `max_reward`      | Ref-free SimPO (`simpo`, β=2.0, γ=0.5) |
+| `danish-apertus-llama-rm.yaml`   | `max_reward`      | Llama-3.1-based reward model     |
+| `danish-apertus-grpo.yaml`       | — (online RL)     | GRPO online RL baseline          |
 
 ---
 

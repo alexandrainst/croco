@@ -32,7 +32,7 @@ Compute | One-time build | Ongoing generation |
 
 ### Settings
 
-- **β = 0.04** (GRPO temperature; much lower than DPO)
+- **β = 0.04** (GRPO KL-penalty coefficient against the reference policy; distinct from DPO's β)
 - **vLLM memory**: 0.30 (rollouts), 0.35 (RM), 0.45 (generation)
 - **Batch size**: 4 prompts/step, 4 candidates/prompt
 - **Curriculum learning**: enabled
@@ -79,7 +79,7 @@ checkpoint).
 cost.
 
 **Trade-offs:** | Aspect | Expected vs DPO | |--------|----------------| | Build cost |
-$0 (no offline construction) | | Training time | ~12h vs ~11h (similar) | | Memory |
+$0 (no offline construction) | | Training time | ~12h vs ~6.5h (DPO max_reward actual) | | Memory |
 Higher (vLLM + RM resident) | | Data efficiency | Lower (no replay buffer) |
 
 ## Current Status
@@ -91,7 +91,7 @@ Higher (vLLM + RM resident) | | Data efficiency | Lower (no replay buffer) |
 | Metric        | DPO (Main)      | GRPO                |
 | ------------- | --------------- | ------------------- |
 | Build Cost    | ~$X             | $0                  |
-| Training Time | ~11h            | ~12h                |
+| Training Time | ~6.5h (actual)  | ~12h (est.)         |
 | Memory        | Ref + LoRA      | vLLM + RM           |
 | Data Reuse    | ✓ (fixed pairs) | ✗ (fresh each step) |
 

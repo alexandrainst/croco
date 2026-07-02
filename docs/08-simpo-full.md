@@ -30,9 +30,12 @@ Implemented in `src/croco/dpo.py`:
 Loss:
 
 ```
-L = -log σ(β × (r(y_w) - r(y_c) - γ))
+L = -log σ(β × (r(y_w) - r(y_l)) - γ)
 r(y) = (1/|y|) × Σ log p(y_i | x, y_{<i})
 ```
+
+(`y_w` = chosen, `y_l` = rejected; the target margin γ is subtracted **outside** the β
+factor, matching `_simpo_sequence_loss` in `src/croco/dpo.py`.)
 
 ### Settings
 
@@ -65,7 +68,7 @@ Custom code in `src/croco/dpo.py`:
 ## Training
 
 - Micro pre-flight: 10 samples (~10 min, gates full run)
-- Full run: 625 steps (~11h training + ~2h evals)
+- Full run: 625 steps (~7–9h training + ~2h evals; cf. completed DPO runs at 6.5–8.7h)
 
 ## Expected Results
 

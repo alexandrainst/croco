@@ -27,7 +27,8 @@ generated outputs.
 
 Identical to [Main CroCo](01-max-reward.md):
 
-- [DPO](https://arxiv.org/abs/2305.18290) with [curriculum learning](https://doi.org/10.1145/1553374.1553380)
+- [DPO](https://arxiv.org/abs/2305.18290) with
+  [curriculum learning](https://doi.org/10.1145/1553374.1553380)
 - β = 0.1, [LoRA](https://arxiv.org/abs/2106.09685) r=16, LR 5e-6
 
 ### Key Settings

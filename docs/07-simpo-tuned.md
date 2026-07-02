@@ -20,8 +20,10 @@ loss.
 
 ### Settings
 
-- **β = 2.0** ([SimPO](https://arxiv.org/abs/2405.14734) paper range: 2.0–2.5 for base/instruct models)
-- **`loss_type: sigmoid_norm`** (TRL's length-normalised [DPO](https://arxiv.org/abs/2305.18290) — **not** ref-free)
+- **β = 2.0** ([SimPO](https://arxiv.org/abs/2405.14734) paper range: 2.0–2.5 for
+  base/instruct models)
+- **`loss_type: sigmoid_norm`** (TRL's length-normalised
+  [DPO](https://arxiv.org/abs/2305.18290) — **not** ref-free)
 - Reference model: **active**
 - Curriculum learning: **enabled**
 
@@ -31,13 +33,9 @@ From [princeton-nlp/SimPO](https://github.com/princeton-nlp/SimPO):
 
 > SimPO requires a much larger `beta` than DPO... We recommend using `2.0` or `2.5`.
 
-Paper values ([Meng et al., 2024](https://arxiv.org/abs/2405.14734)):
-| Model | β |
-|-------|---|
-| Mistral-Base | 2.0 |
-| Llama3-Base | 2.0 |
-| Mistral-Instruct | 2.5 |
-| Llama3-Instruct | 2.5 |
+Paper values ([Meng et al., 2024](https://arxiv.org/abs/2405.14734)): | Model | β |
+|-------|---| | Mistral-Base | 2.0 | | Llama3-Base | 2.0 | | Mistral-Instruct | 2.5 | |
+Llama3-Instruct | 2.5 |
 
 We chose **2.0** (conservative, matches base models).
 
@@ -49,7 +47,8 @@ We chose **2.0** (conservative, matches base models).
 
 ## Expected Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3 checkpoint).
+**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3
+checkpoint).
 
 | Benchmark            | Task                     | Metric               | Target       |
 | -------------------- | ------------------------ | -------------------- | ------------ |
@@ -64,7 +63,8 @@ We chose **2.0** (conservative, matches base models).
 | IFEval-da            | Instruction following    | Instruction accuracy | > Main CroCo |
 | ValEU-da             | European values          | Alignment score      | > Main CroCo |
 
-**Hypothesis:** β=2.0 should improve reward margin and downstream task performance vs β=0.1.
+**Hypothesis:** β=2.0 should improve reward margin and downstream task performance vs
+β=0.1.
 
 ## Current Status
 

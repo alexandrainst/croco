@@ -24,7 +24,8 @@ length-normalised DPO with reference model.
 Implemented in `src/croco/dpo.py`:
 
 - **Reference-free**: Reward = raw length-normalised policy log-prob
-- **Target margin γ=0.5**: Bradley-Terry objective encourages margin ≥ γ ([Meng et al., 2024](https://arxiv.org/abs/2405.14734), §2.3)
+- **Target margin γ=0.5**: Bradley-Terry objective encourages margin ≥ γ
+  ([Meng et al., 2024](https://arxiv.org/abs/2405.14734), §2.3)
 
 Loss:
 
@@ -68,7 +69,8 @@ Custom code in `src/croco/dpo.py`:
 
 ## Expected Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3 checkpoint).
+**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3
+checkpoint).
 
 | Benchmark            | Task                     | Metric               | Target        |
 | -------------------- | ------------------------ | -------------------- | ------------- |
@@ -83,7 +85,8 @@ Custom code in `src/croco/dpo.py`:
 | IFEval-da            | Instruction following    | Instruction accuracy | > SimPO Tuned |
 | ValEU-da             | European values          | Alignment score      | > SimPO Tuned |
 
-**Hypothesis:** Ref-free loss + γ=0.5 should improve sample efficiency and task performance.
+**Hypothesis:** Ref-free loss + γ=0.5 should improve sample efficiency and task
+performance.
 
 **Key metrics to watch:**
 

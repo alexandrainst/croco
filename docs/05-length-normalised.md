@@ -18,19 +18,22 @@ Length-normalised DPO loss reduces verbosity bias compared to standard DPO.
 
 ### Loss Function: `loss_type: length_norm`
 
-Standard [DPO](https://arxiv.org/abs/2305.18290) computes log-probabilities over full sequences:
+Standard [DPO](https://arxiv.org/abs/2305.18290) computes log-probabilities over full
+sequences:
 
 ```
 log p(y|x) = Σ log p(y_i | x, y_{<i})
 ```
 
-Length-normalised divides by sequence length (a standard technique to counter verbosity bias [Koehn & Knowles, 2017](https://aclanthology.org/W17-3206/)):
+Length-normalised divides by sequence length (a standard technique to counter verbosity
+bias [Koehn & Knowles, 2017](https://aclanthology.org/W17-3206/)):
 
 ```
 log p_norm(y|x) = (1/|y|) × Σ log p(y_i | x, y_{<i})
 ```
 
-This removes the advantage that longer responses have in accumulating higher total log-prob.
+This removes the advantage that longer responses have in accumulating higher total
+log-prob.
 
 ### Training
 

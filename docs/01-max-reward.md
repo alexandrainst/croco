@@ -14,20 +14,25 @@ output: models/croco-munin-apertus-8b-da
 
 The `max_reward` construction mode produces high-quality preference pairs by:  
 (1) selecting the best available example (gold or generated) as **chosen**, and  
-(2) using a statistically low-reward candidate (mean − 2×σ) as **rejected**, ensuring a clear reward margin.
+(2) using a statistically low-reward candidate (mean − 2×σ) as **rejected**, ensuring a
+clear reward margin.
 
 ## Method
 
 ### Construction Mode: `max_reward`
 
-1. Generate 4 candidates per prompt using policy model ([vLLM](https://github.com/vllm-project/vllm), temp=0.7)
+1. Generate 4 candidates per prompt using policy model
+   ([vLLM](https://github.com/vllm-project/vllm), temp=0.7)
 2. Score all candidates with Skywork-Reward-V2-Qwen3-8B
-3. **Chosen**: highest-reward candidate (either gold from dataset OR max-reward generation)
+3. **Chosen**: highest-reward candidate (either gold from dataset OR max-reward
+   generation)
 4. **Rejected**: candidate closest to (mean − 2×σ) of generated candidates
 
 ### Training
 
-- **[DPO](https://arxiv.org/abs/2305.18290)** with [curriculum learning](https://doi.org/10.1145/1553374.1553380) (gated access by evolution score)
+- **[DPO](https://arxiv.org/abs/2305.18290)** with
+  [curriculum learning](https://doi.org/10.1145/1553374.1553380) (gated access by
+  evolution score)
 - **β = 0.1** (standard DPO temperature)
 - **[LoRA](https://arxiv.org/abs/2106.09685)**: r=16, α=32, dropout=0.05
 - **Learning rate**: 5e-6, cosine schedule, 5% warmup

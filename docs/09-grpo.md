@@ -22,15 +22,13 @@ achieving comparable alignment quality.
 
 - **No offline preference dataset** — generates rollouts online each step
 - **vLLM-colocate**: Rollout generation + training in same process
-- **Group scoring**: Generate N candidates, score with RM, compute relative advantages ([Shao et al., 2024](https://arxiv.org/abs/2402.03300), Appendix A.3)
+- **Group scoring**: Generate N candidates, score with RM, compute relative advantages
+  ([Shao et al., 2024](https://arxiv.org/abs/2402.03300), Appendix A.3)
 
-Contrast with [DPO](https://arxiv.org/abs/2305.18290):
-| Aspect | DPO | GRPO |
-|--------|-----|------|
-| Data | Offline preference pairs | Online rollouts |
-| Build cost | ~2h (gen + score) | $0 |
-| Memory | Ref model (+ LoRA) | vLLM + RM resident |
-| Compute | One-time build | Ongoing generation |
+Contrast with [DPO](https://arxiv.org/abs/2305.18290): | Aspect | DPO | GRPO |
+|--------|-----|------| | Data | Offline preference pairs | Online rollouts | | Build
+cost | ~2h (gen + score) | $0 | | Memory | Ref model (+ LoRA) | vLLM + RM resident | |
+Compute | One-time build | Ongoing generation |
 
 ### Settings
 
@@ -61,7 +59,8 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 
 ## Expected Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3 checkpoint).
+**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3
+checkpoint).
 
 | Benchmark            | Task                     | Metric               | Target       |
 | -------------------- | ------------------------ | -------------------- | ------------ |
@@ -76,15 +75,12 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 | IFEval-da            | Instruction following    | Instruction accuracy | ≥ Main CroCo |
 | ValEU-da             | European values          | Alignment score      | ≥ Main CroCo |
 
-**Hypothesis:** Online RL can match offline DPO quality without dataset construction cost.
+**Hypothesis:** Online RL can match offline DPO quality without dataset construction
+cost.
 
-**Trade-offs:**
-| Aspect | Expected vs DPO |
-|--------|----------------|
-| Build cost | $0 (no offline construction) |
-| Training time | ~12h vs ~11h (similar) |
-| Memory | Higher (vLLM + RM resident) |
-| Data efficiency | Lower (no replay buffer) |
+**Trade-offs:** | Aspect | Expected vs DPO | |--------|----------------| | Build cost |
+$0 (no offline construction) | | Training time | ~12h vs ~11h (similar) | | Memory |
+Higher (vLLM + RM resident) | | Data efficiency | Lower (no replay buffer) |
 
 ## Current Status
 

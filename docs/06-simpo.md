@@ -21,8 +21,10 @@ baseline for subsequent SimPO experiments.
 ### Settings
 
 - **β = 0.1** (intentionally low — tests loss type only, not hyperparameter tuning)
-- **`loss_type: sigmoid_norm`** (TRL's length-normalised [DPO](https://arxiv.org/abs/2305.18290))
-- Reference model: **active** (computed via adapter-off forward with [LoRA](https://arxiv.org/abs/2106.09685))
+- **`loss_type: sigmoid_norm`** (TRL's length-normalised
+  [DPO](https://arxiv.org/abs/2305.18290))
+- Reference model: **active** (computed via adapter-off forward with
+  [LoRA](https://arxiv.org/abs/2106.09685))
 - [Curriculum learning](https://doi.org/10.1145/1553374.1553380): **enabled**
 
 ### Why β=0.1?
@@ -46,7 +48,8 @@ Identical to [Length-Normalised](05-length-normalised.md) except loss type hint:
 
 ## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations for final eval, 3 for checkpoints).
+**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations for final
+eval, 3 for checkpoints).
 
 | Benchmark            | Task                     | Metric               | Score (± CI) | Status               |
 | -------------------- | ------------------------ | -------------------- | ------------ | -------------------- |

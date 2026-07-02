@@ -102,6 +102,33 @@ biased preference data, as is common in practice.
 
 ---
 
+
+
+## Learning Curves
+
+All 18 benchmark learning curves:
+
+![All curves](gfx/curve_angry-tweets-test_macro_f1.png)
+![All curves](gfx/curve_angry-tweets-test_mcc.png)
+![All curves](gfx/curve_danish-citizen-tests-test_accuracy.png)
+![All curves](gfx/curve_danish-citizen-tests-test_mcc.png)
+![All curves](gfx/curve_dansk-test_micro_f1.png)
+![All curves](gfx/curve_dansk-test_micro_f1_no_misc.png)
+![All curves](gfx/curve_danske-talemaader-test_accuracy.png)
+![All curves](gfx/curve_danske-talemaader-test_mcc.png)
+![All curves](gfx/curve_hellaswag-da-test_accuracy.png)
+![All curves](gfx/curve_hellaswag-da-test_mcc.png)
+![All curves](gfx/curve_ifeval-da-test_instruction_accuracy.png)
+![All curves](gfx/curve_multi-wiki-qa-da-test_em.png)
+![All curves](gfx/curve_multi-wiki-qa-da-test_f1.png)
+![All curves](gfx/curve_nordjylland-news-test_chr_f3pp.png)
+![All curves](gfx/curve_nordjylland-news-test_chr_f4pp.png)
+![All curves](gfx/curve_scala-da-test_macro_f1.png)
+![All curves](gfx/curve_scala-da-test_mcc.png)
+![All curves](gfx/curve_valeu-da-test_european_values.png)
+
+*See [README](../README.md#learning-curves) for labeled table view.*
+
 ## Reproduction
 
 ```bash
@@ -147,4 +174,4 @@ Interactive Plotly charts in the dashboard:
 
 Hover any chart and click the camera icon (📷) to export as PNG.
 
-**Learning curves:** See [README](../README.md#learning-curves) for all 10 benchmark checkpoint curves.
+

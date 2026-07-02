@@ -140,5 +140,3 @@ uv run src/scripts/run_pipeline.py -c config/danish-apertus.yaml \
 | 2026-07-04 (est) | GRPO baseline completes                    |
 
 ---
-
-_Last updated: 2026-07-02_

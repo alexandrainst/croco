@@ -69,5 +69,3 @@ Qwen-based RM.
 - [Max Reward](01-max-reward.md) — Skywork RM baseline
 
 ---
-
-_Created: 2026-07-02 | Updated: 2026-07-02_

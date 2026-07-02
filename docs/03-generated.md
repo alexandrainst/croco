@@ -73,5 +73,3 @@ of the reward model's selection.
 - [Gold Chosen](02-gold-chosen.md) — expert outputs as chosen
 
 ---
-
-_Created: 2026-07-02 | Updated: 2026-07-02_

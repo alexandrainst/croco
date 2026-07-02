@@ -87,5 +87,3 @@ checkpoint).
 - [SimPO Full](08-simpo-full.md) — adds ref-free loss + target margin
 
 ---
-
-_Created: 2026-07-02 | Updated: 2026-07-02_

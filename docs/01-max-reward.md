@@ -91,5 +91,3 @@ dpo:
 - [Llama RM ablation](04-llama-rm.md) — tests alternative reward model
 
 ---
-
-_Created: 2026-07-02 | Updated: 2026-07-02_

@@ -82,5 +82,3 @@ ensures the policy isn't rewarded simply for generating more tokens.
 - [Max Reward](01-max-reward.md) — standard DPO baseline
 
 ---
-
-_Created: 2026-07-02 | Updated: 2026-07-02_

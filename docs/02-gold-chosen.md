@@ -92,5 +92,3 @@ human-curated high-quality responses.
 - [Generated](03-generated.md) — standard generated mode without max selection
 
 ---
-
-_Created: 2026-07-02 | Updated: 2026-07-02_

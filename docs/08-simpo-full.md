@@ -115,5 +115,3 @@ performance.
 - [SimPO](06-simpo.md) — β=0.1 baseline
 
 ---
-
-_Created: 2026-07-02 | Updated: 2026-07-02_

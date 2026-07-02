@@ -100,5 +100,3 @@ Higher (vLLM + RM resident) | | Data efficiency | Lower (no replay buffer) |
 - [Max Reward](01-max-reward.md) — DPO baseline
 
 ---
-
-_Created: 2026-07-02 | Updated: 2026-07-02_

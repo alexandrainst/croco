@@ -88,5 +88,3 @@ eval, 3 for checkpoints).
 - [Length-Normalised](05-length-normalised.md) — predecessor ablation
 
 ---
-
-_Created: 2026-07-02 | Updated: 2026-07-02 17:25 CEST_

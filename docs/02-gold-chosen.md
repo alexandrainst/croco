@@ -3,7 +3,7 @@ title: Gold Chosen Ablation
 description: Expert outputs vs reward-maximising generated outputs
 created: 2026-07-02
 updated: 2026-07-02
-status: evals-pending
+status: evals-complete
 config: config/danish-apertus-gold.yaml
 output: models/croco-munin-apertus-8b-da-gold
 ---

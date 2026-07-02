@@ -3,7 +3,7 @@ title: Generated Mode Ablation
 description: Standard generated mode without max-reward selection
 created: 2026-07-02
 updated: 2026-07-02
-status: evals-pending
+status: evals-complete
 config: config/danish-apertus-generated.yaml
 output: models/croco-munin-apertus-8b-da-generated
 ---

@@ -3,7 +3,7 @@ title: Label Smoothing Ablation
 description: Tests label smoothing (0.05) for robustness to noisy RM labels
 created: 2026-07-02
 updated: 2026-07-02
-status: evals-in-progress
+status: evals-complete
 config: config/danish-apertus-ls.yaml
 output: models/croco-munin-apertus-8b-da-ls
 ---

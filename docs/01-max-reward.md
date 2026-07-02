@@ -3,7 +3,7 @@ title: Max Reward Ablation
 description: max_reward construction mode baseline
 created: 2026-07-02
 updated: 2026-07-02
-status: evals-in-progress
+status: evals-complete
 config: config/danish-apertus.yaml
 output: models/croco-munin-apertus-8b-da
 ---

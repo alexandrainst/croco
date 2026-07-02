@@ -78,7 +78,7 @@ dpo:
 
 ## Comparison
 
-| Metric                | Main CroCo | Gold Chosen | Generated |
+| Metric                | Max Reward | Gold Chosen | Generated |
 | --------------------- | ---------- | ----------- | --------- |
 | Win Rate (Arena-Hard) | TBD        | TBD         | TBD       |
 | AlpacaEval 2 LC       | TBD        | TBD         | TBD       |

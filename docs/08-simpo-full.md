@@ -69,7 +69,7 @@ Custom code in `src/croco/dpo.py`:
 
 ## Expected Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3
+**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations final, 3
 checkpoint).
 
 | Benchmark            | Task                     | Metric               | Target        |

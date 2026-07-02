@@ -39,7 +39,7 @@ log-prob.
 
 - **β = 0.1** (held constant for clean ablation)
 - `loss_type: length_norm` (TRL builtin)
-- All other settings identical to [Main CroCo](01-max-reward.md)
+- All other settings identical to [Max Reward](01-max-reward.md)
 
 ## Motivation
 
@@ -48,7 +48,7 @@ ensures the policy isn't rewarded simply for generating more tokens.
 
 ## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (3 iterations each).
+**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (3 iterations each).
 
 | Benchmark            | Task                     | Metric               | Score (± CI) |
 | -------------------- | ------------------------ | -------------------- | ------------ |

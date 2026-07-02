@@ -47,21 +47,21 @@ We chose **2.0** (conservative, matches base models).
 
 ## Expected Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations final, 3
+**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations final, 3
 checkpoint).
 
 | Benchmark            | Task                     | Metric               | Target       |
 | -------------------- | ------------------------ | -------------------- | ------------ |
-| AngryTweets          | Sentiment classification | MCC                  | > Main CroCo |
-| ScaLA-da             | Linguistic acceptability | MCC                  | > Main CroCo |
-| DANSK                | Named entity recognition | Micro F1             | > Main CroCo |
-| MultiWikiQA-da       | Reading comprehension    | F1                   | > Main CroCo |
-| Nordjylland News     | Summarization            | chrF++               | > Main CroCo |
-| Danske Talemåder     | Knowledge                | Accuracy             | > Main CroCo |
-| Danish Citizen Tests | Knowledge                | Accuracy             | > Main CroCo |
-| HellaSwag-da         | Common sense reasoning   | Accuracy             | > Main CroCo |
-| IFEval-da            | Instruction following    | Instruction accuracy | > Main CroCo |
-| ValEU-da             | European values          | Alignment score      | > Main CroCo |
+| AngryTweets          | Sentiment classification | MCC                  | > Max Reward |
+| ScaLA-da             | Linguistic acceptability | MCC                  | > Max Reward |
+| DANSK                | Named entity recognition | Micro F1             | > Max Reward |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | > Max Reward |
+| Nordjylland News     | Summarization            | chrF++               | > Max Reward |
+| Danske Talemåder     | Knowledge                | Accuracy             | > Max Reward |
+| Danish Citizen Tests | Knowledge                | Accuracy             | > Max Reward |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | > Max Reward |
+| IFEval-da            | Instruction following    | Instruction accuracy | > Max Reward |
+| ValEU-da             | European values          | Alignment score      | > Max Reward |
 
 **Hypothesis:** β=2.0 should improve reward margin and downstream task performance vs
 β=0.1.

@@ -48,7 +48,7 @@ Identical to [Length-Normalised](05-length-normalised.md) except loss type hint:
 
 ## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (10 iterations for final
+**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations for final
 eval, 3 for checkpoints).
 
 | Benchmark            | Task                     | Metric               | Score (± CI) | Status               |

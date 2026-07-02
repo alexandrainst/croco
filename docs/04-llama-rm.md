@@ -26,7 +26,7 @@ Tests whether RM architecture/training data affects preference pair quality.
 
 ### Training
 
-Identical to [Main CroCo](01-max-reward.md):
+Identical to [Max Reward](01-max-reward.md):
 
 - [DPO](https://arxiv.org/abs/2305.18290) with
   [curriculum learning](https://doi.org/10.1145/1553374.1553380)
@@ -41,7 +41,7 @@ Qwen-based RM.
 
 ## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Main CroCo (3 iterations each).
+**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (3 iterations each).
 
 | Benchmark            | Task                     | Metric               | Score (± CI) |
 | -------------------- | ------------------------ | -------------------- | ------------ |

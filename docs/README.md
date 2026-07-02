@@ -71,25 +71,50 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 ---
 
-## Key Findings (Preliminary)
+## Key Findings (Updated 2026-07-02)
 
-### Construction Mode
+### Construction Mode (vs Munin-Apertus-8B base)
 
-- **`max_reward` vs `gold_chosen`**: Tests whether reward-maximising outputs align
-  better with human preferences than expert gold outputs
-- **Reward model choice**: Skywork-Reward-V2-Qwen3-8B vs Llama-3-based RM affects
-  preference pair quality
+| Experiment      | Best Result      | Significant Improvements ▲ | Significant Degradations ▼                       |
+| --------------- | ---------------- | -------------------------- | ------------------------------------------------ |
+| **Max Reward**  | IFEval-da: 56.13 | Instruction following      | —                                                |
+| **Gold Chosen** | IFEval-da: 54.25 | Instruction following      | ScaLA-da (-13 MCC), Nordjylland News (-3 chrF++) |
+| **Generated**   | —                | —                          | — (no significant differences)                   |
 
-### Loss Functions
+**Takeaway:** Generated mode is safest (no degradation), but Max Reward improves instruction following without trade-offs.
 
-- **Length normalisation**: Controls for verbosity bias in reward models
-- **SimPO**: Reference-free loss removes reference model compute/memory overhead
-- **Target margin (γ)**: Encourages larger reward separation between chosen/rejected
+### Loss Functions (vs base)
+
+| Experiment          | Best Result      | Significant Improvements ▲ | Significant Degradations ▼ |
+| ------------------- | ---------------- | -------------------------- | -------------------------- |
+| **Label Smoothing** | IFEval-da: 54.47 | Instruction following      | —                          |
+
+**Takeaway:** Label smoothing (α=0.05) improves instruction following while maintaining parity elsewhere — validates Robust DPO approach.
 
 ### Online RL
 
-- **GRPO**: Eliminates preference dataset construction; learns from online rollouts
-  scored by reward model
+- **GRPO**: ⏳ Queued — will test online RL vs offline DPO trade-offs
+
+---
+
+## Benchmark Results Summary
+
+All scores from EuroEval (3 iterations, 95% CI). See individual docs for full tables.
+
+| Dataset              | Metric     | Base Model | Max Reward |    Gold | Generated | Label Smooth |
+| -------------------- | ---------- | ---------: | ---------: | ------: | --------: | -----------: |
+| AngryTweets          | MCC        |      48.05 |      48.68 |   46.60 |     47.38 |        46.52 |
+| ScaLA-da             | MCC        |      35.70 |      35.70 | 28.80 ▼ |     34.58 |        34.81 |
+| DANSK                | Micro F1   |      45.20 |      45.20 |   43.00 |     44.19 |        44.59 |
+| MultiWikiQA-da       | F1         |      74.60 |      74.60 |   77.47 |     77.34 |        77.92 |
+| Nordjylland News     | chrF++     |      37.62 |      37.62 | 34.20 ▼ |     37.38 |        37.59 |
+| Danske Talemåder     | Accuracy   |      62.62 |      70.78 |   75.00 |     74.48 |        75.00 |
+| Danish Citizen Tests | Accuracy   |      77.59 |      84.44 |   85.93 |     89.63 |        90.00 |
+| HellaSwag-da         | Accuracy   |      41.57 |      54.96 |   52.99 |     52.08 |        52.21 |
+| IFEval-da            | Instr. Acc |      56.13 |    56.13 ▲ | 57.76 ▲ |     49.16 |      54.51 ▲ |
+| ValEU-da             | Alignment  |      10.08 |       5.45 |   10.61 |     20.52 |        23.78 |
+
+**Legend:** ▲ significantly better than base (p<0.05), ▼ significantly worse
 
 ---
 

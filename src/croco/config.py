@@ -102,6 +102,9 @@ class DPOTrainConfig(BaseModel):
     # Cache the (frozen) reference log-probabilities once before training instead
     # of recomputing them each step. A speed optimisation, not a recipe change.
     precompute_ref_log_probs: bool = False
+    # SimPO target margin γ; only used when loss_type == 'simpo'. Meng et al. 2024
+    # (arXiv 2405.14734) recommend γ ≈ 0.5–1.0. Default 0.0 disables the margin.
+    target_margin: float = 0.0
 
 
 class GRPOTrainConfig(BaseModel):

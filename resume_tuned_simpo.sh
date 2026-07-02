@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Resume the SimPO ablation suite with the tuned (beta=2.0) and full (ref-free + gamma)
 # variants, validating the custom `simpo` loss via a micro pre-flight on GPU before the
-# 8h full run. Launched AFTER resume_ls_simpo.sh completes (watch its log for
-# `===== ls/simpo DONE =====`). The tuned run uses the standard sigmoid_norm path and
-# always proceeds; the full run is gated on the pre-flight (SOFT-SKIP on failure, never
-# a hard abort, since the tuned run does not depend on the custom loss code).
+# ~8h full run. The tuned run uses the standard `sigmoid_norm` path and does not depend
+# on the custom loss code, so it always runs; the pre-flight only gates the full run.
 #
+# Launched after resume_ls_simpo.sh completes (watch for "===== ls/simpo DONE ====="
+# in the queue log), e.g.:
 #   tmux new-session -d -s tqueue "bash -lc 'bash ~/croco/resume_tuned_simpo.sh 2>&1 | tee tuned_ablations.log'"
 set -uo pipefail
 cd ~/croco
@@ -36,6 +36,7 @@ run_ablation() {  # $1 = config, $2 = model dir
 log "===== sync repo ====="
 run git pull --ff-only
 
+SIMPO_OK=0
 log "===== PRE-FLIGHT: micro run of the custom simpo loss ====="
 if uv run src/scripts/run_pipeline.py -c config/danish-micro-simpo.yaml \
      --dataset-output data/pairs_micro_simpo.jsonl \
@@ -54,5 +55,4 @@ if [ "$SIMPO_OK" = "1" ]; then
 else
   log "===== SKIPPING full simpo (pre-flight failed) ====="
 fi
-
 log "===== tuned simpo DONE ====="

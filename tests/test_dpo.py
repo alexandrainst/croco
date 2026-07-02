@@ -3,10 +3,19 @@
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import torch
+import torch.nn.functional as F
 from torch.utils.data import SequentialSampler
 
 from croco.config import DPOTrainConfig
-from croco.dpo import CurriculumDPOTrainer, build_dpo_config, build_lora_config
+from croco.dpo import (
+    CurriculumDPOTrainer,
+    CurriculumSimPODPOTrainer,
+    SimPODPOTrainer,
+    _simpo_sequence_loss,
+    build_dpo_config,
+    build_lora_config,
+)
 
 
 class TestBuildLoraConfig:
@@ -185,3 +194,136 @@ class TestCurriculumDPOTrainer:
 
             # Verify it's a SequentialSampler
             assert isinstance(sampler, SequentialSampler)
+
+
+class TestSimPOSequenceLoss:
+    """Tests for the _simpo_sequence_loss helper function."""
+
+    def test_simpo_loss_formula(self) -> None:
+        """SimPO loss should match the expected formula."""
+        # Simple case: chosen better than rejected
+        chosen_logps = torch.tensor([-1.0, -2.0])
+        rejected_logps = torch.tensor([-3.0, -4.0])
+        chosen_lengths = torch.tensor([10.0, 10.0])
+        rejected_lengths = torch.tensor([10.0, 10.0])
+        beta = 2.0
+        target_margin = 0.5
+
+        loss, chosen_rewards, rejected_rewards, reward_accuracies = (
+            _simpo_sequence_loss(
+                chosen_logps=chosen_logps,
+                rejected_logps=rejected_logps,
+                chosen_lengths=chosen_lengths,
+                rejected_lengths=rejected_lengths,
+                beta=beta,
+                target_margin=target_margin,
+            )
+        )
+
+        # Verify length normalisation
+        chosen_avg = chosen_logps / chosen_lengths  # [-0.1, -0.2]
+        rejected_avg = rejected_logps / rejected_lengths  # [-0.3, -0.4]
+        delta = chosen_avg - rejected_avg  # [0.2, 0.2]
+
+        # Expected rewards
+        expected_chosen_rewards = beta * chosen_avg
+        expected_rejected_rewards = beta * rejected_avg
+
+        assert torch.allclose(chosen_rewards, expected_chosen_rewards)
+        assert torch.allclose(rejected_rewards, expected_rejected_rewards)
+
+        # Expected loss: -logsigmoid(beta * delta - target_margin)
+        expected_loss = -F.logsigmoid(beta * delta - target_margin)
+        assert torch.allclose(loss, expected_loss)
+
+        # Chosen should be better (higher reward) in both cases
+        assert torch.all(reward_accuracies == 1.0)
+
+    def test_target_margin_raises_loss(self) -> None:
+        """Target margin should raise loss when chosen-rejected gap is small."""
+        chosen_logps = torch.tensor([-1.0])
+        rejected_logps = torch.tensor([-1.0])  # Same as chosen
+        chosen_lengths = torch.tensor([10.0])
+        rejected_lengths = torch.tensor([10.0])
+        beta = 2.0
+
+        # No margin: delta=0, loss = -logsigmoid(0) = log(2) ≈ 0.693
+        loss_no_margin, _, _, _ = _simpo_sequence_loss(
+            chosen_logps=chosen_logps,
+            rejected_logps=rejected_logps,
+            chosen_lengths=chosen_lengths,
+            rejected_lengths=rejected_lengths,
+            beta=beta,
+            target_margin=0.0,
+        )
+
+        # With margin: loss should be higher
+        loss_with_margin, _, _, _ = _simpo_sequence_loss(
+            chosen_logps=chosen_logps,
+            rejected_logps=rejected_logps,
+            chosen_lengths=chosen_lengths,
+            rejected_lengths=rejected_lengths,
+            beta=beta,
+            target_margin=0.5,
+        )
+
+        assert loss_with_margin > loss_no_margin
+
+    def test_reward_accuracies_flag_chosen_greater(self) -> None:
+        """Reward accuracies should flag cases where chosen reward > rejected reward."""
+        chosen_logps = torch.tensor(
+            [-1.0, -5.0]
+        )  # First: chosen better; Second: rejected better
+        rejected_logps = torch.tensor([-2.0, -4.0])
+        chosen_lengths = torch.tensor([10.0, 10.0])
+        rejected_lengths = torch.tensor([10.0, 10.0])
+
+        _, chosen_rewards, rejected_rewards, reward_accuracies = _simpo_sequence_loss(
+            chosen_logps=chosen_logps,
+            rejected_logps=rejected_logps,
+            chosen_lengths=chosen_lengths,
+            rejected_lengths=rejected_lengths,
+            beta=2.0,
+            target_margin=0.0,
+        )
+
+        # First sample: chosen (-0.1) > rejected (-0.2) → accuracy = 1
+        # Second sample: chosen (-0.5) < rejected (-0.4) → accuracy = 0
+        assert reward_accuracies[0] == 1.0
+        assert reward_accuracies[1] == 0.0
+
+
+class TestSimPOTrainers:
+    """Tests for SimPODPOTrainer and CurriculumSimPODPOTrainer."""
+
+    def test_simpo_dpo_trainer_exists(self) -> None:
+        """The SimPODPOTrainer class should exist."""
+        assert SimPODPOTrainer is not None
+
+    def test_curriculum_simpo_dpo_trainer_exists(self) -> None:
+        """The CurriculumSimPODPOTrainer class should exist."""
+        assert CurriculumSimPODPOTrainer is not None
+
+    def test_curriculum_simpo_trainer_has_sampler_method(self) -> None:
+        """CurriculumSimPODPOTrainer should have _get_train_sampler method."""
+        assert hasattr(CurriculumSimPODPOTrainer, "_get_train_sampler")
+
+    def test_curriculum_simpo_trainer_sampler_returns_sequential(self) -> None:
+        """CurriculumSimPODPOTrainer sampler returns SequentialSampler."""
+        mock_dataset = MagicMock()
+        mock_dataset.__len__ = MagicMock(return_value=10)
+
+        with patch.object(CurriculumSimPODPOTrainer, "__init__", return_value=None):
+            trainer = CurriculumSimPODPOTrainer()
+            trainer.train_dataset = mock_dataset
+
+            sampler = trainer._get_train_sampler()
+
+            assert isinstance(sampler, SequentialSampler)
+
+    def test_simpo_mixin_in_mro(self) -> None:
+        """SimPOLossMixin should be in the MRO of SimPO trainers."""
+        from croco.dpo import SimPOLossMixin
+
+        assert SimPOLossMixin in SimPODPOTrainer.__mro__
+        assert SimPOLossMixin in CurriculumSimPODPOTrainer.__mro__

@@ -1,0 +1,89 @@
+# CroCo ablation - Munin-Apertus-8B (Danish), length-normalised loss, beta tuned
+#
+# Single-variable follow-up to config/danish-apertus-simpo.yaml: identical
+# max_reward data, LoRA recipe and length-normalised loss
+# (loss_type: sigmoid_norm), but beta raised 0.1 -> 2.0. The existing run held
+# beta at 0.1 to keep its loss-type swap a clean single-variable change, but
+# SimPO is normally run with a much larger beta (~2-2.5); at 0.1 the
+# length-normalised loss is under-tuned and the reward curve stays flat. 2.0 is
+# within SimPO's recommended beta range (Meng et al. 2024, arXiv 2405.14734).
+#
+# NOTE: TRL's sigmoid_norm is length-normalised DPO, NOT reference-free SimPO,
+# and has no target margin (gamma) - see RECOMMENDATIONS.md "Key Finding:
+# sigmoid_norm Loss Type". This run keeps the reference model; the ref-free
+# variant is config/danish-apertus-simpo-full.yaml.
+#
+# Reuses the already-built max_reward pairs (data/pairs_apertus.jsonl) - run
+# with --skip-build.
+#
+# Usage:
+#   uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-tuned.yaml \
+#     --dataset-output data/pairs_apertus.jsonl --skip-build
+
+construction_mode: max_reward
+score_gold_output: true
+language: da
+
+policy:
+  model_id: danish-foundation-models/munin-apertus-8b
+  attn_implementation: sdpa
+  max_model_len: 4096
+
+reward:
+  model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
+  max_model_len: 32768
+  gpu_memory_utilization: 0.35
+
+generation:
+  num_candidates: 4
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 1.0
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.45
+  batch_size: 64
+  enable_prefix_caching: true
+  enable_chunked_prefill: true
+  language_model_only: false
+
+data:
+  dataset_id: danish-foundation-models/laerebogen
+  subset: evolved
+  split: train
+  num_samples: 5000
+  stratify_by_evolution: true
+  evolution_min: null
+  evolution_max: null
+  max_prompt_tokens: 2048
+  seed: 42
+
+dpo:
+  output_dir: models/croco-munin-apertus-8b-da-simpo-tuned
+  learning_rate: 5.0e-6
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  beta: 2.0
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  num_train_epochs: 1
+  max_length: 4096
+  bf16: true
+  gradient_checkpointing: true
+  curriculum: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  seed: 42
+  hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da-simpo-tuned
+  save_steps: 100
+  # loss_type held at sigmoid_norm (length-normalised DPO); the single variable
+  # is beta above (0.1 -> 2.0). Still reference-based, no target margin.
+  loss_type: sigmoid_norm
+
+eval:
+  language: da
+  tasks: null
+  num_iterations: 1
+  skip: true
+  gpu_memory_utilization: 0.5

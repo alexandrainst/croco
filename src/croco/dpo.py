@@ -6,6 +6,8 @@ import logging
 import typing as t
 from pathlib import Path
 
+import torch
+import torch.nn.functional as F
 from datasets import Dataset
 from peft import LoraConfig
 from torch.utils.data import Sampler, SequentialSampler
@@ -17,6 +19,155 @@ from .data import sort_by_evolution
 from .dataset import load_pairs, to_trl_records
 
 logger = logging.getLogger(__name__)
+
+
+def _simpo_sequence_loss(
+    *,
+    chosen_logps: torch.Tensor,
+    rejected_logps: torch.Tensor,
+    chosen_lengths: torch.Tensor,
+    rejected_lengths: torch.Tensor,
+    beta: float,
+    target_margin: float,
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Compute SimPO sequence-level loss with length normalisation and target margin.
+
+    Args:
+        chosen_logps:
+            Log-probabilities of chosen completions (sum over tokens).
+        rejected_logps:
+            Log-probabilities of rejected completions (sum over tokens).
+        chosen_lengths:
+            Completion lengths for chosen responses.
+        rejected_lengths:
+            Completion lengths for rejected responses.
+        beta:
+            SimPO temperature parameter.
+        target_margin:
+            Target margin γ; SimPO pull chosen above rejected by at least this amount.
+
+    Returns:
+        Tuple of per_sequence_loss, chosen_rewards, rejected_rewards, and
+        reward_accuracies.
+    """
+    chosen_avg = chosen_logps / chosen_lengths.clamp(min=1.0)
+    rejected_avg = rejected_logps / rejected_lengths.clamp(min=1.0)
+    delta = chosen_avg - rejected_avg
+    per_sequence_loss = -F.logsigmoid(beta * delta - target_margin)
+    chosen_rewards = beta * chosen_avg
+    rejected_rewards = beta * rejected_avg
+    reward_accuracies = (chosen_rewards > rejected_rewards).float()
+    return per_sequence_loss, chosen_rewards, rejected_rewards, reward_accuracies
+
+
+class SimPOLossMixin:
+    """Mixin adding ref-free SimPO loss with target margin to DPOTrainer.
+
+    Overrides ``compute_loss`` to intercept ``loss_type == 'simpo'`` and compute
+    the SimPO loss (length-normalised policy log-probs, no reference subtraction,
+    with target margin γ). Falls through to super() for other loss types.
+    """
+
+    # Declared for type checking; actually provided by DPOTrainer base class.
+    beta: float
+    loss_types: list[str]
+    target_margin: float = 0.0
+
+    def compute_loss(
+        self,
+        model: torch.nn.Module,
+        inputs: dict[str, torch.Tensor],
+        return_outputs: bool = False,
+        num_items_in_batch: int | None = None,
+    ) -> torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:
+        """Compute SimPO loss if ``loss_type == 'simpo'``, else defer to parent.
+
+        Returns:
+            Loss tensor, optionally with outputs dict if return_outputs is True.
+        """
+        if "simpo" not in self.loss_types:
+            return super().compute_loss(  # ty: ignore
+                model,
+                inputs,
+                return_outputs=return_outputs,
+                num_items_in_batch=num_items_in_batch,
+            )
+        return self._compute_simpo_loss(
+            model,
+            inputs,
+            return_outputs=return_outputs,
+            num_items_in_batch=num_items_in_batch,
+        )
+
+    def _compute_simpo_loss(
+        self,
+        model: torch.nn.Module,
+        inputs: dict[str, torch.Tensor],
+        return_outputs: bool = False,
+        num_items_in_batch: int | None = None,
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]] | torch.Tensor:
+        """Compute ref-free SimPO loss with length normalisation and target margin.
+
+        Returns:
+            Loss tensor, optionally with model outputs dict if return_outputs is True.
+        """
+        from trl.trainer.utils import selective_log_softmax
+
+        # Forward pass through policy (no reference model)
+        outputs = model(
+            input_ids=inputs["input_ids"],
+            attention_mask=inputs["attention_mask"],
+            use_cache=False,
+        )
+        shift_logits = outputs.logits[..., :-1, :]
+        shift_labels = inputs["labels"][..., 1:]
+        completion_mask = inputs["completion_mask"][..., 1:]
+
+        # Compute per-token log-probs for policy
+        per_token_logps = selective_log_softmax(shift_logits, shift_labels)
+        per_token_logps[completion_mask == 0] = 0.0
+
+        # Sum over completion length (ld_alpha=None path only)
+        logps = per_token_logps.sum(dim=1)
+        chosen_logps, rejected_logps = logps.chunk(2, dim=0)
+        chosen_lengths = completion_mask.sum(dim=1).chunk(2, dim=0)[0]
+        rejected_lengths = completion_mask.sum(dim=1).chunk(2, dim=0)[1]
+
+        # Compute SimPO loss
+        loss, chosen_rewards, rejected_rewards, reward_accuracies = (
+            _simpo_sequence_loss(
+                chosen_logps=chosen_logps,
+                rejected_logps=rejected_logps,
+                chosen_lengths=chosen_lengths,
+                rejected_lengths=rejected_lengths,
+                beta=self.beta,  # type: ignore[attr-defined]
+                target_margin=getattr(self, "target_margin", 0.0),
+            )
+        )
+
+        # Log metrics (mirror TRL's metric logging)
+        logs = {
+            "rewards/chosen": self.accelerator.gather(chosen_rewards).mean().item(),  # type: ignore
+            "rewards/rejected": self.accelerator.gather(rejected_rewards).mean().item(),  # type: ignore
+            "rewards/accuracies": self.accelerator.gather(reward_accuracies)  # type: ignore
+            .mean()
+            .item(),
+            "rewards/margins": self.accelerator.gather(  # type: ignore
+                chosen_rewards - rejected_rewards
+            )
+            .mean()
+            .item(),
+            "logps/chosen": self.accelerator.gather(chosen_logps).mean().item(),  # type: ignore
+            "logps/rejected": self.accelerator.gather(rejected_logps).mean().item(),  # type: ignore
+        }
+        # Log metrics using TRL's logging mechanism
+        for key, value in logs.items():
+            self.log(key, value, on_step=True, on_epoch=True, prog_bar=False)  # type: ignore
+        self.log("loss", loss.mean().item(), on_step=True, on_epoch=True, prog_bar=True)  # type: ignore
+
+        if return_outputs:
+            return loss.mean(), outputs
+        return loss.mean()
 
 
 class CurriculumDPOTrainer(DPOTrainer):
@@ -34,6 +185,18 @@ class CurriculumDPOTrainer(DPOTrainer):
         """
         # Type ignore: datasets.Dataset is Sized in practice
         return SequentialSampler(t.cast(t.Any, self.train_dataset))
+
+
+class SimPODPOTrainer(SimPOLossMixin, DPOTrainer):
+    """DPOTrainer with ref-free SimPO loss support."""
+
+    pass
+
+
+class CurriculumSimPODPOTrainer(SimPOLossMixin, CurriculumDPOTrainer):
+    """CurriculumDPOTrainer with ref-free SimPO loss support."""
+
+    pass
 
 
 def build_lora_config(*, config: DPOTrainConfig) -> LoraConfig:
@@ -156,10 +319,17 @@ def train_dpo(*, config: PipelineConfig, dataset_path: Path) -> Path:
     peft_config = build_lora_config(config=dpo_config)
     dpo_cfg = build_dpo_config(config=dpo_config)
 
-    # Select trainer based on curriculum setting
-    if dpo_config.curriculum:
+    # Select trainer based on curriculum and loss_type
+    is_simpo = dpo_config.loss_type == "simpo"
+    if is_simpo and dpo_config.curriculum:
+        logger.info("Using CurriculumSimPODPOTrainer for SimPO with curriculum")
+        trainer_class: type[DPOTrainer] = CurriculumSimPODPOTrainer
+    elif is_simpo:
+        logger.info("Using SimPODPOTrainer for SimPO")
+        trainer_class = SimPODPOTrainer
+    elif dpo_config.curriculum:
         logger.info("Using CurriculumDPOTrainer for curriculum learning")
-        trainer_class: type[DPOTrainer] = CurriculumDPOTrainer
+        trainer_class = CurriculumDPOTrainer
     else:
         logger.info("Using standard DPOTrainer")
         trainer_class = DPOTrainer
@@ -173,6 +343,10 @@ def train_dpo(*, config: PipelineConfig, dataset_path: Path) -> Path:
         processing_class=tokenizer,
         peft_config=peft_config,
     )
+
+    # Set SimPO target margin if using SimPO loss
+    if is_simpo:
+        trainer.target_margin = dpo_config.target_margin  # type: ignore
 
     # Train
     logger.info("Starting DPO training")

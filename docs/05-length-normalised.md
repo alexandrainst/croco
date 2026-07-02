@@ -1,3 +1,13 @@
+---
+title: Length-Normalised Loss Ablation
+description: Tests length_norm loss type vs standard DPO
+created: 2026-07-02
+updated: 2026-07-02
+status: evals-in-progress
+config: config/danish-apertus-ls.yaml
+output: models/croco-munin-apertus-8b-da-ls
+---
+
 # Length-Normalised Loss Ablation
 
 **Config:** `config/danish-apertus-ls.yaml`  

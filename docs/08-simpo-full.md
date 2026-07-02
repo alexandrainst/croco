@@ -1,3 +1,15 @@
+---
+title: SimPO Full Ablation (Ref-Free + γ=0.5)
+description: True reference-free SimPO loss with target margin
+description-short: Ref-free SimPO with gamma=0.5
+created: 2026-07-02
+updated: 2026-07-02
+status: queued
+config: config/danish-apertus-simpo-full.yaml
+output: models/croco-munin-apertus-8b-da-simpo-full
+eta_start: 2026-07-03 08:30 CEST
+---
+
 # SimPO Full Ablation (Ref-Free + γ=0.5)
 
 **Config:** `config/danish-apertus-simpo-full.yaml`  

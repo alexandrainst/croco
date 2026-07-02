@@ -1,3 +1,11 @@
+---
+title: CroCo Research Experiments
+description: Overview of all preference optimisation ablation studies
+created: 2026-07-02
+updated: 2026-07-02
+status: active
+---
+
 # CroCo Research Experiments
 
 Overview of all research experiments and ablation studies in the CroCo project. Each

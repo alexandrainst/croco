@@ -1,3 +1,14 @@
+---
+title: SimPO Tuned Ablation (β=2.0)
+description: Raises beta to SimPO-recommended 2.0, keeps sigmoid_norm loss
+created: 2026-07-02
+updated: 2026-07-02
+status: queued
+config: config/danish-apertus-simpo-tuned.yaml
+output: models/croco-munin-apertus-8b-da-simpo-tuned
+eta_start: 2026-07-02 19:15 CEST
+---
+
 # SimPO Tuned Ablation (β=2.0)
 
 **Config:** `config/danish-apertus-simpo-tuned.yaml`  

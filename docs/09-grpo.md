@@ -1,3 +1,14 @@
+---
+title: GRPO Online RL Baseline
+description: Group Relative Policy Optimization with online rollouts
+created: 2026-07-02
+updated: 2026-07-02
+status: queued
+config: config/danish-apertus-grpo.yaml
+output: models/croco-munin-apertus-8b-da-grpo
+eta_start: 2026-07-04 21:30 CEST
+---
+
 # GRPO Online RL Baseline
 
 **Config:** `config/danish-apertus-grpo.yaml`  

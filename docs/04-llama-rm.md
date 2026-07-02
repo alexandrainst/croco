@@ -1,3 +1,13 @@
+---
+title: Llama RM Ablation
+description: Reward model substitution (Skywork vs Llama-3-based)
+created: 2026-07-02
+updated: 2026-07-02
+status: evals-pending
+config: config/danish-apertus-llama-rm.yaml
+output: models/croco-munin-apertus-8b-da-llama-rm
+---
+
 # Llama RM Ablation
 
 **Config:** `config/danish-apertus-llama-rm.yaml`  

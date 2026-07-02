@@ -1,3 +1,13 @@
+---
+title: Main CroCo Run
+description: max_reward construction mode baseline
+created: 2026-07-02
+updated: 2026-07-02
+status: evals-in-progress
+config: config/danish-apertus.yaml
+output: models/croco-munin-apertus-8b-da
+---
+
 # Main CroCo Run
 
 **Config:** `config/danish-apertus.yaml`  

@@ -1,3 +1,14 @@
+---
+title: SimPO Ablation (β=0.1)
+description: Length-normalised loss with low beta (single-variable baseline)
+created: 2026-07-02
+updated: 2026-07-02 17:25 CEST
+status: training-complete
+config: config/danish-apertus-simpo.yaml
+output: models/croco-munin-apertus-8b-da-simpo
+started: 2026-07-01 09:59
+---
+
 # SimPO Ablation (β=0.1)
 
 **Config:** `config/danish-apertus-simpo.yaml`  

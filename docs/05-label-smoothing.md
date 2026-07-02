@@ -58,25 +58,26 @@ biased preference data, as is common in practice.
 
 ## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (3 iterations each).
+**Evaluation suite:** 10 Danish benchmarks from EuroEval, 3 iterations each:
 
-| Benchmark            | Task                     | Metric               | Score (± CI) |
-| -------------------- | ------------------------ | -------------------- | ------------ |
-| AngryTweets          | Sentiment classification | MCC                  | TBD          |
-| ScaLA-da             | Linguistic acceptability | MCC                  | TBD          |
-| DANSK                | Named entity recognition | Micro F1             | TBD          |
-| MultiWikiQA-da       | Reading comprehension    | F1                   | TBD          |
-| Nordjylland News     | Summarization            | chrF++               | TBD          |
-| Danske Talemåder     | Knowledge                | Accuracy             | TBD          |
-| Danish Citizen Tests | Knowledge                | Accuracy             | TBD          |
-| HellaSwag-da         | Common sense reasoning   | Accuracy             | TBD          |
-| IFEval-da            | Instruction following    | Instruction accuracy | TBD          |
-| ValEU-da             | European values          | Alignment score      | TBD          |
+| Benchmark            | Task                     | Metric               | Score    | Status        |
+| -------------------- | ------------------------ | -------------------- | --------:| ------------- |
+| AngryTweets          | Sentiment classification | MCC                  | **46.52** | ✅ Complete   |
+| ScaLA-da             | Linguistic acceptability | MCC                  | **34.81** | ✅ Complete   |
+| DANSK                | Named entity recognition | Micro F1             | **44.59** | ✅ Complete   |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | **77.92** | ✅ Complete   |
+| Nordjylland News     | Summarization            | chrF++               | **38.51** | ✅ Complete   |
+| Danske Talemåder     | Knowledge                | Accuracy             | **75.00** | ✅ Complete   |
+| Danish Citizen Tests | Knowledge                | Accuracy             | **90.00** | ✅ Complete   |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | **52.21** | ✅ Complete   |
+| IFEval-da            | Instruction following    | Instruction accuracy | **54.51** | ✅ Complete   |
+| ValEU-da             | European values          | Alignment score      | **23.78** | ✅ Complete   |
 
 **Training metrics** (step 625/625):
 
-- Final loss: TBD
-- Reward margin: TBD
+- Final loss: `0.4389`
+- Reward margin: `1.762`
+- Chosen log-prob: `-12.89`
 
 ## Timeline
 

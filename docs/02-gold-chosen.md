@@ -50,33 +50,20 @@ human-curated high-quality responses.
 
 ## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (3 iterations each).
+**Evaluation suite:** 10 Danish benchmarks from EuroEval, 3 iterations each:
 
-| Benchmark            | Task                     | Metric               | Score (± CI) |
-| -------------------- | ------------------------ | -------------------- | ------------ |
-| AngryTweets          | Sentiment classification | MCC                  | TBD          |
-| ScaLA-da             | Linguistic acceptability | MCC                  | TBD          |
-| DANSK                | Named entity recognition | Micro F1             | TBD          |
-| MultiWikiQA-da       | Reading comprehension    | F1                   | TBD          |
-| Nordjylland News     | Summarization            | chrF++               | TBD          |
-| Danske Talemåder     | Knowledge                | Accuracy             | TBD          |
-| Danish Citizen Tests | Knowledge                | Accuracy             | TBD          |
-| HellaSwag-da         | Common sense reasoning   | Accuracy             | TBD          |
-| IFEval-da            | Instruction following    | Instruction accuracy | TBD          |
-| ValEU-da             | European values          | Alignment score      | TBD          |
-
-**Training metrics** (step 625/625):
-
-- Final loss: TBD
-- Reward margin: TBD
-
-## Timeline
-
-| Date       | Milestone          |
-| ---------- | ------------------ |
-| 2026-06-28 | Training started   |
-| 2026-06-29 | Training completed |
-| 2026-07-02 | Evals pending      |
+| Benchmark            | Task                     | Metric               | Score    | Status        |
+| -------------------- | ------------------------ | -------------------- | --------:| ------------- |
+| AngryTweets          | Sentiment classification | MCC                  | **46.60** | ✅ Complete   |
+| ScaLA-da             | Linguistic acceptability | MCC                  | **28.80** | ✅ Complete   |
+| DANSK                | Named entity recognition | Micro F1             | **43.00** | ✅ Complete   |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | **77.47** | ✅ Complete   |
+| Nordjylland News     | Summarization            | chrF++               | **38.66** | ✅ Complete   |
+| Danske Talemåder     | Knowledge                | Accuracy             | **75.00** | ✅ Complete   |
+| Danish Citizen Tests | Knowledge                | Accuracy             | **85.93** | ✅ Complete   |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | **52.99** | ✅ Complete   |
+| IFEval-da            | Instruction following    | Instruction accuracy | **57.76** | ✅ Complete   |
+| ValEU-da             | European values          | Alignment score      | **10.61** | ✅ Complete   |
 
 ## Comparison
 

@@ -99,7 +99,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 ## Benchmark Results Summary
 
-All scores from EuroEval (3 iterations, 95% CI). See individual docs for full tables.
+All scores from [EuroEval](https://euroeval.com) ([EuroEval](https://euroeval.com), 3 iterations, 95% CI). See individual docs for full tables.
 
 | Dataset              | Metric     | Base Model | Max Reward |    Gold | Generated | Label Smooth |
 | -------------------- | ---------- | ---------: | ---------: | ------: | --------: | -----------: |
@@ -117,7 +117,7 @@ All scores from EuroEval (3 iterations, 95% CI). See individual docs for full ta
 **Legend:** ▲ significantly better than base (p<0.05), ▼ significantly worse
 
 **Statistical methodology:** Significance via non-overlapping 95% CIs (bootstrap, 1000
-samples). EuroEval v17.5.0 with fixed seeds; scores are mean across 3 independent runs.
+samples). [EuroEval](https://euroeval.com) v17.5.0 with fixed seeds; scores are mean across 3 independent runs.
 
 ---
 

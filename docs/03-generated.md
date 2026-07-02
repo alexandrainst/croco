@@ -55,7 +55,7 @@ of the reward model's selection.
 
 ## Results
 
-**Evaluation suite:** 10 Danish benchmarks from EuroEval, 3 iterations each.
+**Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 3 iterations each.
 **Legend:** ▲ significantly better than base Munin-Apertus-8B, ▼ significantly worse (non-overlapping 95% CIs).
 
 | Benchmark            | Task                     | Metric               |     Score | vs Base Model | Status      |

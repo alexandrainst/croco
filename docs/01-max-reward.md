@@ -66,7 +66,7 @@ dpo:
 
 ## Results
 
-**Evaluation suite:** 10 Danish benchmarks from EuroEval, 3 iterations each.
+**Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 3 iterations each.
 **Note:** Significance compared to **Munin-Apertus-8B base model** (pre-CroCo), not to this experiment.
 
 | Benchmark            | Task                     | Metric               |     Score | vs Base Model | Status      |

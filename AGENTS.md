@@ -1,130 +1,217 @@
 # Croco
 
-Experiments with the CroCo post-training method.
+Experiments with the **CroCo** (Contrastive Comparison) post-training method — a
+DPO-based approach using reward model scoring and curriculum learning for Danish
+language alignment on Munin-Apertus-8B.
 
-## Python Conventions
+## Stack
 
-### Development Workflow
+- **Python 3.12** + `uv` package manager
+- **TRL 1.7.0** (transformers reinforcement learning)
+- **vLLM** for candidate generation and reward scoring
+- **Plotly + Kaleido** for dashboard visualization
+- **EuroEval v17.5.0** for benchmark evaluation (Danish language)
+- **Target GPU**: NVIDIA GB10 (or any CUDA-capable GPU with sufficient VRAM)
 
-- Use `uv run` for all script and command execution
-- Use `pyproject.toml`, not `requirements.txt` for dependency management
-- Do not read entire files, find the relevant line(s) with command-line tools, and only
-  read those lines
+## Layout
 
-### Code Organisation
+```
+croco/
+├── config/               # YAML configs for experiments (ablation studies)
+├── docs/                 # Experiment documentation + gfx/ for plots
+├── models/               # Trained checkpoints (auto-saved by scripts)
+├── src/
+│   ├── croco/            # Core library modules (imported, not executed)
+│   └── scripts/          # All executable scripts (pipeline, eval, utils)
+├── tests/                # Pytest test suite
+└── makefile              # Convenience targets (check, test, tree)
+```
 
-- Keep modules focused and cohesive
-- Prefer many small modules over few large ones
-- All code modules are in the `src/<project_name>` directory. These are not executed but
-  are imported by the scripts
-- All scripts are in the `src/scripts` directory. These are executed with `uv run`
-- All tests are in the `tests/` directory
-- Configs are sometimes available and if so, they are in the `config/` directory
-- There will always be a `pyproject.toml` file in the root directory
-- Use `uv add <package>` to add packages to the project, do not just add them manually
-  to `pyproject.toml`. Add development dependencies with `uv add --group=dev <package>`
-- Use the `make tree` command to see the directory structure
+## Running Experiments
 
-### Code Quality
+### Quick Start
 
-#### Quality Checkers
+```bash
+# Install dependencies
+uv sync
 
-- Run `make check` to run formatters, linters and type checkers.
-- Run tests with `make test`.
+# Run a full experiment (data build + DPO training + evaluation)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml
 
-#### General Code Conventions
+# Resume from existing cache (skip data generation)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --skip-build
 
-- Code should always fit within 88 characters
-- All imports should happen at the top of each file. The only excuse for not doing this
-  is if the import would cause a circular import, in which case this should be stated in
-  a comment next to the import statement
-- Never use the old %-style string formatting. Use f-strings instead
-- Never use `print` statements - use a logger instead
-- Functions and classes in a module or script should be ordered from the most high-level
-  to the most low-level. For example, if a function is a helper function that is only
-  used by another function, then the helper function should come after the function that
-  uses it. If there is a `main` function, then it should always be first
-- When we import things in modules from other modules in the package, we always do it
-  using relative imports:
+# Evaluate only (no training)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --eval-only
+```
 
-  ```python title="src/mypackage/module.py"
-  from .another_module import some_function
-  ```
+### Ablation Experiments
 
-- When we import things in scripts from other modules or other scripts, we always do it
-  using absolute imports:
+| Config                           | Construction Mode | Description                      |
+| -------------------------------- | ----------------- | -------------------------------- |
+| `danish-apertus.yaml`            | `max_reward`      | Select best-scoring candidate    |
+| `danish-apertus-gold.yaml`       | `gold_chosen`     | Use Qwen3-235B outputs as chosen |
+| `danish-apertus-generated.yaml`  | `generated`       | Keep all candidates, score all   |
+| `danish-apertus-ls.yaml`         | `max_reward`      | DPO with label smoothing (α=0.05)|
+| `danish-apertus-simpo.yaml`      | `max_reward`      | SimPO loss (γ=0.5, β=2.0)        |
+| `danish-apertus-llama-rm.yaml`   | `max_reward`      | Llama-3-based reward model       |
 
-  ```python title="src/scripts/script.py"
-  from mypackage.module import some_function
-  from another_script import some_other_function
-  ```
+### Queue/Runner Scripts
 
-  This also holds when we're importing things from modules in our tests.
+All in `src/scripts/`:
 
-#### Type Hints
+| Script                        | Purpose                                 |
+| ----------------------------- | --------------------------------------- |
+| `grpo_queue.sh`               | GRPO baseline training                  |
+| `llama_rm_queue.sh`           | Llama RM ablation (rescore → train)     |
+| `resume_ls_simpo.sh`          | Resume label smoothing / SimPO runs     |
+| `resume_tuned_simpo.sh`       | SimPO tuned → full ablation chain       |
+| `update_docs.sh`              | Export dashboard plots to `docs/gfx/`   |
 
-- Fully type-annotate all functions, methods, and variables
-- Target Python 3.12+ syntax:
-  - Use `list[T]`, `dict[K, V]`, `set[T]` (not `List`, `Dict`, `Set` from typing)
-  - Use `X | Y` for unions (not `Union[X, Y]`)
-  - Use `X | None` for optional types (not `Optional[X]`)
-- Always use `import typing as t` and use the `t.` prefix for types from the typing
-  module, such as `t.Literal`, `t.TypeAlias` or `t.TYPE_CHECKING`
-- For `Iterable`, `Generator` and `Callable`, use these from the `collections.abc`
-  module, not from `typing`. Import this as `import collections.abc as c` and refer to
-  the types as `c.Iterable`, `c.Generator` and `c.Callable`, etc.
-- Try not to use the `Any` type. You can often use`t.TypeVar` instead, but always give
-  such type variables meaningful names, and not just single letter names like `T`. The
-  main place where `Any` types can be acceptable is as the return type of a dictionary
-  with mixed outputs, e.g., `dict[str, t.Any]`, since otherwise you would encounter
-  issues with the type checker. Note that `list[t.Any]` is not okay.
-- Use the `None` return type for functions that do not return anything. Never use the
-  `NoReturn` type.
+## Testing
 
-#### Functions
+```bash
+# Run all tests
+make test
 
-- Use a single leading underscore (`_`) for protected functions which should not be
-  imported from outside the module, or for protected methods which should not be used
-  outside the class they are defined in
-- Always use keyword arguments when calling functions, never positional arguments
-- Example:
+# Run type checking, linting, formatting
+make check
 
-  ```python
-  def process_items(items: list[Item]) -> list[Result]:
-      ...
+# Individual test files
+uv run pytest tests/test_dpo.py -v
+```
 
-  process_items(items=items)
-  ```
+## Conventions
 
-### Documentation
+### Code Style
 
-- Avoid tutorial-style `#` comments that explain what code does.
-- Comments should explain **why**, not **what** (the code itself should be
-  self-explanatory)
-- Use Google-style docstrings for all public functions, classes, and modules.
-- Always include a newline after the name of each argument and exception in the
-  docstring.
-- Always prefer ascii characters over unicode (e.g., arrows as -> over →)
-- Example:
+- 88-character line width, Google-style docstrings
+- Type hints: Python 3.12+ syntax (`list[T]`, `X | None`)
+- Imports: `import typing as t`, `import collections.abc as c`
+- Use f-strings, not %-formatting
+- No `print()` — use `logging` module
+- Relative imports in modules, absolute in scripts
 
-  ```python
-  def process_items(items: list[Item], log: bool) -> list[Result]:
-      """Process items and return results.
+### Commit Messages
 
-      Args:
-          items:
-            List of items to process.
-          log:
-            Whether to log progress.
+Use [Conventional Commits](https://www.conventionalcommits.org/):
 
-      Returns:
-          List of processed results.
+```
+feat: add SimPO loss mixin
+fix: correct reward margin calculation
+docs: update experiment results
+```
 
-      Raises:
-          ValueError:
-            If items list is empty.
-      """
-      if log:
-          logger.info("Processing items")
-      return batch_process(items=items)
-  ```
+## Documentation Workflow
+
+### Updating Experiment Plots
+
+When experiments complete or checkpoints are evaluated:
+
+```bash
+# Export all plots (training dynamics + 10 learning curves + final comparison)
+uv run src/scripts/update_docs.sh
+```
+
+This script:
+
+1. Reads existing `croco_dashboard.html` (regenerate if stale)
+2. Exports 14 PNG plots to `docs/gfx/`:
+   - Training: `training_loss.png`, `training_accuracy.png`, `training_margins.png`
+   - Learning curves: `curve_*.png` (10 benchmarks)
+   - Final: `final_comparison.png` (bar chart with 95% CIs)
+3. Cleans up outdated plot files (`curve_*-test_*.png` patterns)
+
+After running:
+
+```bash
+git add docs/gfx/*.png docs/*.md
+git commit -m 'docs: update plots'
+```
+
+### Dashboard
+
+Generate locally:
+
+```bash
+python src/scripts/build_dashboard.py \
+  -m models/croco-munin-apertus-8b-da \
+  -m models/croco-munin-apertus-8b-da-gold \
+  -r euroeval_benchmark_results.jsonl \
+  -o croco_dashboard.html
+```
+
+Open `croco_dashboard.html` in a browser. Charts are interactive (hover for
+details, camera icon to export PNG).
+
+### Experiment Docs
+
+Each experiment has a markdown file in `docs/` (`01-max-reward.md`, etc.):
+
+- Frontmatter metadata (status, config, output path)
+- Hypothesis, Method, Results tables, Reproduction commands
+- Training dynamics plots (embedded from `gfx/`)
+
+Update docs when:
+
+- New benchmark results are available
+- Training completes (add Runtime section)
+- Plots are regenerated (run `update_docs.sh` first)
+
+## Gotchas
+
+- **All scripts in `src/scripts/`** — No `.sh` files in root or separate
+  `scripts/` directory. Run via `uv run src/scripts/<script>.sh`.
+- **Custom TRL code** — Custom losses (SimPO, label smoothing) are in
+  `src/croco/dpo.py`, NOT in `.venv/lib/*/site-packages/trl/`. Never edit
+  the installed TRL package.
+- **Reward model caching** — Candidate cache signature does NOT include the
+  reward model. Swapping RMs requires explicit re-scoring
+  (`src/scripts/rescore_candidates.py`).
+- **LoRA ref-free training** — TRL sets `ref_model=None` when LoRA is enabled;
+  reference log probs computed via adapter-off forward (not a bug).
+- **Parallel experiments** — Ensure different model directories to avoid
+  checkpoint collisions.
+- **EuroEval cache** — Results cached in `.euroeval_cache/`. Delete to
+  force re-evaluation.
+- **GPU memory** — vLLM needs ~20GB VRAM for 8B models at `max_model_len=4096`.
+  Reduce length or use `--tensor-parallel-size` if OOM.
+- **Significance markers** — ▲▼ in tables = non-overlapping 95% CIs
+  (bootstrap, 1000 samples), not p-values.
+- **Dashboard regeneration** — If models/results change, regenerate
+  dashboard before running `update_docs.sh`, otherwise plots will be stale.
+
+## Remote Execution (sparkie)
+
+Experiments run on the `sparkie` GPU server:
+
+```bash
+# Launch experiment in tmux
+ssh sparkie
+cd ~/croco
+tmux new-session -d -s exp1 "bash -lc 'uv run src/scripts/run_pipeline.py ...'"
+
+# Monitor
+tmux attach -t exp1
+tail -f ~/croco/*.log
+```
+
+Session names:
+
+- `queue` — Construction mode ablations
+- `tqueue` — SimPO tuned / full ablations
+- `grpo` — GRPO baseline
+- `llamarm` — Llama RM experiment
+
+Logs: `~/croco/ablations.log`, `~/croco/overnight.log`, `~/croco/run.log`
+
+## Environment
+
+Sparkie-specific:
+
+- `.env` — Environment variables (HF token, cache paths)
+- `.euroeval_cache/` — Benchmark evaluation cache
+- `.venv/` — Python virtual environment (managed by uv)
+- `models/` — Checkpoint output (symlinked to NFS storage)
+
+Copy `.env.example` to `.env` and fill in Hugging Face token if needed.

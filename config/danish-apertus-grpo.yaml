@@ -30,7 +30,11 @@ policy:
 reward:
   model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
   max_model_len: 32768
-  gpu_memory_utilization: 0.35
+  # NOTE: no gpu_memory_utilization here. On the GRPO path the reward model is
+  # loaded by TRL as a plain HuggingFace model (reward_funcs=model_id), NOT via
+  # vLLM, so it is NOT memory-capped - it grows dynamically with scoring
+  # activations on top of the training policy. Budget the unified memory
+  # accordingly (this is why vllm_gpu_memory_utilization below is kept modest).
 
 # Rollout sampling for GRPO is read from here: num_candidates is the group size,
 # and temperature/top_p/max_tokens match the CroCo self-generation distribution.
@@ -40,6 +44,9 @@ generation:
   temperature: 0.7
   top_p: 1.0
   tensor_parallel_size: 1
+  # gpu_memory_utilization and batch_size below are UNUSED on the GRPO path
+  # (grpo.py reads only num_candidates/temperature/top_p/max_tokens from this
+  # block). Kept only because the schema requires gpu_memory_utilization.
   gpu_memory_utilization: 0.45
   batch_size: 64
   enable_prefix_caching: true
@@ -79,11 +86,18 @@ grpo:
   lora_dropout: 0.05
   seed: 42
   use_vllm: true
-  # Fraction of (unified) GPU memory the colocated vLLM rollout engine may claim;
-  # the rest must hold the training policy + the reward model. Tune on the box.
-  vllm_gpu_memory_utilization: 0.3
+  # Fraction of the unified 128GB the colocated vLLM rollout engine claims EAGERLY
+  # at init. The rest must hold BOTH uncapped HF models (training policy + reward
+  # model) plus activations plus the OS - on unified memory an over-reservation
+  # here OOMs the WHOLE box, not just the GPU. Lowered 0.3 -> 0.2 after the 0.3
+  # setting hung sparkie at smoke-test startup (~26GB for vLLM, leaving ~102GB for
+  # the two 8B HF models + activations + OS). Tune up cautiously on the box.
+  vllm_gpu_memory_utilization: 0.2
   hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da-grpo
   save_steps: 100
+  # NOTE: torch_compile / dataloader_num_workers removed - they are NOT fields on
+  # GRPOTrainConfig, so pydantic silently dropped them; they never reached the
+  # trainer (torch_compile was never actually enabled).
 
 eval:
   language: da

@@ -23,7 +23,8 @@ policy:
 reward:
   model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
   max_model_len: 32768
-  gpu_memory_utilization: 0.35
+  # No gpu_memory_utilization: on the GRPO path the reward model loads as a plain
+  # uncapped HF model (not vLLM). See danish-apertus-grpo.yaml for the full note.
 
 # max_tokens kept at the full run's 2048 so the smoke validates worst-case
 # rollout/training memory, not a smaller-than-real footprint.
@@ -33,6 +34,8 @@ generation:
   temperature: 0.7
   top_p: 1.0
   tensor_parallel_size: 1
+  # UNUSED on the GRPO path (kept only because the schema requires
+  # gpu_memory_utilization). See danish-apertus-grpo.yaml.
   gpu_memory_utilization: 0.45
   batch_size: 64
   enable_prefix_caching: true
@@ -71,7 +74,8 @@ grpo:
   lora_dropout: 0.05
   seed: 42
   use_vllm: true
-  vllm_gpu_memory_utilization: 0.3
+  # Matches the full run (lowered 0.3 -> 0.2 after 0.3 hung the box at startup).
+  vllm_gpu_memory_utilization: 0.2
   hf_repo_id: null
   save_steps: 0
 

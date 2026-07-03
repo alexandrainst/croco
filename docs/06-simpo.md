@@ -2,8 +2,8 @@
 title: SimPO Ablation (β=0.1)
 description: Length-normalised loss with low beta (single-variable baseline)
 created: 2026-07-02
-updated: 2026-07-02 17:25 CEST
-status: evals-in-progress
+updated: 2026-07-03
+status: evals-complete
 config: config/danish-apertus-simpo.yaml
 output: models/croco-munin-apertus-8b-da-simpo
 started: 2026-07-01 09:59
@@ -44,25 +44,30 @@ Identical to [Label Smoothing](05-label-smoothing.md) except loss type hint:
 
 ## Current Status
 
-🏃 **Running** — step ~622/625 (99.5%), ~4 min remaining on training.
+✅ **Complete** — training finished and all 10 EuroEval benchmarks evaluated (2026-07-03).
 
 ## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations for final
-eval, 3 for checkpoints).
+**Evaluation suite:** 10 Danish benchmarks from [EuroEval](https://euroeval.com), 10 iterations each.
+**Legend:** ▲ significantly better than Max Reward (baseline), ▼ significantly worse (non-overlapping 95% CIs).
 
-| Benchmark            | Task                     | Metric               | Score (± CI) | Status               |
-| -------------------- | ------------------------ | -------------------- | ------------ | -------------------- |
-| AngryTweets          | Sentiment classification | MCC                  | —            | 🏃 Currently running |
-| ScaLA-da             | Linguistic acceptability | MCC                  | —            | ⏳ Queued            |
-| DANSK                | Named entity recognition | Micro F1             | —            | ⏳ Queued            |
-| MultiWikiQA-da       | Reading comprehension    | F1                   | —            | ⏳ Queued            |
-| Nordjylland News     | Summarization            | chrF++               | —            | ⏳ Queued            |
-| Danske Talemåder     | Knowledge                | Accuracy             | —            | ⏳ Queued            |
-| Danish Citizen Tests | Knowledge                | Accuracy             | —            | ⏳ Queued            |
-| HellaSwag-da         | Common sense reasoning   | Accuracy             | —            | ⏳ Queued            |
-| IFEval-da            | Instruction following    | Instruction accuracy | —            | ⏳ Queued            |
-| ValEU-da             | European values          | Alignment score      | —            | ⏳ Queued            |
+| Benchmark            | Task                     | Metric               |     Score |          95% CI | vs Max Reward | Status      |
+| -------------------- | ------------------------ | -------------------- | --------: | --------------: | :-----------: | ----------- |
+| AngryTweets          | Sentiment classification | MCC                  | **46.28** |  [42.84, 49.71] |       •       | ✅ Complete |
+| ScaLA-da             | Linguistic acceptability | MCC                  | **28.01** |  [23.20, 32.82] |       •       | ✅ Complete |
+| DANSK                | Named entity recognition | Micro F1             | **41.71** |  [39.51, 43.91] |       •       | ✅ Complete |
+| MultiWikiQA-da       | Reading comprehension    | F1                   | **33.06** |  [23.73, 42.39] |       ▼       | ✅ Complete |
+| Nordjylland News     | Summarization            | chrF++               | **32.73** |  [31.15, 34.32] |       ▼       | ✅ Complete |
+| Danske Talemåder     | Knowledge                | Accuracy             | **69.38** |  [66.48, 72.27] |       •       | ✅ Complete |
+| Danish Citizen Tests | Knowledge                | Accuracy             | **84.33** |  [81.98, 86.68] |       •       | ✅ Complete |
+| HellaSwag-da         | Common sense reasoning   | Accuracy             | **52.66** |  [48.80, 56.51] |       •       | ✅ Complete |
+| IFEval-da            | Instruction following    | Instruction accuracy | **45.16** |  [43.39, 46.93] |       ▼       | ✅ Complete |
+| ValEU-da             | European values          | Alignment score      |  **0.21** |   [-0.04, 0.45] |       •       | ✅ Complete |
+
+**Finding:** at β=0.1 the length-normalised loss is under-tuned and **significantly hurts**
+reading comprehension (MultiWikiQA ▼), summarization (Nordjylland ▼) and instruction
+following (IFEval ▼) relative to `max_reward`, with no benchmark improved. This motivates
+raising β to the SimPO-recommended range ([SimPO Tuned](07-simpo-tuned.md)).
 
 **Training metrics** (step 625/625):
 
@@ -76,10 +81,9 @@ eval, 3 for checkpoints).
 
 | Date              | Milestone                        |
 | ----------------- | -------------------------------- |
-| 2026-07-01 09:59  | Training started (step 0/625)    |
-| 2026-07-02 17:20  | Training at step 622/625 (99.5%) |
-| ~2026-07-02 17:25 | Training completes (ETA)         |
-| ~2026-07-02 19:15 | Evals complete (ETA)             |
+| 2026-07-01 09:59  | Training started (step 0/625)     |
+| 2026-07-02 17:25  | Training completed (step 625/625) |
+| 2026-07-03 03:34  | Evals complete (10 benchmarks)    |
 
 ## Related
 

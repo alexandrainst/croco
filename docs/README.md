@@ -43,7 +43,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | Experiment                                    | Description                                                                               | Status      |
 | --------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------- |
 | [**Label Smoothing**](05-label-smoothing.md)  | `max_reward` + label smoothing (α=0.05) for robustness to noisy RM labels       | ✅ Complete |
-| [**SimPO (β=0.1)**](06-simpo.md)              | Length-normalised loss with low β (clean single-variable ablation)                        | 🏃 Running  |
+| [**SimPO (β=0.1)**](06-simpo.md)              | Length-normalised loss with low β (clean single-variable ablation)                        | ✅ Complete |
 | [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | Raise β to [SimPO](https://arxiv.org/abs/2405.14734)-recommended 2.0, keep `sigmoid_norm` | ⏳ Queued   |
 | [**SimPO Full (ref-free)**](08-simpo-full.md) | True ref-free SimPO loss + target margin γ=0.5                                            | ⏳ Queued   |
 
@@ -88,11 +88,14 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | Experiment                       | Best Result      | Significant Improvements ▲ | Significant Degradations ▼ |
 | -------------------------------- | ---------------- | -------------------------- | -------------------------- |
 | **Label Smoothing** (max_reward) | IFEval-da: 54.47 | Instruction following      | —                          |
+| **SimPO** (β=0.1, `sigmoid_norm`) | —               | —                          | MultiWikiQA ▼, Nordjylland ▼, IFEval ▼, ValEU ▼ |
 
 **Takeaway:** Label smoothing (α=0.05) tracks `max_reward` closely — like `max_reward` it
 beats the base model on instruction following, and head-to-head against `max_reward` it
 shows **no significant difference on any benchmark** (see [Label Smoothing](05-label-smoothing.md)).
-It neither helps nor hurts here.
+It neither helps nor hurts here. **SimPO at β=0.1 is under-tuned and clearly hurts** —
+it degrades reading comprehension, summarization, instruction following and alignment vs
+both base and `max_reward` — motivating the β=2.0 retune ([SimPO Tuned](07-simpo-tuned.md)).
 
 ### Online RL
 
@@ -114,18 +117,18 @@ It neither helps nor hurts here.
 _Each cell is the mean score with its bootstrap 95% CI in brackets. ▲/▼ mark scores
 whose CI does not overlap the base model's CI (significantly better / worse)._
 
-| Dataset | Metric | Base Model | Max Reward | Gold | Generated | Label Smooth |
-| --- | --- | --- | --- | --- | --- | --- |
-| AngryTweets | MCC | 48.51 [45.30, 51.71] | 48.05 [45.66, 50.43] | 48.68 [45.38, 51.97] | 48.07 [45.62, 50.51] | 47.76 [45.62, 49.90] |
-| ScaLA-da | MCC | 34.56 [32.06, 37.06] | 35.70 [32.15, 39.26] | 23.04 ▼ [18.50, 27.58] | 35.46 [32.56, 38.35] | 32.37 [28.74, 36.00] |
-| DANSK | Micro F1 | 43.96 [41.79, 46.14] | 45.20 [42.75, 47.64] | 42.25 [39.44, 45.07] | 44.19 [42.34, 46.05] | 44.79 [43.03, 46.55] |
-| MultiWikiQA-da | F1 | 75.73 [74.53, 76.92] | 74.60 [73.17, 76.02] | 74.35 [73.06, 75.63] | 74.34 [72.73, 75.96] | 74.07 [72.75, 75.39] |
-| Nordjylland News | chrF++ | 37.51 [37.01, 38.01] | 37.62 [37.07, 38.18] | 34.20 ▼ [33.43, 34.97] | 37.38 [36.80, 37.96] | 37.59 [37.07, 38.11] |
-| Danske Talemåder | Accuracy | 69.22 [66.05, 72.38] | 69.22 [66.84, 71.59] | 70.78 [68.45, 73.11] | 67.97 [64.97, 70.97] | 69.22 [66.15, 72.28] |
-| Danish Citizen Tests | Accuracy | 84.78 [82.16, 87.40] | 84.44 [81.60, 87.29] | 83.67 [81.15, 86.18] | 83.56 [81.05, 86.07] | 84.00 [80.95, 87.05] |
-| HellaSwag-da | Accuracy | 53.28 [49.54, 57.02] | 53.95 [50.02, 57.87] | 54.96 [51.05, 58.87] | 52.62 [49.28, 55.96] | 52.77 [48.70, 56.84] |
-| IFEval-da | Instr. Acc | 50.29 [48.75, 51.83] | 56.13 ▲ [54.84, 57.41] | 54.25 ▲ [53.55, 54.96] | 47.21 [45.62, 48.79] | 54.47 ▲ [53.08, 55.85] |
-| ValEU-da | Alignment | 12.46 [6.86, 18.07] | 5.45 [-1.09, 11.98] | 0.28 ▼ [-0.04, 0.61] | 10.08 [2.19, 17.97] | 4.81 [-1.78, 11.40] |
+| Dataset | Metric | Base Model | Max Reward | Gold | Generated | Label Smooth | SimPO (β=0.1) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| AngryTweets | MCC | 48.51 [45.30, 51.71] | 48.05 [45.66, 50.43] | 48.68 [45.38, 51.97] | 48.07 [45.62, 50.51] | 47.76 [45.62, 49.90] | 46.28 [42.84, 49.71] |
+| ScaLA-da | MCC | 34.56 [32.06, 37.06] | 35.70 [32.15, 39.26] | 23.04 ▼ [18.50, 27.58] | 35.46 [32.56, 38.35] | 32.37 [28.74, 36.00] | 28.01 [23.20, 32.82] |
+| DANSK | Micro F1 | 43.96 [41.79, 46.14] | 45.20 [42.75, 47.64] | 42.25 [39.44, 45.07] | 44.19 [42.34, 46.05] | 44.79 [43.03, 46.55] | 41.71 [39.51, 43.91] |
+| MultiWikiQA-da | F1 | 75.73 [74.53, 76.92] | 74.60 [73.17, 76.02] | 74.35 [73.06, 75.63] | 74.34 [72.73, 75.96] | 74.07 [72.75, 75.39] | 33.06 ▼ [23.73, 42.39] |
+| Nordjylland News | chrF++ | 37.51 [37.01, 38.01] | 37.62 [37.07, 38.18] | 34.20 ▼ [33.43, 34.97] | 37.38 [36.80, 37.96] | 37.59 [37.07, 38.11] | 32.73 ▼ [31.15, 34.32] |
+| Danske Talemåder | Accuracy | 69.22 [66.05, 72.38] | 69.22 [66.84, 71.59] | 70.78 [68.45, 73.11] | 67.97 [64.97, 70.97] | 69.22 [66.15, 72.28] | 69.38 [66.48, 72.27] |
+| Danish Citizen Tests | Accuracy | 84.78 [82.16, 87.40] | 84.44 [81.60, 87.29] | 83.67 [81.15, 86.18] | 83.56 [81.05, 86.07] | 84.00 [80.95, 87.05] | 84.33 [81.98, 86.68] |
+| HellaSwag-da | Accuracy | 53.28 [49.54, 57.02] | 53.95 [50.02, 57.87] | 54.96 [51.05, 58.87] | 52.62 [49.28, 55.96] | 52.77 [48.70, 56.84] | 52.66 [48.80, 56.51] |
+| IFEval-da | Instr. Acc | 50.29 [48.75, 51.83] | 56.13 ▲ [54.84, 57.41] | 54.25 ▲ [53.55, 54.96] | 47.21 [45.62, 48.79] | 54.47 ▲ [53.08, 55.85] | 45.16 ▼ [43.39, 46.93] |
+| ValEU-da | Alignment | 12.46 [6.86, 18.07] | 5.45 [-1.09, 11.98] | 0.28 ▼ [-0.04, 0.61] | 10.08 [2.19, 17.97] | 4.81 [-1.78, 11.40] | 0.21 ▼ [-0.04, 0.45] |
 
 **Legend:** ▲ better than base (base CI and this CI do not overlap), ▼ worse
 

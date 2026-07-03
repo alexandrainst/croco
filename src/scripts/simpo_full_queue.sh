@@ -14,6 +14,10 @@ DIR=croco-munin-apertus-8b-da-simpo-full
 PAIRS=data/pairs_apertus.jsonl
 CACHE=data/candidates_cache.jsonl
 
+# TRL optimization: persistent datasets cache (avoids /tmp disappearing mid-run)
+export HF_DATASETS_CACHE=~/croco/.hf_datasets_cache
+mkdir -p "$HF_DATASETS_CACHE"
+
 log "===== SimPO-full: sync repo ====="
 run git pull --ff-only
 
@@ -24,7 +28,7 @@ run uv run src/scripts/run_pipeline.py -c config/danish-apertus-simpo-full.yaml 
 log "===== SimPO-full: final eval (10 iterations) ====="
 run uv run euroeval --model "models/$DIR" \
   --language da --num-iterations 10 --gpu-memory-utilization $GMEM --save-results
-log "===== SimPO-full: checkpoint evals (3 iterations) ====="
+log "===== SimPO-full: checkpoint evals (10 iterations) ====="
 run uv run src/scripts/eval_checkpoints.py -m "models/$DIR" \
-  -l da --num-iterations 3 --gpu-memory-utilization $GMEM --no-include-final
+  -l da --num-iterations 10 --gpu-memory-utilization $GMEM --no-include-final
 log "===== SimPO-full DONE ====="

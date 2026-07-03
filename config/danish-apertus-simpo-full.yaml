@@ -80,6 +80,10 @@ dpo:
   # True ref-free SimPO: raw length-normalised policy log-prob + target margin.
   loss_type: simpo
   target_margin: 0.5
+  # Ref-free SimPO has no reference model, so precompute_ref_log_probs does not
+  # apply. Removed torch_compile / dataloader_num_workers - neither is a
+  # DPOTrainConfig field, so pydantic silently dropped them (no effect), same as
+  # the GRPO cfg.
 
 eval:
   language: da

@@ -80,6 +80,12 @@ dpo:
   # loss_type held at sigmoid_norm (length-normalised DPO); the single variable
   # is beta above (0.1 -> 2.0). Still reference-based, no target margin.
   loss_type: sigmoid_norm
+  # Precompute the reference log-probs once up front, then drop the reference
+  # model for the rest of training: skips the per-step ref forward pass AND frees
+  # the ref model's memory (real DPOTrainConfig field, passed in dpo.py). Removed
+  # torch_compile / dataloader_num_workers - neither is a DPOTrainConfig field, so
+  # pydantic silently dropped them (they never took effect), same as the GRPO cfg.
+  precompute_ref_log_probs: true
 
 eval:
   language: da

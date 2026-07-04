@@ -16,7 +16,8 @@ CACHE=data/candidates_cache.jsonl
 
 # TRL optimization: persistent datasets cache (avoids /tmp disappearing mid-run)
 export HF_DATASETS_CACHE=~/croco/.hf_datasets_cache
-mkdir -p "$HF_DATASETS_CACHE"
+export TMPDIR=~/croco/.tmp
+mkdir -p "$HF_DATASETS_CACHE" "$TMPDIR"
 
 log "===== SimPO-full: sync repo ====="
 run git pull --ff-only

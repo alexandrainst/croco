@@ -51,6 +51,7 @@ _MODE_MARKERS = (
     ("croco-munin-apertus-8b-da-simpo-full", "simpo_full"),
     ("croco-munin-apertus-8b-da-simpo", "sigmoid_norm"),
     ("croco-munin-apertus-8b-da-grpo", "grpo"),
+    ("croco-munin-apertus-8b-da-llamarm", "llama_rm"),
     ("croco-munin-apertus-8b-da", "max_reward"),
 )
 _TRAINING_KEYS = {
@@ -508,6 +509,10 @@ _HTML_TEMPLATE = r"""<!doctype html>
   select { font-size: 14px; padding: 4px; margin: 8px 0; }
   .pill { display:inline-block; padding:2px 8px; border-radius:10px; font-size:12px;
           background:#eef; color:#225; margin-left:6px; }
+  .mode-selector { margin: 16px 0; padding: 12px; background: #f5f5f5;
+                   border-radius: 8px; }
+  .mode-selector label { margin-right: 14px; cursor: pointer; user-select: none; }
+  .mode-selector input[type="checkbox"] { margin-right: 4px; }
 </style>
 </head>
 <body>
@@ -515,8 +520,10 @@ _HTML_TEMPLATE = r"""<!doctype html>
 <div class="meta">Generated <span id="gen"></span> &middot; auto-refreshes every
   __REFRESH__s &middot; hover a chart and use the camera icon to save a PNG</div>
 
-<h2>Training progress</h2>
-<div id="progress" class="meta"></div>
+<div class="mode-selector">
+  <strong>Show modes:</strong>
+  <div id="modeCheckboxes" style="margin-top: 8px;"></div>
+</div>
 
 <h2>DPO training dynamics</h2>
 <div class="grid">
@@ -536,7 +543,76 @@ _HTML_TEMPLATE = r"""<!doctype html>
 const DATA = __DATA__;
 const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f",
   generated: "#ff7f0e", label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd",
-  grpo: "#8c564b", simpo_tuned: "#e377c2", simpo_full: "#17becf"};
+  grpo: "#8c564b", simpo_tuned: "#e377c2", simpo_full: "#17becf",
+  llama_rm: "#bcbd22"};
+const MODE_LABELS = {
+  max_reward: "max_reward",
+  gold_chosen: "gold_chosen",
+  generated: "generated",
+  label_smoothing: "label_smoothing",
+  sigmoid_norm: "SimPO",
+  grpo: "GRPO",
+  llama_rm: "Llama RM",
+  grpo: "GRPO",
+  simpo_tuned: "SimPO-tuned",
+  simpo_full: "SimPO-full"
+};
+
+function getSelectedModes() {
+  const stored = localStorage.getItem("croco_selected_modes");
+  if (stored) return JSON.parse(stored);
+  return Object.keys(COLOURS); // all selected by default
+}
+
+function setSelectedModes(modes) {
+  localStorage.setItem("croco_selected_modes", JSON.stringify(modes));
+}
+
+function renderModeSelector() {
+  const container = document.getElementById("modeCheckboxes");
+  const selected = getSelectedModes();
+  // Only show modes that have data in at least one of: training, curves, or finals
+  const modesWithResults = new Set();
+  for (const mode of Object.keys(DATA.training || {})) {
+    if (!mode.startsWith("base")) modesWithResults.add(mode);
+  }
+  for (const mode of Object.keys(DATA.curves || {})) {
+    if (!mode.startsWith("base")) modesWithResults.add(mode);
+  }
+  for (const mode of Object.keys(DATA.finals || {})) {
+    if (!mode.startsWith("base")) modesWithResults.add(mode);
+  }
+  const modes = Object.keys(COLOURS)
+    .filter(m => !m.startsWith("base"))
+    .filter(m => modesWithResults.has(m));
+  if (!modes.length) {
+    container.innerHTML = '<span class="note">No experiment results yet.</span>';
+    return;
+  }
+  modes.forEach(mode => {
+    const label = document.createElement("label");
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.value = mode;
+    cb.checked = selected.includes(mode);
+    cb.onchange = () => {
+      const nowSelected = Array.from(container.querySelectorAll("input:checked"))
+        .map(el => el.value);
+      setSelectedModes(nowSelected);
+      updateAllPlots();
+    };
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(MODE_LABELS[mode] || mode));
+    label.style.color = COLOURS[mode];
+    container.appendChild(label);
+  });
+}
+
+function updateAllPlots() {
+  trainingPlots();
+  curves();
+  finals();
+}
 // Significance of a score relative to the base policy via non-overlapping 95%
 // CIs: returns +1 (significantly better), -1 (significantly worse) or 0.
 function sigVsBase(rec, baseRec) {
@@ -556,14 +632,6 @@ const layout = (title, xlab, ylab, extra) => Object.assign({
 const CFG = {responsive: true, displaylogo: false,
   toImageButtonOptions: {format: "png", scale: 2}};
 
-function progress() {
-  const parts = Object.entries(DATA.training).map(([mode, s]) =>
-    `${mode}: step ${s.latest_step}/${s.total}` +
-    (s.total ? ` (${Math.round(100*s.latest_step/s.total)}%)` : ""));
-  document.getElementById("progress").textContent =
-    parts.length ? parts.join("  ·  ") : "no training data yet";
-}
-
 function lineTrace(mode, x, y) {
   return {x, y, mode: "lines+markers", name: mode, marker: {size: 4},
           line: {color: COLOURS[mode] || undefined}};
@@ -575,8 +643,10 @@ function trainingPlots() {
     ["acc", "acc", "Preference accuracy (chosen > rejected)", "accuracy"],
     ["margins", "margins", "Reward margin (chosen - rejected)", "margin"],
   ];
+  const selected = getSelectedModes();
   for (const [div, key, title, ylab] of specs) {
     const traces = Object.entries(DATA.training)
+      .filter(([mode]) => selected.includes(mode) || mode.startsWith("base"))
       .map(([mode, s]) => lineTrace(mode, s.steps, s[key]));
     const lay = layout(title, "step", ylab);
     if (key === "acc") lay.yaxis.range = [0, 1];
@@ -596,7 +666,10 @@ function drawCurve(metric) {
   // Dodge each run by a small horizontal offset so the (vertical) confidence
   // intervals sit side-by-side instead of overlapping; hover still reports the
   // true checkpoint step.
-  const present = Object.entries(DATA.curves).filter(([, mm]) => mm[metric]);
+  const selected = getSelectedModes();
+  const present = Object.entries(DATA.curves)
+    .filter(([, mm]) => mm[metric])
+    .filter(([mode]) => selected.includes(mode) || mode.startsWith("base"));
   const spread = 4;
   present.forEach(([mode, metrics], i) => {
     const pts = metrics[metric];
@@ -634,7 +707,9 @@ function curves() {
 }
 
 function finals() {
-  const labels = Object.keys(DATA.finals);
+  const selected = getSelectedModes();
+  const labels = Object.keys(DATA.finals)
+    .filter(l => selected.includes(l) || l.startsWith("base"));
   if (!labels.length) {
     document.getElementById("finals").innerHTML =
       '<div class="note">No final evaluations yet.</div>'; return;
@@ -709,7 +784,8 @@ function finals() {
         tickfont: {family: "monospace", size: 11}}}), CFG);
 }
 
-progress(); trainingPlots(); curves(); finals();
+renderModeSelector();
+trainingPlots(); curves(); finals();
 </script>
 </body>
 </html>

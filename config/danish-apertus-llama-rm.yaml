@@ -89,6 +89,11 @@ dpo:
   # OBJECTIVE: set to the ls/simpo winner before running (see header). Add
   # `label_smoothing: 0.05` if ls wins, or `loss_type: sigmoid_norm` if SimPO
   # wins; leave neither if vanilla DPO wins.
+  #
+  # OPTIMIZATIONS (TRL 1.7.0+):
+  torch_compile: true              # ~30-50% faster after warmup
+  precompute_ref_log_probs: true   # Skip ref forward pass per step (~30-50% faster)
+  dataloader_num_workers: 4        # Parallel data loading
 
 eval:
   language: da

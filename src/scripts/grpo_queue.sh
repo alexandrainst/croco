@@ -12,6 +12,10 @@ run() { log "RUN: $*"; "$@" && log "OK" || log "FAILED ($?): $*"; }
 GMEM=0.5
 DIR=croco-munin-apertus-8b-da-grpo
 
+# TRL optimization: persistent datasets cache (avoids /tmp disappearing mid-run)
+export HF_DATASETS_CACHE=~/croco/.hf_datasets_cache
+mkdir -p "$HF_DATASETS_CACHE"
+
 log "===== GRPO: sync repo ====="
 run git pull --ff-only
 

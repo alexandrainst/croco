@@ -276,6 +276,17 @@ dpo:
   dataloader_num_workers: 4        # Parallel data loading
 ```
 
+**Important:** Before enabling `precompute_ref_log_probs`, set `HF_DATASETS_CACHE` to persistent storage:
+
+```bash
+export HF_DATASETS_CACHE=~/croco/.hf_datasets_cache
+mkdir -p "$HF_DATASETS_CACHE"
+```
+
+Without this, TRL's precomputed reference log probs cache goes to `/tmp` and can
+disappear mid-run (shared filesystem, cleanup policies). The queue scripts
+(`src/scripts/*_queue.sh`) already set this.
+
 ### Memory Optimizations
 
 ```yaml

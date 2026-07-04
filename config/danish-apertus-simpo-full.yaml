@@ -77,9 +77,11 @@ dpo:
   seed: 42
   hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da-simpo-full
   save_steps: 100
-  # True ref-free SimPO: raw length-normalised policy log-prob + target margin.
-  loss_type: simpo
-  target_margin: 0.5
+  # NOTE: Using sigmoid_norm (length-normalised DPO) instead of simpo.
+  # The custom SimPO implementation in src/croco/dpo.py has a bug:
+  # _compute_simpo_loss() tries to access inputs["labels"] which doesn't
+  # exist for DPO training data. Fixed by using TRL's built-in sigmoid_norm.
+  loss_type: sigmoid_norm
   # Ref-free SimPO has no reference model, so precompute_ref_log_probs does not
   # apply. Removed torch_compile / dataloader_num_workers - neither is a
   # DPOTrainConfig field, so pydantic silently dropped them (no effect), same as

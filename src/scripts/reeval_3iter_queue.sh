@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Queue re-evaluation of 3-iteration checkpoints, waiting for GPU availability.
-# Monitors GPU and stuned session, launches re-eval when both are free.
+# Queue re-evaluation of 3-iteration checkpoints.
+# Waits for BOTH stuned and sfull training sessions to complete, then runs re-eval.
 #
 # Usage:
 #   tmux new-session -d -s reeval3_queue "bash -lc 'bash ~/croco/src/scripts/reeval_3iter_queue.sh 2>&1 | tee ~/croco/reeval_3iter_queue.log'"
@@ -8,10 +8,9 @@ set -uo pipefail
 cd ~/croco
 log() { echo "[$(date "+%F %T")] $*"; }
 
-STABLE_MINUTES=${STABLE_MINUTES:-3}
-
-gpu_busy() {
-    nvidia-smi --query-compute-apps=pid --format=csv,noheader 2>/dev/null | grep -q .
+# A session is "working" only if it exists AND some pane runs a non-shell command
+does_session_exist() {
+    tmux has-session -t "$1" 2>/dev/null
 }
 
 session_working() {
@@ -20,23 +19,26 @@ session_working() {
         | grep -qvE '^(bash|-bash|zsh|-zsh|sh|fish|tmux)$'
 }
 
-wait_for_gpu() {
-    local stable=0
-    log "Waiting for GPU to be free (idle for ${STABLE_MINUTES} min)..."
-    while (( stable < STABLE_MINUTES )); do
-        if gpu_busy; then
-            (( stable > 0 )) && log "  GPU busy, resetting"
-            stable=0
-        else
-            stable=$((stable + 1))
-            log "  GPU idle ${stable}/${STABLE_MINUTES} min"
+wait_for_training() {
+    log "Waiting for stuned and sfull training sessions to finish..."
+    while does_session_exist "stuned" || does_session_exist "sfull"; do
+        if session_working "stuned"; then
+            log "  stuned still training..."
+        elif does_session_exist "stuned"; then
+            log "  stuned finishing up..."
+        fi
+        if session_working "sfull"; then
+            log "  sfull still training..."
+        elif does_session_exist "sfull"; then
+            log "  sfull finishing up..."
         fi
         sleep 60
     done
+    log "  Both training sessions complete."
 }
 
 log "===== Re-eval 3-iter queue monitor started ====="
-wait_for_gpu
-log "===== GPU free — launching re-eval ====="
+wait_for_training
+log "===== Training complete — launching re-eval ====="
 bash ~/croco/src/scripts/reeval_3iter_checkpoints.sh 2>&1 | tee ~/croco/reeval_3iter.log
 log "===== Re-eval complete ====="

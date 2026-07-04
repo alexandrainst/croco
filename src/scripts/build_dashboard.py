@@ -64,6 +64,55 @@ _TRAINING_KEYS = {
 }
 
 
+def _discover_model_dirs(*, reader: "_Reader") -> tuple[str, ...]:
+    """Auto-discover model directories from config/*.yaml output_dir fields.
+
+    Args:
+        reader:
+          File reader (local or ssh-backed).
+
+    Returns:
+        Tuple of model directory paths (relative to reader root).
+    """
+    try:
+        if reader.ssh_host:
+            # List and parse remote configs in one SSH call
+            result = subprocess.run(
+                ["ssh", reader.ssh_host, f"cd {reader.root} && grep -h '^  output_dir:' config/*.yaml 2>/dev/null"],
+                capture_output=True, text=True, check=False
+            )
+            if result.returncode != 0 or not result.stdout.strip():
+                logger.warning("Could not read remote configs: %s", result.stderr.strip())
+                return ()
+            model_dirs = []
+            for line in result.stdout.strip().split("\n"):
+                if ":" in line:
+                    output_dir = line.split(":", 1)[1].strip()
+                    # Skip micro ablations and smoke tests
+                    if "micro" not in output_dir and "_smoke" not in output_dir:
+                        model_dirs.append(output_dir)
+            return tuple(sorted(set(model_dirs)))
+        else:
+            import glob
+            model_dirs = []
+            for config_path in glob.glob("config/*.yaml"):
+                try:
+                    with open(config_path) as f:
+                        for line in f:
+                            if line.strip().startswith("output_dir:"):
+                                output_dir = line.split(":", 1)[1].strip()
+                                # Skip micro ablations and smoke tests
+                                if "micro" not in output_dir and "_smoke" not in output_dir:
+                                    model_dirs.append(output_dir)
+                                break
+                except Exception as e:
+                    logger.debug("Could not parse %s: %s", config_path, e)
+            return tuple(sorted(set(model_dirs)))
+    except Exception as e:
+        logger.warning("Could not discover configs: %s", e)
+        return ()
+
+
 @click.command()
 @click.option(
     "--model-dir",
@@ -71,6 +120,13 @@ _TRAINING_KEYS = {
     "model_dirs",
     multiple=True,
     help="DPO output directory to read training dynamics from (repeatable).",
+)
+@click.option(
+    "--configs",
+    "-c",
+    is_flag=True,
+    default=False,
+    help="Auto-discover model directories from config/*.yaml output_dir fields.",
 )
 @click.option(
     "--results",
@@ -112,6 +168,7 @@ _TRAINING_KEYS = {
 def main(
     *,
     model_dirs: tuple[str, ...],
+    configs: bool,
     results: str,
     output: Path,
     ssh_host: str | None,
@@ -124,6 +181,8 @@ def main(
     Args:
         model_dirs:
           DPO output directories to read training dynamics from.
+        configs:
+          If set, auto-discover model directories from config/*.yaml.
         results:
           Path to the EuroEval results JSONL file.
         output:
@@ -138,6 +197,11 @@ def main(
           Browser meta-refresh interval embedded in the page.
     """
     reader = _Reader(ssh_host=ssh_host, root=remote_root)
+
+    # Auto-discover model directories from config/*.yaml if --configs is set
+    if configs:
+        model_dirs = _discover_model_dirs(reader=reader)
+        logger.info("Auto-discovered %d model directories from configs", len(model_dirs))
 
     while True:
         _build_once(

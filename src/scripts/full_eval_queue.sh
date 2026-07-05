@@ -3,39 +3,37 @@ set -uo pipefail
 cd ~/croco
 log() { echo "[$(date '+%F %T')] $*"; }
 
-does_session_exist() { tmux has-session -t "$1" 2>/dev/null; }
-
-session_working() {
-    tmux has-session -t "$1" 2>/dev/null || return 1
-    tmux list-panes -t "$1" -F '#{pane_current_command}' 2>/dev/null | grep -qvE '^(bash|-bash|zsh|-zsh|sh|fish|tmux)$'
-}
-
+# Wait for a tmux session's pane to die
 wait_for_session() {
     local session="$1"
     log "Waiting for $session to finish..."
-    while does_session_exist "$session"; do
-        if session_working "$session"; then
+    while tmux has-session -t "$session" 2>/dev/null; do
+        if ! tmux capture-pane -t "$session" -p 2>/dev/null | grep -q 'Pane is dead'; then
             log "  $session still running..."
         else
-            log "  $session finishing up..."
+            log "  $session complete (pane dead)"
+            break
         fi
-        sleep 60
+        sleep 30
     done
-    log "  $session complete."
+    tmux kill-session -t "$session" 2>/dev/null || true
+    log "  $session session cleaned up."
 }
 
 log "===== Full eval queue started ====="
 wait_for_session "reeval3"
 
-log "===== Launching SimPO-full ====="
+# simpo_full_queue.sh runs inline - it blocks until training+eval complete
+log "===== Launching SimPO-full (this will take several hours) ====="
 bash ~/croco/src/scripts/simpo_full_queue.sh 2>&1 | tee ~/croco/simpo_full_queued.log
-wait_for_session "sfull"
+log "===== SimPO-full complete ====="
 
-log "===== Launching Llama RM ====="
+log "===== Launching Llama RM (this will take several hours) ====="
 bash ~/croco/src/scripts/llama_rm_queue.sh 2>&1 | tee ~/croco/llama_rm_queued.log
-wait_for_session "llamarm"
+log "===== Llama RM complete ====="
 
-log "===== Launching GRPO ====="
+log "===== Launching GRPO (this will take several hours) ====="
 bash ~/croco/src/scripts/grpo_queue.sh 2>&1 | tee ~/croco/grpo_queued.log
+log "===== GRPO complete ====="
 
 log "===== All evaluations complete ====="

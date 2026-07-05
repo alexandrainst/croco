@@ -29,7 +29,12 @@ BLOCKING_SESSIONS=(
 
 session_has_live_pane() {
     local session="$1"
-    tmux list-panes -t "$session" -F '#{pane_dead}' 2>/dev/null \
+
+    tmux list-sessions -F '#{session_name}' 2>/dev/null \
+        | grep -Fx -- "$session" >/dev/null \
+        || return 1
+
+    tmux list-panes -t "=$session" -F '#{pane_dead}' 2>/dev/null \
         | grep -q '^0$'
 }
 

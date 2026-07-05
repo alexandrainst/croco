@@ -96,13 +96,15 @@ tmux new-session -d -s auto_grpo "bash -lc 'bash ~/croco/src/scripts/auto_launch
 
 Monitor logs: `tail -f ~/croco/auto_*_launch.log`
 
-**Checkpoint re-evaluation:** launch `reeval_3iter_queue.sh` as the queued
-monitor. It waits behind training sessions, auto-launch monitors, and active GPU
-processes before running `reeval_3iter_checkpoints.sh`.
+**Checkpoint re-evaluation:** launch `reeval_3iter_queue.sh` as the single
+queued path for 3-iteration checkpoint re-evals. It waits behind training
+sessions, auto-launch monitors, and active GPU processes before running
+`reeval_3iter_checkpoints.sh`. `full_eval_queue.sh` delegates to this same queue
+script instead of launching the checkpoint script directly.
 
 ```bash
 tmux new-session -d -s reeval3_queue \
-  "bash -lc 'bash ~/croco/src/scripts/reeval_3iter_queue.sh \
+  "bash -lc 'set -o pipefail; bash ~/croco/src/scripts/reeval_3iter_queue.sh \
   2>&1 | tee ~/croco/reeval_3iter_queue.log'"
 ```
 
@@ -265,10 +267,10 @@ Update docs when:
   reference log probs computed via adapter-off forward (not a bug).
 - **Parallel experiments** — Ensure different model directories to avoid
   checkpoint collisions.
-- **EuroEval cache** — Results cached in `.euroeval_cache/`. Only
-  `src/scripts/reeval_3iter_checkpoints.sh` passes EuroEval `--force` to
-  recompute prior 3-iteration checkpoint results. Normal queue scripts must not
-  use `--force`.
+- **EuroEval cache** — Results cached in `.euroeval_cache/`. Use
+  `src/scripts/reeval_3iter_queue.sh` for prior 3-iteration checkpoint results;
+  it calls `src/scripts/reeval_3iter_checkpoints.sh`, the only shell script that
+  passes EuroEval `--force`. Normal queue scripts must not use `--force`.
 - **GPU memory** — vLLM needs ~20GB VRAM for 8B models at `max_model_len=4096`.
   Reduce length or use `--tensor-parallel-size` if OOM.
 - **Significance markers** — ▲▼ in tables = non-overlapping 95% CIs

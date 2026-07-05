@@ -1,8 +1,42 @@
 #!/usr/bin/env bash
-set -uo pipefail
+set -Eeuo pipefail
 cd ~/croco
 log() { echo "[$(date '+%F %T')] $*"; }
-run() { log "RUN: $*"; "$@" && log "OK" || log "FAILED ($?): $*"; }
+run() {
+    local status
+
+    log "RUN: $*"
+    if "$@"; then
+        log "OK"
+    else
+        status=$?
+        log "FAILED ($status): $*"
+        return "$status"
+    fi
+}
+
+run_reeval_queue() {
+    local statuses
+    local queue_status
+    local tee_status
+
+    if bash ~/croco/src/scripts/reeval_3iter_queue.sh 2>&1 \
+        | tee ~/croco/reeval_3iter_queue.log; then
+        return 0
+    fi
+
+    statuses=("${PIPESTATUS[@]}")
+    queue_status="${statuses[0]:-1}"
+    tee_status="${statuses[1]:-0}"
+
+    if [ "$queue_status" -ne 0 ]; then
+        log "3-iter checkpoint re-eval queue failed (exit $queue_status)."
+        return "$queue_status"
+    fi
+
+    log "3-iter checkpoint re-eval queue logging failed (tee exit $tee_status)."
+    return "$tee_status"
+}
 
 wait_for_session() {
     local session="$1"
@@ -36,10 +70,9 @@ log "===== Full eval queue started ====="
 # Wait for any existing training
 wait_for_any_training
 
-# Launch and wait for re-eval (needs GPU free)
-log "===== Launching 3-iter checkpoint re-eval ====="
-tmux new-session -d -s reeval3 "bash -lc 'bash ~/croco/src/scripts/reeval_3iter_checkpoints.sh 2>&1 | tee ~/croco/reeval_3iter_queued.log'"
-wait_for_session "reeval3"
+# Run the single queued 3-iteration checkpoint re-eval path (needs GPU free)
+log "===== Running 3-iter checkpoint re-eval queue ====="
+run_reeval_queue
 
 # Launch and wait for SimPO-full
 log "===== Launching SimPO-full ====="

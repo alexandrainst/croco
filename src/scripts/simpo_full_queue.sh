@@ -1,14 +1,26 @@
 #!/usr/bin/env bash
-# SimPO-full ablation runner: true reference-free SimPO loss (loss_type: simpo,
-# β=2.0, target margin γ=0.5). Reuses the already-built max_reward pairs (no
-# candidate generation), then trains + evaluates. Self-updates the repo first.
+# SimPO-full ablation runner: current config uses TRL's sigmoid_norm
+# length-normalised DPO (β=2.0) after the custom ref-free SimPO loss was found
+# broken. Reuses the already-built max_reward pairs (no candidate generation),
+# then trains + evaluates. Self-updates the repo first.
 #
 # Manual launch:
 #   tmux new-session -d -s sfull "bash -lc 'bash ~/croco/src/scripts/simpo_full_queue.sh 2>&1 | tee /tmp/simpo_full_queue.log'"
-set -uo pipefail
+set -Eeuo pipefail
 cd ~/croco
 log() { echo "[$(date "+%F %T")] $*"; }
-run() { log "RUN: $*"; "$@" && log "OK" || log "FAILED ($?): $*"; }
+run() {
+    local status
+
+    log "RUN: $*"
+    if "$@"; then
+        log "OK"
+    else
+        status=$?
+        log "FAILED ($status): $*"
+        return "$status"
+    fi
+}
 GMEM=0.5
 DIR=croco-munin-apertus-8b-da-simpo-full
 PAIRS=data/pairs_apertus.jsonl
@@ -22,7 +34,7 @@ mkdir -p "$HF_DATASETS_CACHE" "$TMPDIR"
 log "===== SimPO-full: sync repo ====="
 run git pull --ff-only
 
-log "===== SimPO-full: train (ref-free simpo, β=2.0, γ=0.5; reuse max_reward pairs) ====="
+log "===== SimPO-full: train (sigmoid_norm, β=2.0; reuse max_reward pairs) ====="
 run uv run src/scripts/run_pipeline.py -c config/danish-apertus-simpo-full.yaml \
   --dataset-output "$PAIRS" --candidate-cache "$CACHE" --skip-build
 

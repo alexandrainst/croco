@@ -58,6 +58,11 @@ logger = logging.getLogger(__name__)
     default=True,
     help="Also evaluate the final adapter in the model directory. Defaults to True.",
 )
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Forward --force to EuroEval to recompute existing results.",
+)
 def main(
     *,
     model_dir: Path,
@@ -66,6 +71,7 @@ def main(
     num_iterations: int,
     gpu_memory_utilization: float,
     include_final: bool,
+    force: bool,
 ) -> None:
     """Benchmark every checkpoint in a DPO output directory with EuroEval.
 
@@ -82,6 +88,8 @@ def main(
           vLLM GPU memory utilisation for EuroEval.
         include_final:
           Whether to also evaluate the final adapter in the model directory.
+        force:
+          Whether to forward --force to EuroEval.
     """
     targets = _checkpoint_dirs(model_dir=model_dir, include_final=include_final)
     if not targets:
@@ -99,6 +107,7 @@ def main(
             datasets=datasets,
             num_iterations=num_iterations,
             gpu_memory_utilization=gpu_memory_utilization,
+            force=force,
         )
 
     logger.info(
@@ -137,6 +146,7 @@ def _run_euroeval(
     datasets: tuple[str, ...],
     num_iterations: int,
     gpu_memory_utilization: float,
+    force: bool,
 ) -> None:
     """Run EuroEval on a single checkpoint as a subprocess.
 
@@ -151,6 +161,8 @@ def _run_euroeval(
           Number of EuroEval iterations per dataset.
         gpu_memory_utilization:
           vLLM GPU memory utilisation.
+        force:
+          Whether to recompute existing EuroEval results.
     """
     # EuroEval ships only a console-script entry point (no ``__main__``), so it
     # cannot be run via ``python -m euroeval``; invoke the binary next to the
@@ -169,6 +181,8 @@ def _run_euroeval(
     ]
     for dataset in datasets:
         cmd += ["--dataset", dataset]
+    if force:
+        cmd.append("--force")
     logger.info("Running: %s", " ".join(cmd))
     subprocess.run(cmd, check=True)
 

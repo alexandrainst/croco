@@ -37,7 +37,7 @@ log "===== Full eval queue started ====="
 wait_for_any_training
 
 # Launch and wait for re-eval (needs GPU free)
-log "===== Launching 3-iter re-eval (10 iterations with --force) ====="
+log "===== Launching 3-iter checkpoint re-eval ====="
 tmux new-session -d -s reeval3 "bash -lc 'bash ~/croco/src/scripts/reeval_3iter_checkpoints.sh 2>&1 | tee ~/croco/reeval_3iter_queued.log'"
 wait_for_session "reeval3"
 

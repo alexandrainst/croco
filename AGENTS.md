@@ -64,14 +64,15 @@ All executable scripts are in `src/scripts/`. Run on sparkie via:
 bash src/scripts/<script>.sh
 ```
 
-**Experiment queue (as of 2026-07-05 09:00):**
+**Experiment queue (as of 2026-07-05):**
 
 | Session | Script | Purpose | Status |
 |---------|--------|---------|--------|
-| `stuned` | `simpo_tuned_queue.sh` | SimPO-tuned (β=2.0, sigmoid_norm) | 🔴 Running |
-| `sfull` | `simpo_full_queue.sh` | SimPO-full (ref-free, γ=0.5) | ⏳ Manual launch |
-| `llamarm` | `llama_rm_queue.sh` | Llama-3.1 RM ablation | ⏳ After stuned/sfull |
-| `grpo` | `grpo_queue.sh` | GRPO online-RL baseline | ⏳ After llamarm |
+| `stuned_rerun` | `simpo_tuned_queue.sh` | SimPO-tuned rerun | 🔴 Running |
+| `sfull` | `simpo_full_queue.sh` | SimPO-full | ⏳ After stuned_rerun |
+| `llamarm` | `llama_rm_queue.sh` | Llama-3.1 RM | ⏳ After sfull |
+| `grpo` | `grpo_queue.sh` | GRPO baseline | ⏳ After llamarm |
+| `reeval3_queue` | `reeval_3iter_queue.sh` | Re-eval monitor | ⏳ After GPU idle |
 | — | `update_docs.sh` | Export all plots to `docs/gfx/` | ✅ Ready |
 
 **Completed ablations:**
@@ -94,6 +95,16 @@ tmux new-session -d -s auto_grpo "bash -lc 'bash ~/croco/src/scripts/auto_launch
 ```
 
 Monitor logs: `tail -f ~/croco/auto_*_launch.log`
+
+**Checkpoint re-evaluation:** launch `reeval_3iter_queue.sh` as the queued
+monitor. It waits behind training sessions, auto-launch monitors, and active GPU
+processes before running `reeval_3iter_checkpoints.sh`.
+
+```bash
+tmux new-session -d -s reeval3_queue \
+  "bash -lc 'bash ~/croco/src/scripts/reeval_3iter_queue.sh \
+  2>&1 | tee ~/croco/reeval_3iter_queue.log'"
+```
 
 ### Auto-Launch Scripts
 
@@ -254,8 +265,10 @@ Update docs when:
   reference log probs computed via adapter-off forward (not a bug).
 - **Parallel experiments** — Ensure different model directories to avoid
   checkpoint collisions.
-- **EuroEval cache** — Results cached in `.euroeval_cache/`. Delete to
-  force re-evaluation.
+- **EuroEval cache** — Results cached in `.euroeval_cache/`. Only
+  `src/scripts/reeval_3iter_checkpoints.sh` passes EuroEval `--force` to
+  recompute prior 3-iteration checkpoint results. Normal queue scripts must not
+  use `--force`.
 - **GPU memory** — vLLM needs ~20GB VRAM for 8B models at `max_model_len=4096`.
   Reduce length or use `--tensor-parallel-size` if OOM.
 - **Significance markers** — ▲▼ in tables = non-overlapping 95% CIs
@@ -303,13 +316,16 @@ tail -f ~/croco/run.log
 
 Session names:
 
-- `stuned` — SimPO-tuned (β=2.0, sigmoid_norm)
+- `stuned_rerun` — current SimPO-tuned rerun (β=2.0, sigmoid_norm)
+- `stuned` — SimPO-tuned (legacy session name)
 - `sfull` — SimPO-full (ref-free, γ=0.5)
 - `llamarm` — Llama RM ablation
 - `grpo` — GRPO baseline
+- `reeval3_queue` — checkpoint re-eval monitor; waits behind GPU work
 - `auto_*` — Auto-launch monitors (wait for GPU idle before launching next stage)
 
-Logs: `~/croco/simpo_tuned_rerun.log`, `~/croco/simpo_full_rerun.log`, `~/croco/auto_*_launch.log`
+Logs: `~/croco/simpo_tuned_rerun.log`, `~/croco/simpo_full_rerun.log`,
+`~/croco/reeval_3iter_queue.log`, `~/croco/auto_*_launch.log`
 
 ## Environment
 

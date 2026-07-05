@@ -38,8 +38,7 @@ for MODEL in "${MODELS[@]}"; do
         -l da \
         --num-iterations "$ITERATIONS" \
         --gpu-memory-utilization "$GMEM" \
-        --no-include-final \
-        --force
+        --no-include-final
 done
 
 log "===== Re-eval complete ====="

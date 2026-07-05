@@ -11,10 +11,21 @@
 #
 # Usage:
 #   tmux new-session -d -s reeval3 "bash -lc 'bash ~/croco/src/scripts/reeval_3iter_checkpoints.sh 2>&1 | tee ~/croco/reeval_3iter.log'"
-set -uo pipefail
+set -Eeuo pipefail
 cd ~/croco
 log() { echo "[$(date "+%F %T")] $*"; }
-run() { log "RUN: $*"; "$@" && log "OK" || log "FAILED ($?): $*"; }
+run() {
+    local status
+
+    log "RUN: $*"
+    if "$@"; then
+        log "OK"
+    else
+        status=$?
+        log "FAILED ($status): $*"
+        return "$status"
+    fi
+}
 
 log "===== Re-eval 3-iter checkpoints: sync repo ====="
 run git pull --ff-only

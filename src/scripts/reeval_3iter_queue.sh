@@ -5,7 +5,7 @@
 #   tmux new-session -d -s reeval3_queue \
 #     "bash -lc 'bash ~/croco/src/scripts/reeval_3iter_queue.sh \
 #     2>&1 | tee ~/croco/reeval_3iter_queue.log'"
-set -uo pipefail
+set -Eeuo pipefail
 cd ~/croco
 
 log() { echo "[$(date "+%F %T")] $*"; }
@@ -91,5 +91,19 @@ wait_for_gpu_slot() {
 log "===== Re-eval 3-iter queue monitor started ====="
 wait_for_gpu_slot
 log "===== Launching 3-iter checkpoint re-eval ====="
-bash ~/croco/src/scripts/reeval_3iter_checkpoints.sh 2>&1 | tee ~/croco/reeval_3iter.log
-log "===== Re-eval complete ====="
+if bash ~/croco/src/scripts/reeval_3iter_checkpoints.sh 2>&1 \
+    | tee ~/croco/reeval_3iter.log; then
+    log "===== Re-eval complete ====="
+else
+    statuses=("${PIPESTATUS[@]}")
+    checkpoint_status="${statuses[0]:-1}"
+    tee_status="${statuses[1]:-0}"
+
+    if [ "$checkpoint_status" -ne 0 ]; then
+        log "===== Re-eval failed (exit $checkpoint_status) ====="
+        exit "$checkpoint_status"
+    fi
+
+    log "===== Re-eval logging failed (tee exit $tee_status) ====="
+    exit "$tee_status"
+fi

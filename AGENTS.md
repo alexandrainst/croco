@@ -227,20 +227,43 @@ Update docs when:
   (bootstrap, 1000 samples), not p-values.
 - **Dashboard regeneration** — If models/results change, regenerate
   dashboard before running `update_docs.sh`, otherwise plots will be stale.
+- **TMPDIR + HF_DATASETS_CACHE** — Both must be set for training runs:
+  ```bash
+  export TMPDIR=~/croco/.tmp
+  export HF_DATASETS_CACHE=~/croco/.hf_datasets_cache
+  mkdir -p "$TMPDIR" "$HF_DATASETS_CACHE"
+  ```
+  HuggingFace datasets creates temp Arrow files in `/tmp/hf_datasets-*`
+  regardless of `HF_DATASETS_CACHE`. If `/tmp` is cleaned mid-run, training
+  crashes with `FileNotFoundError`. The queue scripts (`src/scripts/*_queue.sh`)
+  already set these; use them.
+- **One GPU workload at a time on sparkie** — The DGX Spark has 128GB unified
+  memory shared between CPU and GPU. Running training + evaluation simultaneously
+  causes GPU OOM → kernel wedge → complete system lockup (no SSH, no ping).
+  Recovery requires physical power-cycle + potential NVIDIA driver reload.
+  **Always check GPU is idle before launching:**
+  ```bash
+  ssh sparkie 'nvidia-smi --query-compute-apps=pid --format=csv,noheader'
+  ssh sparkie 'tmux ls | grep -v dr_scraper'
+  ```
+  Wait for training to complete before starting evals (or vice versa).
+  Queue scripts handle this automatically; don't manually run concurrent jobs.
 
 ## Remote Execution (sparkie)
 
-Experiments run on the `sparkie` GPU server:
+Experiments run on the `sparkie` GPU server. **Always use queue scripts**
+(`src/scripts/*_queue.sh`) — they set `TMPDIR` and `HF_DATASETS_CACHE`,
+and log output properly. Don't run `run_pipeline.py` directly.
 
 ```bash
-# Launch experiment in tmux
+# Launch via queue script (recommended)
 ssh sparkie
 cd ~/croco
-tmux new-session -d -s exp1 "bash -lc 'uv run src/scripts/run_pipeline.py ...'"
+tmux new-session -d -s exp1 "bash -lc 'bash src/scripts/<script>_queue.sh 2>&1 | tee ~/croco/run.log'"
 
 # Monitor
 tmux attach -t exp1
-tail -f ~/croco/*.log
+tail -f ~/croco/run.log
 ```
 
 Session names:
@@ -276,16 +299,23 @@ dpo:
   dataloader_num_workers: 4        # Parallel data loading
 ```
 
-**Important:** Before enabling `precompute_ref_log_probs`, set `HF_DATASETS_CACHE` to persistent storage:
+**Important:** Before enabling `precompute_ref_log_probs`, set both `TMPDIR`
+and `HF_DATASETS_CACHE` to persistent storage:
 
 ```bash
+export TMPDIR=~/croco/.tmp
 export HF_DATASETS_CACHE=~/croco/.hf_datasets_cache
-mkdir -p "$HF_DATASETS_CACHE"
+mkdir -p "$TMPDIR" "$HF_DATASETS_CACHE"
 ```
 
-Without this, TRL's precomputed reference log probs cache goes to `/tmp` and can
-disappear mid-run (shared filesystem, cleanup policies). The queue scripts
-(`src/scripts/*_queue.sh`) already set this.
+Without this:
+- TRL's precomputed reference log probs cache goes to `/tmp` and can disappear
+  mid-run (shared filesystem cleanup policies)
+- HuggingFace datasets creates temp Arrow files in `/tmp/hf_datasets-*`
+  regardless of `HF_DATASETS_CACHE`
+
+Both failures cause `FileNotFoundError` mid-training. The queue scripts
+(`src/scripts/*_queue.sh`) already set these.
 
 ### Memory Optimizations
 

@@ -17,6 +17,7 @@ from trl import DPOConfig, DPOTrainer
 from .config import DPOTrainConfig, PipelineConfig
 from .data import sort_by_evolution
 from .dataset import load_pairs, to_trl_records
+from .trl_dpo_fix import patch_dpo_precompute
 
 logger = logging.getLogger(__name__)
 
@@ -333,6 +334,11 @@ def train_dpo(*, config: PipelineConfig, dataset_path: Path) -> Path:
     else:
         logger.info("Using standard DPOTrainer")
         trainer_class = DPOTrainer
+
+    # Apply cache bug fix if precompute_ref_log_probs is enabled
+    if dpo_cfg.precompute_ref_log_probs:
+        logger.info("Applying TRL cache bug fix for precompute_ref_log_probs")
+        patch_dpo_precompute()
 
     # Initialise trainer
     trainer = trainer_class(

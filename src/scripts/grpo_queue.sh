@@ -4,17 +4,29 @@
 # touches the working tree while another run is in flight.
 #
 # Manual launch:
-#   tmux new-session -d -s grpo "bash -lc 'bash ~/croco/grpo_queue.sh 2>&1 | tee /tmp/grpo_queue.log'"
-set -uo pipefail
+#   tmux new-session -d -s grpo "bash -lc 'bash ~/croco/src/scripts/grpo_queue.sh 2>&1 | tee /tmp/grpo_queue.log'"
+set -Eeuo pipefail
 cd ~/croco
 log() { echo "[$(date "+%F %T")] $*"; }
-run() { log "RUN: $*"; "$@" && log "OK" || log "FAILED ($?): $*"; }
+run() {
+    local status
+
+    log "RUN: $*"
+    if "$@"; then
+        log "OK"
+    else
+        status=$?
+        log "FAILED ($status): $*"
+        return "$status"
+    fi
+}
 GMEM=0.5
 DIR=croco-munin-apertus-8b-da-grpo
 
 # TRL optimization: persistent datasets cache (avoids /tmp disappearing mid-run)
 export HF_DATASETS_CACHE=~/croco/.hf_datasets_cache
-mkdir -p "$HF_DATASETS_CACHE"
+export TMPDIR=~/croco/.tmp
+mkdir -p "$HF_DATASETS_CACHE" "$TMPDIR"
 
 log "===== GRPO: sync repo ====="
 run git pull --ff-only
@@ -34,7 +46,7 @@ run uv run src/scripts/train_grpo.py -c config/danish-apertus-grpo.yaml
 log "===== GRPO: final eval (local adapter, 10 iterations) ====="
 run uv run euroeval --model "models/$DIR" \
   --language da --num-iterations 10 --gpu-memory-utilization $GMEM --save-results
-log "===== GRPO: checkpoint evals (3 iterations) ====="
+log "===== GRPO: checkpoint evals (10 iterations) ====="
 run uv run src/scripts/eval_checkpoints.py -m "models/$DIR" \
   -l da --num-iterations 10 --gpu-memory-utilization $GMEM --no-include-final
 log "===== GRPO DONE ====="

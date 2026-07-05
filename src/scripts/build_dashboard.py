@@ -122,11 +122,10 @@ def _discover_model_dirs(*, reader: "_Reader") -> tuple[str, ...]:
     help="DPO output directory to read training dynamics from (repeatable).",
 )
 @click.option(
-    "--configs",
+    "--configs/--no-configs",
     "-c",
-    is_flag=True,
-    default=False,
-    help="Auto-discover model directories from config/*.yaml output_dir fields.",
+    default=True,
+    help="Auto-discover model directories from config/*.yaml output_dir fields (default). Use --no-configs to disable and only use -m.",
 )
 @click.option(
     "--results",
@@ -198,10 +197,15 @@ def main(
     """
     reader = _Reader(ssh_host=ssh_host, root=remote_root)
 
-    # Auto-discover model directories from config/*.yaml if --configs is set
+    # Auto-discover model directories from config/*.yaml (default behavior)
+    # Can be disabled with --no-configs, or supplemented with -m flags
     if configs:
-        model_dirs = _discover_model_dirs(reader=reader)
-        logger.info("Auto-discovered %d model directories from configs", len(model_dirs))
+        config_dirs = _discover_model_dirs(reader=reader)
+        # Merge with any manually specified -m directories
+        model_dirs = tuple(sorted(set(config_dirs + model_dirs)))
+        logger.info("Auto-discovered %d model directories from configs", len(config_dirs))
+        if model_dirs:
+            logger.info("Total model directories: %d", len(model_dirs))
 
     while True:
         _build_once(

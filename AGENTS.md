@@ -58,42 +58,67 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml --eval-on
 
 ### Queue/Runner Scripts
 
-All executable scripts are in `src/scripts/`. Run via:
+All executable scripts are in `src/scripts/`. Run on sparkie via:
 
 ```bash
-uv run src/scripts/<script>.sh
-# or on sparkie:
 bash src/scripts/<script>.sh
 ```
 
-| Script | Purpose | Status |
-|--------|---------|--------|
-| `grpo_queue.sh` | GRPO baseline (micro → apertus) | ⏳ Queued |
-| `llama_rm_queue.sh` | Llama-3.1 RM ablation (rescore cache → train) | ⏳ Waiting for queue |
-| `update_docs.sh` | Export all 22 plots from dashboard | ✅ Ready |
-| `auto_launch_llama_rm.sh` | Monitor `queue` → auto-launch llama_rm when GPU free | ✅ Ready |
-| `auto_launch_grpo.sh` | Monitor `llamarm` → auto-launch grpo when GPU free | ✅ Ready |
+**Experiment queue (as of 2026-07-05 09:00):**
 
-**Removed scripts:**
+| Session | Script | Purpose | Status |
+|---------|--------|---------|--------|
+| `stuned` | `simpo_tuned_queue.sh` | SimPO-tuned (β=2.0, sigmoid_norm) | 🔴 Running |
+| `sfull` | `simpo_full_queue.sh` | SimPO-full (ref-free, γ=0.5) | ⏳ Manual launch |
+| `llamarm` | `llama_rm_queue.sh` | Llama-3.1 RM ablation | ⏳ After stuned/sfull |
+| `grpo` | `grpo_queue.sh` | GRPO online-RL baseline | ⏳ After llamarm |
+| — | `update_docs.sh` | Export all plots to `docs/gfx/` | ✅ Ready |
 
-- `resume_ls_simpo.sh` — ls/simpo ablations complete
-- `resume_tuned_simpo.sh` — SimPO tuned/full complete
+**Completed ablations:**
 
-### Auto-Launch Scripts
+- `queue` — Construction mode (max_reward, gold_chosen, generated)
+- `ls` — Label smoothing (α=0.05)
+- `simpo` — Initial SimPO (β=2.0)
 
-Chain experiments automatically when GPU becomes free:
+**Auto-launch monitors:** Start manually to enable chained execution:
 
 ```bash
-# Launch llama_rm when 'queue' session finishes
+# Launch auto_sfull when stuned finishes (creates session sfull)
+tmux new-session -d -s auto_sfull "bash -lc 'bash ~/croco/src/scripts/auto_launch_sfull.sh 2>&1 | tee ~/croco/auto_sfull_launch.log'"
+
+# Launch llama_rm when sfull finishes (creates session llamarm)
 tmux new-session -d -s auto_rm "bash -lc 'bash ~/croco/src/scripts/auto_launch_llama_rm.sh 2>&1 | tee ~/croco/auto_rm_launch.log'"
 
-# Launch grpo when 'llamarm' session finishes  
+# Launch grpo when llamarm finishes (creates session grpo)
 tmux new-session -d -s auto_grpo "bash -lc 'bash ~/croco/src/scripts/auto_launch_grpo.sh 2>&1 | tee ~/croco/auto_grpo_launch.log'"
 ```
 
-**Workflow:** `queue` (simpo evals) → `llamarm` (Llama RM) → `grpo` (GRPO baseline)
+Monitor logs: `tail -f ~/croco/auto_*_launch.log`
 
-Monitor logs: `tail -f ~/croco/auto_rm_launch.log` or `tail -f ~/croco/auto_grpo_launch.log`
+### Auto-Launch Scripts
+
+Chain experiments automatically when GPU becomes free. Monitors wait for both GPU idle and session inactive for 3 consecutive minutes before launching the next stage.
+
+**Chained workflow:**
+
+`stuned` (SimPO-tuned) → `sfull` (SimPO-full) → `llamarm` (Llama RM) → `grpo` (GRPO baseline)
+
+**Launch monitors:**
+
+```bash
+# Launch sfull when stuned finishes
+tmux new-session -d -s auto_sfull "bash -lc 'bash ~/croco/src/scripts/auto_launch_sfull.sh 2>&1 | tee ~/croco/auto_sfull_launch.log'"
+
+# Launch llama_rm when sfull finishes (or stuned if sfull skipped)
+tmux new-session -d -s auto_rm "bash -lc 'bash ~/croco/src/scripts/auto_launch_llama_rm.sh 2>&1 | tee ~/croco/auto_rm_launch.log'"
+
+# Launch grpo when llamarm finishes  
+tmux new-session -d -s auto_grpo "bash -lc 'bash ~/croco/src/scripts/auto_launch_grpo.sh 2>&1 | tee ~/croco/auto_grpo_launch.log'"
+```
+
+**Monitor logs:** `tail -f ~/croco/auto_*_launch.log`
+
+**Note:** Auto-launch monitors are NOT running by default. Start after launching the first experiment in the chain.
 
 ### update_docs.sh Details
 
@@ -178,15 +203,16 @@ git commit -m 'docs: update plots'
 
 ### Dashboard
 
-Generate locally:
+Generate locally from discovered config output directories:
 
 ```bash
-python src/scripts/build_dashboard.py \
-  -m models/croco-munin-apertus-8b-da \
-  -m models/croco-munin-apertus-8b-da-gold \
+uv run src/scripts/build_dashboard.py \
   -r euroeval_benchmark_results.jsonl \
   -o croco_dashboard.html
 ```
+
+For the live local dashboard, `croco-dash` runs the same script in watch mode and
+pulls checkpoint/result data from sparkie over SSH.
 
 Open `croco_dashboard.html` in a browser. Charts are interactive (hover for
 details, camera icon to export PNG).
@@ -207,6 +233,15 @@ Update docs when:
 
 ## Gotchas
 
+- **`croco-dash` tmux session** — A local tmux session on the laptop refreshes
+  `croco_dashboard.html` every 5 minutes by pulling latest checkpoints from
+  sparkie. If the dashboard appears stale, check if `croco-dash` is still
+  running.
+- **Dashboard visibility** — Active training runs do not appear in the dashboard
+  until the first `checkpoint-*/trainer_state.json` exists. SimPO-tuned can spend
+  over an hour precomputing reference log probs before step 1; with
+  `save_steps: 100`, it stays invisible until checkpoint 100 is written and the
+  next `croco-dash` refresh runs.
 - **All scripts in `src/scripts/`** — No `.sh` files in root or separate
   `scripts/` directory. Run via `uv run src/scripts/<script>.sh`.
 - **Custom TRL code** — Custom losses (SimPO, label smoothing) are in
@@ -268,12 +303,13 @@ tail -f ~/croco/run.log
 
 Session names:
 
-- `queue` — Construction mode ablations
-- `tqueue` — SimPO tuned / full ablations
+- `stuned` — SimPO-tuned (β=2.0, sigmoid_norm)
+- `sfull` — SimPO-full (ref-free, γ=0.5)
+- `llamarm` — Llama RM ablation
 - `grpo` — GRPO baseline
-- `llamarm` — Llama RM experiment
+- `auto_*` — Auto-launch monitors (wait for GPU idle before launching next stage)
 
-Logs: `~/croco/ablations.log`, `~/croco/overnight.log`, `~/croco/run.log`
+Logs: `~/croco/simpo_tuned_rerun.log`, `~/croco/simpo_full_rerun.log`, `~/croco/auto_*_launch.log`
 
 ## Environment
 

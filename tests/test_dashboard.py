@@ -30,6 +30,8 @@ def _result_record(
     model_id: str,
     score: float,
     iterations: int | None = None,
+    num_samples: int | None = None,
+    raw_results: int | None = None,
     lower: float | None = None,
     upper: float | None = None,
     dataset: str = "angry-tweets-test",
@@ -44,21 +46,31 @@ def _result_record(
         lower = score - 0.01
     if upper is None:
         upper = score + 0.01
+    uncertainty: dict[str, object] = {
+        "confidence_interval": {"lower": lower, "upper": upper}
+    }
+    if num_samples is not None:
+        uncertainty["num_samples"] = num_samples
+    result: dict[str, object] = {
+        "source_data": {"dataset_name": dataset},
+        "evaluation_name": metric,
+        "score_details": {
+            "score": score,
+            "uncertainty": uncertainty,
+        },
+        "metric_config": {"lower_is_better": False},
+    }
+    if raw_results is not None:
+        result["eval_library"] = {
+            "additional_details": {
+                "raw_results": [
+                    {"iteration": iteration} for iteration in range(raw_results)
+                ]
+            }
+        }
     record: dict[str, object] = {
         "model_info": {"id": model_id},
-        "evaluation_results": [
-            {
-                "source_data": {"dataset_name": dataset},
-                "evaluation_name": metric,
-                "score_details": {
-                    "score": score,
-                    "uncertainty": {
-                        "confidence_interval": {"lower": lower, "upper": upper}
-                    },
-                },
-                "metric_config": {"lower_is_better": False},
-            }
-        ],
+        "evaluation_results": [result],
     }
     if iterations is not None:
         record["num_iterations"] = iterations
@@ -233,6 +245,77 @@ class TestEvalSeries:
             assert final["score"] == 0.50
             assert final["lower"] == 0.49
             assert final["upper"] == 0.51
+
+    def test_eee_num_samples_prefers_ten_iterations(self) -> None:
+        """EEE uncertainty sample counts keep the higher-iteration duplicate."""
+        key = "angry-tweets-test||macro_f1"
+        ten_checkpoint = _result_record(
+            model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+            score=0.10,
+            num_samples=10,
+        )
+        three_checkpoint = _result_record(
+            model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+            score=0.30,
+            num_samples=3,
+        )
+        ten_final = _result_record(
+            model_id="models/croco-munin-apertus-8b-da",
+            score=0.50,
+            num_samples=10,
+        )
+        three_final = _result_record(
+            model_id="models/croco-munin-apertus-8b-da",
+            score=0.70,
+            num_samples=3,
+        )
+
+        series = _eval_series(
+            rows=(ten_checkpoint, three_checkpoint, ten_final, three_final)
+        )
+
+        assert series["curves"]["max_reward"][key][0]["score"] == 0.10
+        assert series["finals"]["max_reward"][key]["score"] == 0.50
+
+    def test_eee_raw_results_fallback_prefers_ten_iterations(self) -> None:
+        """EEE raw per-iteration results are used when sample counts are absent."""
+        key = "angry-tweets-test||macro_f1"
+        series = _eval_series(
+            rows=(
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+                    score=0.10,
+                    raw_results=10,
+                ),
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+                    score=0.30,
+                    raw_results=3,
+                ),
+            )
+        )
+
+        assert series["curves"]["max_reward"][key][0]["score"] == 0.10
+
+    def test_tied_iteration_count_keeps_later_row_wins(self) -> None:
+        """Rows with equal iteration counts preserve the old later-row-wins rule."""
+        key = "angry-tweets-test||macro_f1"
+        series = _eval_series(
+            rows=(
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+                    score=0.10,
+                    num_samples=10,
+                ),
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+                    score=0.20,
+                    num_samples=10,
+                ),
+            )
+        )
+
+        assert series["curves"]["max_reward"][key][0]["score"] == 0.20
 
     def test_missing_iteration_count_keeps_later_row_wins(self) -> None:
         """Rows missing iteration metadata preserve the old later-row-wins rule."""

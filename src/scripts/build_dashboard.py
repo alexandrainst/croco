@@ -63,6 +63,7 @@ _TRAINING_KEYS = {
     "grad_norm": "grad_norm",
 }
 _ITERATION_FIELDS = ("num_iterations", "iterations", "n_iterations")
+_SAMPLE_COUNT_FIELDS = ("num_samples",)
 
 
 def _discover_model_dirs(*, reader: "_Reader") -> tuple[str, ...]:
@@ -468,19 +469,54 @@ def _iteration_count(
     Returns:
         Iteration count when available, otherwise None.
     """
+    details = result.get("score_details", {})
+    uncertainty = details.get("uncertainty", {}) if isinstance(details, dict) else {}
+    value = _int_field(data=uncertainty, fields=_SAMPLE_COUNT_FIELDS)
+    if value is not None:
+        return value
+
+    for container in (result, record):
+        value = _raw_results_count(data=container)
+        if value is not None:
+            return value
+
     containers = (
         record,
         record.get("metadata"),
         record.get("benchmark_config"),
         record.get("config"),
         result,
-        result.get("score_details"),
-        result.get("score_details", {}).get("uncertainty", {}),
+        details,
+        uncertainty,
     )
     for container in containers:
         value = _int_field(data=container, fields=_ITERATION_FIELDS)
         if value is not None:
             return value
+    return None
+
+
+def _raw_results_count(*, data: object) -> int | None:
+    """Return the number of raw EuroEval per-iteration results if present.
+
+    Args:
+        data:
+          Candidate mapping containing EuroEval library details.
+
+    Returns:
+        Number of raw result entries, or None when unavailable.
+    """
+    if not isinstance(data, dict):
+        return None
+    eval_library = data.get("eval_library")
+    if not isinstance(eval_library, dict):
+        return None
+    additional_details = eval_library.get("additional_details")
+    if not isinstance(additional_details, dict):
+        return None
+    raw_results = additional_details.get("raw_results")
+    if isinstance(raw_results, list):
+        return len(raw_results)
     return None
 
 

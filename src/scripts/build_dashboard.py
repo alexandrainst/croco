@@ -515,6 +515,11 @@ def _raw_results_count(*, data: object) -> int | None:
     if not isinstance(additional_details, dict):
         return None
     raw_results = additional_details.get("raw_results")
+    if isinstance(raw_results, str):
+        try:
+            raw_results = json.loads(raw_results)
+        except json.JSONDecodeError:
+            return None
     if isinstance(raw_results, list):
         return len(raw_results)
     return None

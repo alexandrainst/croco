@@ -1,6 +1,7 @@
-"""Tests for the dashboard model-id / directory classification."""
+"""Tests for the dashboard model-id / directory classification and EuroEval data."""
 
 import importlib.util
+import json
 from pathlib import Path
 
 _SPEC = importlib.util.spec_from_file_location(
@@ -10,6 +11,69 @@ _SPEC = importlib.util.spec_from_file_location(
 assert _SPEC is not None and _SPEC.loader is not None
 build_dashboard = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(build_dashboard)
+
+
+class _FakeReader:
+    """Reader stub returning a fixed JSONL payload."""
+
+    def __init__(self, *, text: str) -> None:
+        """Store the payload returned by ``read_text``."""
+        self.text = text
+
+    def read_text(self, *, path: str) -> str | None:
+        """Return the configured payload."""
+        return self.text
+
+
+def _result_record(
+    *,
+    model_id: str,
+    score: float,
+    iterations: int | None = None,
+    lower: float | None = None,
+    upper: float | None = None,
+    dataset: str = "angry-tweets-test",
+    metric: str = "macro_f1",
+) -> str:
+    """Build one minimal EuroEval JSONL record for parser tests.
+
+    Returns:
+        JSON-encoded EuroEval result row.
+    """
+    if lower is None:
+        lower = score - 0.01
+    if upper is None:
+        upper = score + 0.01
+    record: dict[str, object] = {
+        "model_info": {"id": model_id},
+        "evaluation_results": [
+            {
+                "source_data": {"dataset_name": dataset},
+                "evaluation_name": metric,
+                "score_details": {
+                    "score": score,
+                    "uncertainty": {
+                        "confidence_interval": {"lower": lower, "upper": upper}
+                    },
+                },
+                "metric_config": {"lower_is_better": False},
+            }
+        ],
+    }
+    if iterations is not None:
+        record["num_iterations"] = iterations
+    return json.dumps(record)
+
+
+def _eval_series(*, rows: tuple[str, ...]) -> dict[str, object]:
+    """Parse minimal EuroEval rows through the dashboard parser.
+
+    Returns:
+        Parsed dashboard eval data.
+    """
+    return build_dashboard._eval_series(
+        reader=_FakeReader(text="\n".join(rows)), results="unused.jsonl"
+    )
 
 
 class TestResultMode:
@@ -100,3 +164,130 @@ class TestModeLabel:
             == "simpo_full"
         )
         assert build_dashboard._mode_label("croco-munin-apertus-8b-da-grpo") == "grpo"
+
+
+class TestEvalSeries:
+    """EuroEval rows are grouped and deduplicated for dashboard data."""
+
+    def test_simpo_tuned_checkpoint_and_final_rows_are_included(self) -> None:
+        """SimPO-tuned checkpoint and final evals use the simpo_tuned key."""
+        key = "angry-tweets-test||macro_f1"
+        series = _eval_series(
+            rows=(
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da-simpo-tuned/checkpoint-100",
+                    score=0.70,
+                ),
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da-simpo-tuned", score=0.80
+                ),
+            )
+        )
+
+        assert series["curves"]["simpo_tuned"][key][0]["step"] == 100
+        assert series["curves"]["simpo_tuned"][key][0]["score"] == 0.70
+        assert series["finals"]["simpo_tuned"][key]["score"] == 0.80
+
+    def test_duplicate_rows_prefer_ten_iterations_over_three(self) -> None:
+        """Duplicate checkpoint/final scores keep the 10-iteration row."""
+        key = "angry-tweets-test||macro_f1"
+        ten_checkpoint = _result_record(
+            model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+            score=0.10,
+            iterations=10,
+            lower=0.09,
+            upper=0.11,
+        )
+        three_checkpoint = _result_record(
+            model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+            score=0.30,
+            iterations=3,
+            lower=0.20,
+            upper=0.40,
+        )
+        ten_final = _result_record(
+            model_id="models/croco-munin-apertus-8b-da",
+            score=0.50,
+            iterations=10,
+            lower=0.49,
+            upper=0.51,
+        )
+        three_final = _result_record(
+            model_id="models/croco-munin-apertus-8b-da",
+            score=0.70,
+            iterations=3,
+            lower=0.60,
+            upper=0.80,
+        )
+
+        for rows in (
+            (ten_checkpoint, three_checkpoint, ten_final, three_final),
+            (three_checkpoint, ten_checkpoint, three_final, ten_final),
+        ):
+            series = _eval_series(rows=rows)
+            point = series["curves"]["max_reward"][key][0]
+            final = series["finals"]["max_reward"][key]
+            assert point["score"] == 0.10
+            assert point["lower"] == 0.09
+            assert point["upper"] == 0.11
+            assert final["score"] == 0.50
+            assert final["lower"] == 0.49
+            assert final["upper"] == 0.51
+
+    def test_missing_iteration_count_keeps_later_row_wins(self) -> None:
+        """Rows missing iteration metadata preserve the old later-row-wins rule."""
+        key = "angry-tweets-test||macro_f1"
+        series = _eval_series(
+            rows=(
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+                    score=0.10,
+                    iterations=10,
+                ),
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+                    score=0.20,
+                ),
+            )
+        )
+
+        assert series["curves"]["max_reward"][key][0]["score"] == 0.20
+
+
+class TestRenderingModes:
+    """The browser rendering template knows every eval-only dashboard mode."""
+
+    def test_simpo_tuned_is_available_to_curve_and_final_filters(self) -> None:
+        """SimPO-tuned eval data can appear in the mode selector."""
+        html = build_dashboard._render_html(
+            data={
+                "generated": "now",
+                "training": {},
+                "curves": {"simpo_tuned": {}},
+                "finals": {"simpo_tuned": {}},
+                "metric_keys": [],
+            },
+            refresh_seconds=60,
+        )
+
+        assert 'simpo_tuned: "#e377c2"' in html
+        assert 'simpo_tuned: "SimPO-tuned"' in html
+
+
+class TestDiscoveredModelDirs:
+    """Auto-discovered fixture runs are excluded before mode labelling."""
+
+    def test_micro_and_smoke_dirs_are_excluded(self) -> None:
+        """Micro/smoke output dirs must not fall through to max_reward."""
+        assert not build_dashboard._include_discovered_model_dir(
+            output_dir="models/croco-munin-apertus-8b-da-micro"
+        )
+        assert not build_dashboard._include_discovered_model_dir(
+            output_dir="models/croco-munin-apertus-8b-da-simpo-tuned-smoke"
+        )
+        assert not build_dashboard._include_discovered_model_dir(
+            output_dir="models/_smoke_grpo"
+        )
+        assert build_dashboard._include_discovered_model_dir(
+            output_dir="models/croco-munin-apertus-8b-da-simpo-tuned"
+        )

@@ -62,6 +62,7 @@ _TRAINING_KEYS = {
     "rewards/rejected": "rejected",
     "grad_norm": "grad_norm",
 }
+_ITERATION_FIELDS = ("num_iterations", "iterations", "n_iterations")
 
 
 def _discover_model_dirs(*, reader: "_Reader") -> tuple[str, ...]:
@@ -77,23 +78,32 @@ def _discover_model_dirs(*, reader: "_Reader") -> tuple[str, ...]:
     try:
         if reader.ssh_host:
             # List and parse remote configs in one SSH call
+            remote_cmd = (
+                f"cd {reader.root} && "
+                "grep -h '^  output_dir:' config/*.yaml 2>/dev/null"
+            )
             result = subprocess.run(
-                ["ssh", reader.ssh_host, f"cd {reader.root} && grep -h '^  output_dir:' config/*.yaml 2>/dev/null"],
-                capture_output=True, text=True, check=False
+                ["ssh", reader.ssh_host, remote_cmd],
+                capture_output=True,
+                text=True,
+                check=False,
             )
             if result.returncode != 0 or not result.stdout.strip():
-                logger.warning("Could not read remote configs: %s", result.stderr.strip())
+                logger.warning(
+                    "Could not read remote configs: %s", result.stderr.strip()
+                )
                 return ()
             model_dirs = []
             for line in result.stdout.strip().split("\n"):
                 if ":" in line:
                     output_dir = line.split(":", 1)[1].strip()
                     # Skip micro ablations and smoke tests
-                    if "micro" not in output_dir and "_smoke" not in output_dir:
+                    if _include_discovered_model_dir(output_dir=output_dir):
                         model_dirs.append(output_dir)
             return tuple(sorted(set(model_dirs)))
         else:
             import glob
+
             model_dirs = []
             for config_path in glob.glob("config/*.yaml"):
                 try:
@@ -102,7 +112,7 @@ def _discover_model_dirs(*, reader: "_Reader") -> tuple[str, ...]:
                             if line.strip().startswith("output_dir:"):
                                 output_dir = line.split(":", 1)[1].strip()
                                 # Skip micro ablations and smoke tests
-                                if "micro" not in output_dir and "_smoke" not in output_dir:
+                                if _include_discovered_model_dir(output_dir=output_dir):
                                     model_dirs.append(output_dir)
                                 break
                 except Exception as e:
@@ -111,6 +121,20 @@ def _discover_model_dirs(*, reader: "_Reader") -> tuple[str, ...]:
     except Exception as e:
         logger.warning("Could not discover configs: %s", e)
         return ()
+
+
+def _include_discovered_model_dir(*, output_dir: str) -> bool:
+    """Return whether an auto-discovered output dir belongs on the dashboard.
+
+    Args:
+        output_dir:
+          Model output directory read from a config file.
+
+    Returns:
+        True for full experiment directories, false for micro/smoke fixtures.
+    """
+    name = Path(output_dir).name.lower()
+    return "micro" not in name and "smoke" not in name
 
 
 @click.command()
@@ -125,7 +149,10 @@ def _discover_model_dirs(*, reader: "_Reader") -> tuple[str, ...]:
     "--configs/--no-configs",
     "-c",
     default=True,
-    help="Auto-discover model directories from config/*.yaml output_dir fields (default). Use --no-configs to disable and only use -m.",
+    help=(
+        "Auto-discover model directories from config/*.yaml output_dir fields "
+        "(default). Use --no-configs to disable and only use -m."
+    ),
 )
 @click.option(
     "--results",
@@ -203,7 +230,9 @@ def main(
         config_dirs = _discover_model_dirs(reader=reader)
         # Merge with any manually specified -m directories
         model_dirs = tuple(sorted(set(config_dirs + model_dirs)))
-        logger.info("Auto-discovered %d model directories from configs", len(config_dirs))
+        logger.info(
+            "Auto-discovered %d model directories from configs", len(config_dirs)
+        )
         if model_dirs:
             logger.info("Total model directories: %d", len(model_dirs))
 
@@ -337,7 +366,11 @@ def _eval_series(*, reader: "_Reader", results: str) -> dict[str, t.Any]:
     finals: dict[str, dict[str, t.Any]] = {}
     curves: dict[str, dict[str, list[dict[str, t.Any]]]] = {}
     keys: set[str] = set()
-    base_entries: dict[str, dict[str, t.Any]] = {}
+    final_entries: dict[tuple[str, str], tuple[int | None, int, dict[str, t.Any]]] = {}
+    curve_entries: dict[
+        tuple[str, int, str], tuple[int | None, int, dict[str, t.Any]]
+    ] = {}
+    result_order = 0
 
     text = reader.read_text(path=results)
     if not text:
@@ -353,19 +386,34 @@ def _eval_series(*, reader: "_Reader", results: str) -> dict[str, t.Any]:
             continue
         step = _checkpoint_step(model_id=model_id)
         for result in record["evaluation_results"]:
+            result_order += 1
             dataset = result["source_data"]["dataset_name"]
             key = f"{dataset}||{result['evaluation_name']}"
             keys.add(key)
             entry = _score_entry(result=result)
-            if mode == "base":
-                base_entries[key] = entry
+            iterations = _iteration_count(record=record, result=result)
             if step is None:
-                finals.setdefault(_final_label(mode=mode), {})[key] = entry
+                final_key = (_final_label(mode=mode), key)
+                current = final_entries.get(final_key)
+                if _should_replace_eval(
+                    current=current, iterations=iterations, order=result_order
+                ):
+                    final_entries[final_key] = (iterations, result_order, entry)
             else:
-                curves.setdefault(mode, {}).setdefault(key, []).append(
-                    {"step": step, **entry}
-                )
+                curve_key = (mode, step, key)
+                current = curve_entries.get(curve_key)
+                point = {"step": step, **entry}
+                if _should_replace_eval(
+                    current=current, iterations=iterations, order=result_order
+                ):
+                    curve_entries[curve_key] = (iterations, result_order, point)
 
+    for (label, key), (_, _, entry) in final_entries.items():
+        finals.setdefault(label, {})[key] = entry
+    for (mode, _, key), (_, _, point) in curve_entries.items():
+        curves.setdefault(mode, {}).setdefault(key, []).append(point)
+
+    base_entries = finals.get("base", {})
     # Anchor every mode's curve at step 0 with the base policy's score: before any
     # DPO steps the LoRA-adapted model is the base model, so step 0 is a shared,
     # meaningful starting point for all construction modes.
@@ -376,6 +424,89 @@ def _eval_series(*, reader: "_Reader", results: str) -> dict[str, t.Any]:
             points.sort(key=lambda point: point["step"])
 
     return {"finals": finals, "curves": curves, "metric_keys": sorted(keys)}
+
+
+def _should_replace_eval(
+    *,
+    current: tuple[int | None, int, dict[str, t.Any]] | None,
+    iterations: int | None,
+    order: int,
+) -> bool:
+    """Return whether a duplicate EuroEval result should replace the current one.
+
+    Args:
+        current:
+          The currently selected ``(iterations, order, entry)`` tuple, if any.
+        iterations:
+          Iteration count for the candidate result, if present in the row.
+        order:
+          Monotonic result order within the JSONL file.
+
+    Returns:
+        True when the candidate should be kept.
+    """
+    if current is None:
+        return True
+    current_iterations, current_order, _ = current
+    if current_iterations is not None and iterations is not None:
+        if iterations != current_iterations:
+            return iterations > current_iterations
+    return order > current_order
+
+
+def _iteration_count(
+    *, record: dict[str, t.Any], result: dict[str, t.Any]
+) -> int | None:
+    """Extract the EuroEval iteration count from known row metadata locations.
+
+    Args:
+        record:
+          The top-level JSONL row.
+        result:
+          One entry from the row's ``evaluation_results`` list.
+
+    Returns:
+        Iteration count when available, otherwise None.
+    """
+    containers = (
+        record,
+        record.get("metadata"),
+        record.get("benchmark_config"),
+        record.get("config"),
+        result,
+        result.get("score_details"),
+        result.get("score_details", {}).get("uncertainty", {}),
+    )
+    for container in containers:
+        value = _int_field(data=container, fields=_ITERATION_FIELDS)
+        if value is not None:
+            return value
+    return None
+
+
+def _int_field(*, data: object, fields: tuple[str, ...]) -> int | None:
+    """Return the first integer-like field in a mapping.
+
+    Args:
+        data:
+          Candidate metadata mapping.
+        fields:
+          Field names to inspect.
+
+    Returns:
+        The parsed integer value, or None.
+    """
+    if not isinstance(data, dict):
+        return None
+    for field in fields:
+        value = data.get(field)
+        if isinstance(value, bool):
+            continue
+        if isinstance(value, int):
+            return value
+        if isinstance(value, str) and value.isdecimal():
+            return int(value)
+    return None
 
 
 def _score_entry(*, result: dict[str, t.Any]) -> dict[str, t.Any]:

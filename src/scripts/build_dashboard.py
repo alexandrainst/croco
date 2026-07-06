@@ -577,12 +577,29 @@ def _result_mode(*, model_id: str) -> str | None:
         The construction-mode/ablation label, ``base``, or None for unrelated
         models.
     """
+    if not _include_result_model_id(model_id=model_id):
+        return None
     if model_id.rstrip("/").endswith("munin-apertus-8b"):
         return "base"
     for marker, mode in _MODE_MARKERS:
         if marker in model_id:
             return mode
     return None
+
+
+def _include_result_model_id(*, model_id: str) -> bool:
+    """Return whether a EuroEval model id belongs on the dashboard.
+
+    Args:
+        model_id:
+          The ``model_info.id`` from a results record.
+
+    Returns:
+        True for full experiment rows, false for micro/smoke fixture rows.
+    """
+    path = Path(model_id.rstrip("/"))
+    name = path.parent.name if _CHECKPOINT_RE.fullmatch(path.name) else path.name
+    return "micro" not in name.lower() and "smoke" not in name.lower()
 
 
 def _final_label(*, mode: str) -> str:

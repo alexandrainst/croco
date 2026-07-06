@@ -148,6 +148,21 @@ class TestResultMode:
             == "sigmoid_norm"
         )
 
+    def test_micro_and_smoke_result_ids_are_ignored(self) -> None:
+        """Micro/smoke result ids do not fall through to real modes."""
+        assert (
+            build_dashboard._result_mode(
+                model_id="models/croco-munin-apertus-8b-da-micro/checkpoint-100"
+            )
+            is None
+        )
+        assert (
+            build_dashboard._result_mode(
+                model_id="models/croco-munin-apertus-8b-da-simpo-tuned-smoke/checkpoint-100"
+            )
+            is None
+        )
+
     def test_unrelated_model_is_ignored(self) -> None:
         """Unrelated models classify to None so they are dropped."""
         assert build_dashboard._result_mode(model_id="google/gemma-3-12b-it") is None
@@ -198,6 +213,69 @@ class TestEvalSeries:
 
         assert series["curves"]["simpo_tuned"][key][0]["step"] == 100
         assert series["curves"]["simpo_tuned"][key][0]["score"] == 0.70
+        assert series["finals"]["simpo_tuned"][key]["score"] == 0.80
+
+    def test_micro_eval_rows_are_ignored(self) -> None:
+        """Micro eval rows do not pollute max_reward curves or finals."""
+        key = "angry-tweets-test||macro_f1"
+        series = _eval_series(
+            rows=(
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
+                    score=0.10,
+                    lower=0.09,
+                    upper=0.11,
+                ),
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da-micro/checkpoint-100",
+                    score=0.90,
+                ),
+                _result_record(model_id="models/croco-munin-apertus-8b-da", score=0.50),
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da-micro",
+                    score=0.99,
+                ),
+            )
+        )
+
+        assert series["curves"]["max_reward"][key] == [
+            {
+                "step": 100,
+                "score": 0.10,
+                "lower": 0.09,
+                "upper": 0.11,
+                "lower_is_better": False,
+            }
+        ]
+        assert series["finals"]["max_reward"][key]["score"] == 0.50
+
+    def test_smoke_eval_rows_are_ignored(self) -> None:
+        """Smoke eval rows do not pollute SimPO-tuned curves or finals."""
+        key = "angry-tweets-test||macro_f1"
+        series = _eval_series(
+            rows=(
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da-simpo-tuned/checkpoint-100",
+                    score=0.70,
+                ),
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da-simpo-tuned-smoke/checkpoint-100",
+                    score=0.96,
+                ),
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da-simpo-tuned",
+                    score=0.80,
+                ),
+                _result_record(
+                    model_id="models/croco-munin-apertus-8b-da-simpo-tuned-smoke",
+                    score=0.95,
+                ),
+            )
+        )
+
+        assert series["curves"]["simpo_tuned"][key][0]["step"] == 100
+        assert series["curves"]["simpo_tuned"][key][0]["score"] == 0.70
+        assert len(series["curves"]["simpo_tuned"][key]) == 1
         assert series["finals"]["simpo_tuned"][key]["score"] == 0.80
 
     def test_duplicate_rows_prefer_ten_iterations_over_three(self) -> None:

@@ -121,7 +121,7 @@ class SimPOLossMixin:
             use_cache=False,
         )
         shift_logits = outputs.logits[..., :-1, :]
-        shift_labels = inputs["labels"][..., 1:]
+        shift_labels = inputs["input_ids"][..., 1:]
         completion_mask = inputs["completion_mask"][..., 1:]
 
         # Compute per-token log-probs for policy

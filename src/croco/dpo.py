@@ -149,17 +149,27 @@ class SimPOLossMixin:
         # Log metrics using TRL's dict-based mechanism (not per-key with on_step etc.)
         mode = "train" if self.model.training else "eval"
         gathered_logs = {
-            "rewards/chosen": float(self.accelerator.gather(chosen_rewards).mean()),  # type: ignore
-            "rewards/rejected": float(self.accelerator.gather(rejected_rewards).mean()),  # type: ignore
+            "rewards/chosen": float(
+                self.accelerator.gather(chosen_rewards.detach()).mean()
+            ),  # type: ignore
+            "rewards/rejected": float(
+                self.accelerator.gather(rejected_rewards.detach()).mean()
+            ),  # type: ignore
             "rewards/accuracies": float(
-                self.accelerator.gather(reward_accuracies).mean()
+                self.accelerator.gather(reward_accuracies.detach()).mean()
             ),  # type: ignore
             "rewards/margins": float(
-                self.accelerator.gather(chosen_rewards - rejected_rewards).mean()
+                self.accelerator.gather(
+                    (chosen_rewards - rejected_rewards).detach()
+                ).mean()
             ),  # type: ignore
-            "logps/chosen": float(self.accelerator.gather(chosen_logps).mean()),  # type: ignore
-            "logps/rejected": float(self.accelerator.gather(rejected_logps).mean()),  # type: ignore
-            "loss": float(loss.mean()),
+            "logps/chosen": float(
+                self.accelerator.gather(chosen_logps.detach()).mean()
+            ),  # type: ignore
+            "logps/rejected": float(
+                self.accelerator.gather(rejected_logps.detach()).mean()
+            ),  # type: ignore
+            "loss": float(loss.detach().mean()),
         }
         # Accumulate metrics for later logging (TRL's log() is called periodically)
         for key, value in gathered_logs.items():

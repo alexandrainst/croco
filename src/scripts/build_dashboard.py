@@ -751,7 +751,7 @@ _HTML_TEMPLATE = r"""<!doctype html>
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="__REFRESH__">
 <title>CroCo dashboard</title>
-<script src="plotly.min.js" charset="utf-8"></script>
+<script src="https://cdn.plot.ly/plotly-2.27.0.min.js" charset="utf-8"></script>
 <style>
   body { font-family: -apple-system, system-ui, sans-serif;
          margin: 24px; color: #1a1a1a; }

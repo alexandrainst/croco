@@ -146,25 +146,24 @@ class SimPOLossMixin:
             )
         )
 
-        # Log metrics (mirror TRL's metric logging)
-        logs = {
-            "rewards/chosen": self.accelerator.gather(chosen_rewards).mean().item(),  # type: ignore
-            "rewards/rejected": self.accelerator.gather(rejected_rewards).mean().item(),  # type: ignore
-            "rewards/accuracies": self.accelerator.gather(reward_accuracies)  # type: ignore
-            .mean()
-            .item(),
-            "rewards/margins": self.accelerator.gather(  # type: ignore
-                chosen_rewards - rejected_rewards
-            )
-            .mean()
-            .item(),
-            "logps/chosen": self.accelerator.gather(chosen_logps).mean().item(),  # type: ignore
-            "logps/rejected": self.accelerator.gather(rejected_logps).mean().item(),  # type: ignore
+        # Log metrics using TRL's dict-based mechanism (not per-key with on_step etc.)
+        mode = "train" if self.model.training else "eval"
+        gathered_logs = {
+            "rewards/chosen": float(self.accelerator.gather(chosen_rewards).mean()),  # type: ignore
+            "rewards/rejected": float(self.accelerator.gather(rejected_rewards).mean()),  # type: ignore
+            "rewards/accuracies": float(
+                self.accelerator.gather(reward_accuracies).mean()
+            ),  # type: ignore
+            "rewards/margins": float(
+                self.accelerator.gather(chosen_rewards - rejected_rewards).mean()
+            ),  # type: ignore
+            "logps/chosen": float(self.accelerator.gather(chosen_logps).mean()),  # type: ignore
+            "logps/rejected": float(self.accelerator.gather(rejected_logps).mean()),  # type: ignore
+            "loss": float(loss.mean()),
         }
-        # Log metrics using TRL's logging mechanism
-        for key, value in logs.items():
-            self.log(key, value, on_step=True, on_epoch=True, prog_bar=False)  # type: ignore
-        self.log("loss", loss.mean().item(), on_step=True, on_epoch=True, prog_bar=True)  # type: ignore
+        # Accumulate metrics for later logging (TRL's log() is called periodically)
+        for key, value in gathered_logs.items():
+            self._metrics[mode][key].append(value)  # type: ignore
 
         if return_outputs:
             return loss.mean(), outputs

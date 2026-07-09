@@ -751,7 +751,7 @@ _HTML_TEMPLATE = r"""<!doctype html>
 <meta charset="utf-8">
 <meta http-equiv="refresh" content="__REFRESH__">
 <title>CroCo dashboard</title>
-<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<script src="plotly.min.js" charset="utf-8"></script>
 <style>
   body { font-family: -apple-system, system-ui, sans-serif;
          margin: 24px; color: #1a1a1a; }
@@ -817,7 +817,19 @@ const MODE_LABELS = {
 
 function getSelectedModes() {
   const stored = localStorage.getItem("croco_selected_modes");
-  if (stored) return JSON.parse(stored);
+  const validModes = new Set(Object.keys(COLOURS));
+  const modesWithData = new Set(
+    Object.keys(DATA.training || {})
+      .concat(Object.keys(DATA.curves || {}), Object.keys(DATA.finals || {}))
+      .filter(m => !m.startsWith("base")));
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      const valid = Array.isArray(parsed) && parsed.length > 0 &&
+        parsed.some(m => validModes.has(m));
+      if (valid) return parsed.filter(m => validModes.has(m));
+    } catch (e) {}
+  }
   return Object.keys(COLOURS); // all selected by default
 }
 
@@ -863,6 +875,18 @@ function renderModeSelector() {
     label.style.color = COLOURS[mode];
     container.appendChild(label);
   });
+  // Add reset button
+  const reset = document.createElement("button");
+  reset.textContent = "\u2298 Reset selection";
+  reset.style.marginLeft = "12px";
+  reset.style.fontSize = "11px";
+  reset.onclick = () => {
+    localStorage.removeItem("croco_selected_modes");
+    container.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = true);
+    setSelectedModes(Object.keys(COLOURS));
+    updateAllPlots();
+  };
+  container.appendChild(reset);
 }
 
 function updateAllPlots() {

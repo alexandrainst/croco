@@ -2,11 +2,10 @@
 title: GRPO Online RL Baseline
 description: Group Relative Policy Optimization with online rollouts
 created: 2026-07-02
-updated: 2026-07-02
+updated: 2026-07-09
 status: queued
 config: config/danish-apertus-grpo.yaml
 output: models/croco-munin-apertus-8b-da-grpo
-eta_start: 2026-07-04 21:30 CEST
 ---
 
 # GRPO Online RL Baseline
@@ -25,10 +24,14 @@ achieving comparable alignment quality.
 - **Group scoring**: Generate N candidates, score with RM, compute relative advantages
   ([Shao et al., 2024](https://arxiv.org/abs/2402.03300), Appendix A.3)
 
-Contrast with [DPO](https://arxiv.org/abs/2305.18290): | Aspect | DPO | GRPO |
-|--------|-----|------| | Data | Offline preference pairs | Online rollouts | | Build
-cost | ~2h (gen + score) | $0 | | Memory | Ref model (+ LoRA) | vLLM + RM resident | |
-Compute | One-time build | Ongoing generation |
+Contrast with [DPO](https://arxiv.org/abs/2305.18290):
+
+| Aspect       | DPO                 | GRPO                    |
+| ------------ | ------------------- | ----------------------- |
+| Data         | Offline preference pairs | Online rollouts     |
+| Build cost   | ~2h (gen + score)   | $0                      |
+| Memory       | Ref model (+ LoRA)  | vLLM + RM resident      |
+| Compute      | One-time build      | Ongoing generation      |
 
 ### Settings
 
@@ -41,12 +44,12 @@ Compute | One-time build | Ongoing generation |
 
 ```yaml
 grpo:
-    per_device_train_batch_size: 4
-    gradient_accumulation_steps: 4
-    num_train_epochs: 1
-    beta: 0.04
-    use_vllm: true
-    vllm_gpu_memory_utilization: 0.3
+  per_device_train_batch_size: 4
+  gradient_accumulation_steps: 4
+  num_train_epochs: 1
+  beta: 0.04
+  use_vllm: true
+  vllm_gpu_memory_utilization: 0.3
 ```
 
 ## Pre-Flight
@@ -78,13 +81,20 @@ checkpoint).
 **Hypothesis:** Online RL can match offline DPO quality without dataset construction
 cost.
 
-**Trade-offs:** | Aspect | Expected vs DPO | |--------|----------------| | Build cost |
-$0 (no offline construction) | | Training time | ~12h vs ~6.5h (DPO max_reward actual) | | Memory |
-Higher (vLLM + RM resident) | | Data efficiency | Lower (no replay buffer) |
+**Trade-offs:**
+
+| Aspect         | Expected vs DPO         |
+| -------------- | ----------------------- |
+| Build cost     | $0 (no offline construction) |
+| Training time  | ~12h vs ~6.5h (DPO max_reward actual) |
+| Memory         | Higher (vLLM + RM resident) |
+| Data efficiency| Lower (no replay buffer) |
 
 ## Current Status
 
-⏳ **Queued** — auto-launches after SimPO ablations complete (~21:30 CEST Friday).
+⏳ **Queued** — launches after SimPO-full completes (~2026-07-10 04:00–07:00 CEST).
+
+SimPO-full started 2026-07-09 16:20, running in `simpo_grpo` session (~12–20 hours remaining).
 
 ## Comparison
 
@@ -98,5 +108,16 @@ Higher (vLLM + RM resident) | | Data efficiency | Lower (no replay buffer) |
 ## Related
 
 - [Max Reward](01-max-reward.md) — DPO baseline
+- [SimPO Full](08-simpo-full.md) — currently training, GRPO queued after
 
 ---
+
+## Reproduction
+
+```bash
+# Run full GRPO pipeline (no build step needed)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-grpo.yaml
+
+# Run evals only (10 iterations)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-grpo.yaml --eval-only --eval.num-iterations 10
+```

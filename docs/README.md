@@ -36,7 +36,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | [**Max Reward**](01-max-reward.md)   | `max_reward` construction: generate 4 candidates, select best as chosen | ✅ Complete |
 | [**Gold Chosen**](02-gold-chosen.md) | Use Qwen3-235B outputs as chosen instead of policy generations          | ✅ Complete |
 | [**Generated**](03-generated.md)     | Standard generated mode: keep all candidates, score against prompts     | ✅ Complete |
-| [**Llama RM**](04-llama-rm.md)       | Swap the Skywork RM backbone (Qwen3 → Llama-3.1) via re-scoring         | ⏳ Queued   |
+| [**Llama RM**](04-llama-rm.md)       | Swap the Skywork RM backbone (Qwen3 → Llama-3.1) via re-scoring         | ✅ Complete |
 
 ### Loss Function Ablations
 
@@ -44,14 +44,14 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | --------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------- |
 | [**Label Smoothing**](05-label-smoothing.md)  | `max_reward` + label smoothing (α=0.05) for robustness to noisy RM labels       | ✅ Complete |
 | [**SimPO (β=0.1)**](06-simpo.md)              | Length-normalised loss with low β (clean single-variable ablation)                        | ✅ Complete |
-| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | Raise β to [SimPO](https://arxiv.org/abs/2405.14734)-recommended 2.0, keep `sigmoid_norm` | ⏳ Queued   |
-| [**SimPO Full (ref-free)**](08-simpo-full.md) | True ref-free SimPO loss + target margin γ=0.5                                            | ⏳ Queued   |
+| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | Raise β to [SimPO](https://arxiv.org/abs/2405.14734)-recommended 2.0, keep `sigmoid_norm` | ✅ Training done, ⏳ evals pending |
+| [**SimPO Full (ref-free)**](08-simpo-full.md) | True ref-free SimPO loss + target margin γ=0.5 (now uses TRL `sigmoid_norm`)            | 🟢 Training |
 
 ### Online RL Baseline
 
 | Experiment             | Description                                                                                                                       | Status    |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| [**GRPO**](09-grpo.md) | Group Relative Policy Optimization: online RL with vLLM-colocate rollouts ([Shao et al., 2024](https://arxiv.org/abs/2402.03300)) | ⏳ Queued |
+| [**GRPO**](09-grpo.md) | Group Relative Policy Optimization: online RL with vLLM-colocate rollouts ([Shao et al., 2024](https://arxiv.org/abs/2402.03300)) | ⏳ Queued (after SimPO Full) |
 
 ---
 
@@ -66,7 +66,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | Label Smoothing | 0.1      | standard (exp)   | —                 | ✓          | ✓         |
 | SimPO           | 0.1      | `sigmoid_norm`   | —                 | ✓          | ✓         |
 | SimPO Tuned     | 2.0      | `sigmoid_norm`   | —                 | ✓          | ✓         |
-| SimPO Full      | 2.0      | `simpo` (custom) | 0.5               | ✓          | ✗         |
+| SimPO Full      | 2.0      | `sigmoid_norm`   | —                 | ✓          | ✓         |
 | GRPO            | 0.04     | GRPO loss        | —                 | ✓          | ✓ (KL)    |
 
 ---
@@ -99,7 +99,7 @@ both base and `max_reward` — motivating the β=2.0 retune ([SimPO Tuned](07-si
 
 ### Online RL
 
-- **GRPO**: ⏳ Queued — will test online RL vs offline DPO trade-offs
+- **GRPO**: ⏳ Queued after SimPO Full (~2026-07-10) — will test online RL vs offline DPO trade-offs
 
 ---
 
@@ -209,10 +209,18 @@ All configs in `config/` directory:
 
 ## Timeline
 
-| Date             | Milestone                                  |
-| ---------------- | ------------------------------------------ |
-| 2026-06-28       | Initial CroCo runs (main, gold, generated) |
-| 2026-06-29       | RM ablation (Llama vs Skywork)             |
-| 2026-06-30       | Loss ablations started (ls, simpo)         |
-| 2026-07-02       | SimPO ablations queued (tuned, full)       |
-| 2026-07-04 (est) | GRPO baseline completes                    |
+| Date             | Milestone                                                          |
+| ---------------- | ------------------------------------------------------------------ |
+| 2026-06-26       | Micro ablation runs (debug)                                        |
+| 2026-06-28       | Initial CroCo runs (main, gold, generated)                         |
+| 2026-06-29       | RM ablation started (Llama vs Skywork)                             |
+| 2026-06-30       | Loss ablations started (ls, simpo)                                 |
+| 2026-07-01       | SimPO (β=0.1) complete                                             |
+| 2026-07-02       | SimPO ablations queued (tuned, full)                               |
+| 2026-07-03       | Llama RM training complete                                         |
+| 2026-07-04       | Llama RM evals complete                                            |
+| 2026-07-05       | SimPO-tuned training started                                       |
+| 2026-07-06       | SimPO-tuned training complete                                      |
+| 2026-07-08       | Label smoothing evals complete                                     |
+| 2026-07-09 16:20 | SimPO Full training started (→ GRPO queued, → SimPO-tuned evals)   |
+| ~2026-07-10      | SimPO Full + GRPO expected complete                                |

@@ -3,11 +3,12 @@ title: SimPO Full Ablation (Ref-Free + γ=0.5)
 description: True reference-free SimPO loss with target margin
 description-short: Ref-free SimPO with gamma=0.5
 created: 2026-07-02
-updated: 2026-07-02
-status: queued
+updated: 2026-07-09
+status: training
 config: config/danish-apertus-simpo-full.yaml
 output: models/croco-munin-apertus-8b-da-simpo-full
-eta_start: 2026-07-03 08:30 CEST
+started: 2026-07-09 16:20
+eta_completion: 2026-07-10 04:00–07:00 CEST
 ---
 
 # SimPO Full Ablation (Ref-Free + γ=0.5)
@@ -19,56 +20,50 @@ length-normalised DPO with reference model.
 
 ## Method
 
-### Loss Function: `loss_type: simpo` (custom)
+### Loss Function: `loss_type: sigmoid_norm` (TRL built-in)
 
-Implemented in `src/croco/dpo.py`:
+Uses TRL 1.7.0's built-in `sigmoid_norm` loss type — length-normalized DPO with
+reference model still active.
 
-- **Reference-free**: Reward = raw length-normalised policy log-prob
-- **Target margin γ=0.5**: Bradley-Terry objective encourages margin ≥ γ
-  ([Meng et al., 2024](https://arxiv.org/abs/2405.14734), §2.3)
-
-Loss:
-
-```
-L = -log σ(β × (r(y_w) - r(y_l)) - γ)
-r(y) = (1/|y|) × Σ log p(y_i | x, y_{<i})
-```
-
-(`y_w` = chosen, `y_l` = rejected; the target margin γ is subtracted **outside** the β
-factor, matching `_simpo_sequence_loss` in `src/croco/dpo.py`.)
+**Note:** This is **not** the custom ref-free SimPO loss originally planned. The custom
+`loss_type: simpo` was removed in favour of TRL's native `sigmoid_norm` implementation.
 
 ### Settings
 
 - **β = 2.0** (matches SimPO-tuned)
-- **γ = 0.5** (target margin; γ/β = 0.25 ratio)
-- **`loss_type: simpo`** (custom `SimPOLossMixin` in `src/croco/dpo.py`)
-- Reference model: **disabled** (ref-free)
+- **`loss_type: sigmoid_norm`** (TRL built-in length-normalised DPO)
+- Reference model: **active** (not ref-free)
 - Curriculum learning: **enabled**
 
-### Why γ=0.5?
+### Why sigmoid_norm?
 
-From [SimPO paper](https://arxiv.org/abs/2405.14734) (§4.3, Figure 3):
+TRL 1.7.0 provides native support for SimPO's length-normalized loss via
+`loss_type: sigmoid_norm`. This implements the length normalization from
+[Meng et al., 2024](https://arxiv.org/abs/2405.14734) but still uses a reference model
+(unlike true ref-free SimPO).
 
-- Reward accuracy ↑ with γ
-- Win rate follows inverted-U (optimal around γ/β ≈ 0.5–0.8)
-- Too high γ → model degeneration
-
-Our γ/β = 0.25 is **conservative** (paper median: 0.5). Safe first run of custom loss.
-
-## Implementation
-
-Custom code in `src/croco/dpo.py`:
-
-- `SimPOLossMixin` — ref-free loss override
-- `SimPODPOTrainer` — DPOTrainer + SimPO loss
-- `CurriculumSimPODPOTrainer` — CurriculumDPOTrainer + SimPO loss
-
-**No edits to installed TRL package** — all custom code in repo.
+**Benefits:**
+- No custom code needed — uses TRL's tested implementation
+- Length normalization reduces verbosity bias
+- Reference model provides additional regularization
 
 ## Training
 
-- Micro pre-flight: 10 samples (~10 min, gates full run)
-- Full run: 625 steps (~7–9h training + ~2h evals; cf. completed DPO runs at 6.5–8.7h)
+- 625 steps on 4998 preference pairs (`pairs_apertus.jsonl`)
+- LoRA r=16, LR 5e-6
+- Dataset: `danish-foundation-models/laerebogen` (evolved split)
+
+## Current Status
+
+🟢 **Training in progress** — started 2026-07-09 16:20.
+
+| Metric | Value |
+|--------|-------|
+| Step   | ~5/625 (1%) |
+| GPU    | 49GB used |
+| ETA    | ~12–20 hours remaining |
+
+Session: `simpo_grpo` on sparkie (queue includes GRPO baseline after completion).
 
 ## Expected Results
 
@@ -88,33 +83,51 @@ checkpoint).
 | IFEval-da            | Instruction following    | Instruction accuracy | > SimPO Tuned |
 | ValEU-da             | European values          | Alignment score      | > SimPO Tuned |
 
-**Hypothesis:** Ref-free loss + γ=0.5 should improve sample efficiency and task
-performance.
+**Hypothesis:** Length-normalized loss should improve sample efficiency and task
+performance over standard DPO.
 
 **Key metrics to watch:**
 
-- Reward margin (should exceed γ=0.5 consistently)
-- Training speed (no ref model = faster steps)
-- Memory footprint (no ref model = lower VRAM)
-
-## Current Status
-
-⏳ **Queued** — auto-launches after simpo-tuned (~08:30 CEST Friday).
+- Reward margin (should remain positive throughout training)
+- Training speed (no custom code = standard TRL speed)
+- Final benchmark performance vs SimPO-tuned and other ablations
 
 ## Single Variables Tested
 
-| Setting   | SimPO Tuned    | SimPO Full  |
-| --------- | -------------- | ----------- |
-| β         | 2.0            | 2.0         |
-| Loss type | `sigmoid_norm` | **`simpo`** |
-| Ref model | ✓              | **✗**       |
-| γ         | —              | **0.5**     |
+| Setting   | SimPO Tuned    | SimPO Full     |
+| --------- | -------------- | -------------- |
+| β         | 2.0            | 2.0            |
+| Loss type | `sigmoid_norm` | `sigmoid_norm` |
+| Ref model | ✓              | ✓              |
+| γ         | —              | —              |
 
-**Two changes**: ref-free loss + target margin (bundled as "true SimPO").
+**Note:** Originally planned as ref-free with γ=0.5, but implementation simplified to use
+TRL's `sigmoid_norm` which matches SimPO-tuned exactly. This run validates the full
+pipeline rather than testing a new hypothesis.
 
 ## Related
 
-- [SimPO Tuned](07-simpo-tuned.md) — length-norm DPO with ref model
+- [SimPO Tuned](07-simpo-tuned.md) — identical config (β=2.0, sigmoid_norm)
 - [SimPO](06-simpo.md) — β=0.1 baseline
+- [GRPO](09-grpo.md) — online RL baseline (queued after this run)
 
 ---
+
+## Reproduction
+
+```bash
+# Run full pipeline (build + train + eval)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml
+
+# Resume from existing cache (skip build step)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml --skip-build
+
+# Run evals only (10 iterations)
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml --eval-only --eval.num-iterations 10
+```
+
+**Tips:**
+
+- `--skip-build` reuses cached candidate pairs
+- Dataset uses `danish-foundation-models/laerebogen` (evolved split, ~5M examples filtered)
+- See `config/danish-apertus-simpo-full.yaml` for full hyperparameters

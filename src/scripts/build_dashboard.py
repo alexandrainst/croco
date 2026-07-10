@@ -331,12 +331,12 @@ def _hf_repo_for_model_dir(*, model_dir: str, reader: "_Reader") -> str | None:
     """Look up the HF repo ID for a model directory by parsing configs."""
     try:
         if reader.ssh_host:
-            remote_cmd = f"cd {reader.root} && grep -l output_dir:.*{model_dir} config/*.yaml 2>/dev/null"
+            remote_cmd = f"cd {reader.root} && grep -lE 'output_dir:.*{model_dir}$' config/*.yaml 2>/dev/null"
             result = subprocess.run(["ssh", reader.ssh_host, remote_cmd], capture_output=True, text=True, check=False)
             if result.returncode != 0 or not result.stdout.strip():
                 return None
             config_file = result.stdout.strip().split("\n")[0]
-            parse_cmd = f"cd {reader.root} && grep -A1 output_dir:.*{model_dir} {config_file} | grep hf_repo_id: | awk {{print }}"
+            parse_cmd = f"cd {reader.root} && grep -E 'output_dir:.*{model_dir}$' {config_file} -A1 | grep hf_repo_id: | awk '{{print $2}}'"
             result = subprocess.run(["ssh", reader.ssh_host, parse_cmd], capture_output=True, text=True, check=False)
             if result.returncode == 0 and result.stdout.strip():
                 val = result.stdout.strip()

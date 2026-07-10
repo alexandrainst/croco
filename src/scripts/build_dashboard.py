@@ -26,6 +26,7 @@ import logging
 import os
 import re
 import subprocess
+import tempfile
 import time
 import typing as t
 from pathlib import Path
@@ -302,7 +303,11 @@ def _training_series(*, reader: "_Reader", model_dir: str) -> dict[str, t.Any] |
         Mapping with a ``steps`` list, one list per tracked metric, plus the
         latest step and total step count, or None when no state is available.
     """
-    state = _latest_trainer_state(reader=reader, model_dir=model_dir)
+    # Try HF first
+    hf_repo = _hf_repo_for_model_dir(model_dir=model_dir, reader=reader)
+    state = _latest_hf_trainer_state(repo_id=hf_repo) if hf_repo else None
+    if state is None:
+        state = _latest_trainer_state(reader=reader, model_dir=model_dir)
     if state is None:
         return None
     rows = [entry for entry in state["log_history"] if "loss" in entry]
@@ -320,6 +325,77 @@ def _training_series(*, reader: "_Reader", model_dir: str) -> dict[str, t.Any] |
     series["total"] = max_steps or series["latest_step"]
     return series
 
+
+
+def _hf_repo_for_model_dir(*, model_dir: str, reader: "_Reader") -> str | None:
+    """Look up the HF repo ID for a model directory by parsing configs."""
+    try:
+        if reader.ssh_host:
+            remote_cmd = f"cd {reader.root} && grep -l output_dir:.*{model_dir} config/*.yaml 2>/dev/null"
+            result = subprocess.run(["ssh", reader.ssh_host, remote_cmd], capture_output=True, text=True, check=False)
+            if result.returncode != 0 or not result.stdout.strip():
+                return None
+            config_file = result.stdout.strip().split("\n")[0]
+            parse_cmd = f"cd {reader.root} && grep -A1 output_dir:.*{model_dir} {config_file} | grep hf_repo_id: | awk {{print }}"
+            result = subprocess.run(["ssh", reader.ssh_host, parse_cmd], capture_output=True, text=True, check=False)
+            if result.returncode == 0 and result.stdout.strip():
+                val = result.stdout.strip()
+                return None if val.lower() == "null" else val
+            return None
+        else:
+            import glob
+            for config_path in glob.glob("config/*.yaml"):
+                with open(config_path) as f:
+                    content = f.read()
+                    if f"output_dir: {model_dir}" in content:
+                        for line in content.split("\n"):
+                            if line.strip().startswith("hf_repo_id:"):
+                                val = line.split(":", 1)[1].strip()
+                                return None if val.lower() == "null" else val
+            return None
+    except Exception:
+        return None
+
+
+def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
+    """Return the trainer state from the highest-step checkpoint in an HF repo."""
+    try:
+        result = subprocess.run(
+            ["hf", "list-files", "--repo-type", "model", repo_id],
+            capture_output=True, text=True, check=False, timeout=30,
+        )
+        if result.returncode != 0:
+            return None
+        steps = []
+        for line in result.stdout.strip().split("\n"):
+            match = _CHECKPOINT_RE.search(line)
+            if match:
+                steps.append(int(match.group(1)))
+        if not steps:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                dl = subprocess.run(
+                    ["hf", "download", "--repo-type", "model", "--local-dir", tmpdir, repo_id, "trainer_state.json"],
+                    capture_output=True, text=True, check=False, timeout=300,
+                )
+                path = os.path.join(tmpdir, "trainer_state.json")
+                if dl.returncode == 0 and os.path.exists(path):
+                    with open(path) as f:
+                        return json.load(f)
+            return None
+        max_step = max(steps)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            dl = subprocess.run(
+                ["hf", "download", "--repo-type", "model", "--local-dir", tmpdir, repo_id, f"checkpoint-{max_step}/trainer_state.json"],
+                capture_output=True, text=True, check=False, timeout=300,
+            )
+            path = os.path.join(tmpdir, f"checkpoint-{max_step}/trainer_state.json")
+            if dl.returncode == 0 and os.path.exists(path):
+                with open(path) as f:
+                    return json.load(f)
+        return None
+    except Exception as e:
+        logger.debug("Error reading HF repo %s: %s", repo_id, e)
+        return None
 
 def _latest_trainer_state(
     *, reader: "_Reader", model_dir: str

@@ -3,12 +3,12 @@ title: SimPO Full Ablation (Ref-Free + γ=0.5)
 description: True reference-free SimPO loss with target margin
 description-short: Ref-free SimPO with gamma=0.5
 created: 2026-07-02
-updated: 2026-07-09
-status: training
+updated: 2026-07-10
+status: complete
 config: config/danish-apertus-simpo-full.yaml
 output: models/croco-munin-apertus-8b-da-simpo-full
 started: 2026-07-09 16:20
-eta_completion: 2026-07-10 04:00–07:00 CEST
+completed: 2026-07-10
 ---
 
 # SimPO Full Ablation (Ref-Free + γ=0.5)
@@ -20,32 +20,27 @@ length-normalised DPO with reference model.
 
 ## Method
 
-### Loss Function: `loss_type: sigmoid_norm` (TRL built-in)
+### Loss Function: `loss_type: simpo` (custom, reference-free)
 
-Uses TRL 1.7.0's built-in `sigmoid_norm` loss type — length-normalized DPO with
-reference model still active.
-
-**Note:** This is **not** the custom ref-free SimPO loss originally planned. The custom
-`loss_type: simpo` was removed in favour of TRL's native `sigmoid_norm` implementation.
+Uses the custom `loss_type: simpo` in `src/croco/dpo.py` — **true reference-free
+SimPO**: the implicit reward is the length-normalised policy log-probability with an
+explicit target margin γ, and **no reference model** is used.
 
 ### Settings
 
-- **β = 2.0** (matches SimPO-tuned)
-- **`loss_type: sigmoid_norm`** (TRL built-in length-normalised DPO)
-- Reference model: **active** (not ref-free)
+- **β = 2.0**, **target margin γ = 0.5**
+- **`loss_type: simpo`** (custom ref-free SimPO in `src/croco/dpo.py`)
+- Reference model: **none** (ref-free)
 - Curriculum learning: **enabled**
+- Data: `max_reward` pairs (`data/pairs_apertus.jsonl`), reused via `--skip-build`
 
-### Why sigmoid_norm?
+### Why ref-free SimPO?
 
-TRL 1.7.0 provides native support for SimPO's length-normalized loss via
-`loss_type: sigmoid_norm`. This implements the length normalization from
-[Meng et al., 2024](https://arxiv.org/abs/2405.14734) but still uses a reference model
-(unlike true ref-free SimPO).
-
-**Benefits:**
-- No custom code needed — uses TRL's tested implementation
-- Length normalization reduces verbosity bias
-- Reference model provides additional regularization
+Ref-free SimPO ([Meng et al., 2024](https://arxiv.org/abs/2405.14734)) drops the
+reference model entirely and adds a target margin γ. This isolates the loss from the
+reference-based `sigmoid_norm` used in SimPO-tuned — the single variable tested here is
+**ref-free SimPO (this run) vs reference-based `sigmoid_norm` (SimPO-tuned)**, both on
+identical max_reward data.
 
 ## Training
 
@@ -53,57 +48,81 @@ TRL 1.7.0 provides native support for SimPO's length-normalized loss via
 - LoRA r=16, LR 5e-6
 - Dataset: `danish-foundation-models/laerebogen` (evolved split)
 
-## Current Status
+## Status
 
-🟢 **Training in progress** — started 2026-07-09 16:20.
+✅ **Complete** — trained 2026-07-09→10, 625 steps, 7 checkpoints
+(`checkpoint-100`…`625`). Final eval done; 10-iteration checkpoint evals run afterwards.
 
-| Metric | Value |
-|--------|-------|
-| Step   | ~5/625 (1%) |
-| GPU    | 49GB used |
-| ETA    | ~12–20 hours remaining |
+### Training dynamics
 
-Session: `simpo_grpo` on sparkie (queue includes GRPO baseline after completion).
+| step | loss | reward-acc | reward-margin |
+| ---- | ---- | ---------- | ------------- |
+| 10   | 1.05 | 0.61 | 0.18 |
+| 80   | 1.28 | 0.43 | −0.34 |
+| 240  | 0.98 | 0.61 | 0.97 |
+| 400  | 0.90 | 0.58 | 1.25 |
+| 560  | 0.96 | 0.59 | 1.36 |
 
-## Expected Results
+Loss is essentially **flat** across all 625 steps and reward accuracy never leaves the
+0.52–0.66 band (chance = 0.5). The model barely learns to separate chosen from rejected —
+a sign of under-fitting and/or weak preference pairs (max_reward best-of-4 gives small
+reward gaps).
 
-**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations final, 3
-checkpoint).
+## Results
 
-| Benchmark            | Task                     | Metric               | Target        |
-| -------------------- | ------------------------ | -------------------- | ------------- |
-| AngryTweets          | Sentiment classification | MCC                  | > SimPO Tuned |
-| ScaLA-da             | Linguistic acceptability | MCC                  | > SimPO Tuned |
-| DANSK                | Named entity recognition | Micro F1             | > SimPO Tuned |
-| MultiWikiQA-da       | Reading comprehension    | F1                   | > SimPO Tuned |
-| Nordjylland News     | Summarization            | chrF++               | > SimPO Tuned |
-| Danske Talemåder     | Knowledge                | Accuracy             | > SimPO Tuned |
-| Danish Citizen Tests | Knowledge                | Accuracy             | > SimPO Tuned |
-| HellaSwag-da         | Common sense reasoning   | Accuracy             | > SimPO Tuned |
-| IFEval-da            | Instruction following    | Instruction accuracy | > SimPO Tuned |
-| ValEU-da             | European values          | Alignment score      | > SimPO Tuned |
+Final EuroEval (Danish) scores vs the construction-mode baselines. Scores 0–100, higher
+is better; **bold** = significant vs max_reward (non-overlapping 95% bootstrap CIs).
 
-**Hypothesis:** Length-normalized loss should improve sample efficiency and task
-performance over standard DPO.
+| Dataset / metric          | max_reward | generated | gold | simpo_full |
+| ------------------------- | ---------: | --------: | ---: | ---------: |
+| angry-tweets · macro_f1   | 64.9 | 65.0 | 64.9 | 64.0 |
+| angry-tweets · mcc        | 48.0 | 48.1 | 48.7 | 46.5 |
+| citizen-tests · accuracy  | 84.4 | 83.6 | 83.7 | 85.3 |
+| citizen-tests · mcc       | 77.6 | 76.1 | 75.8 | 78.7 |
+| dansk · micro_f1          | 31.5 | 30.7 | 29.8 | 31.0 |
+| dansk · micro_f1_no_misc  | 45.2 | 44.2 | 42.3 | 46.4 |
+| talemaader · accuracy     | 69.2 | 68.0 | 70.8 | 70.6 |
+| talemaader · mcc          | 62.6 | 61.0 | 64.6 | 63.8 |
+| hellaswag · accuracy      | 53.9 | 52.6 | 55.0 | 54.7 |
+| hellaswag · mcc           | 41.6 | 39.7 | 42.4 | 42.4 |
+| ifeval · instruction_acc  | 56.1 | 47.2 | 54.3 | **62.4** |
+| multi-wiki-qa · em        | 57.5 | 58.5 | 58.8 | 57.1 |
+| multi-wiki-qa · f1        | 74.6 | 74.3 | 74.3 | 73.9 |
+| nordjylland · chr_f3pp    | 37.6 | 37.4 | 34.2 | 37.2 |
+| nordjylland · chr_f4pp    | 41.2 | 41.1 | 35.1 | **39.9** |
+| scala · macro_f1          | 62.8 | 62.6 | 47.5 | 59.4 |
+| scala · mcc               | 35.7 | 35.5 | 23.0 | 32.7 |
+| valeu · european_values   | 5.4 | 10.1 | 0.3 | 0.2 |
+| **Mean**                  | **52.78** | 51.98 | 50.30 | **52.56** |
 
-**Key metrics to watch:**
+### Analysis
 
-- Reward margin (should remain positive throughout training)
-- Training speed (no custom code = standard TRL speed)
-- Final benchmark performance vs SimPO-tuned and other ablations
+- **vs max_reward (same data): a wash** — 52.56 vs 52.78, only 2 of 18 metrics
+  significant. Swapping reference-based DPO for ref-free SimPO on identical max_reward
+  pairs gave no aggregate gain, consistent with the flat training curve.
+- **Only significant win: instruction-following** — ifeval-da +6.3 (62.4 vs 56.1), the
+  expected SimPO length-normalisation effect (less verbosity / format drift).
+- **Cost: grammaticality / length-sensitive tasks** — ScaLA-da −3.4 macro_f1 / −3.0 mcc
+  and Nordjylland summarisation chr_f4pp −1.3 (significant).
+- **vs generated (+0.6)** and **vs gold_chosen (+2.3)**: simpo_full beats both; gold
+  collapses on ScaLA (47.5) and Nordjylland (35) from off-policy distribution shift.
+- **Ranking:** max_reward ≈ simpo_full > generated > gold.
+
+Caveats: single-run final eval; only ifeval and nordjylland-chr_f4pp clear the CI bar vs
+max_reward. `valeu-da` is unreliable (all models near-zero) — exclude from means.
 
 ## Single Variables Tested
 
-| Setting   | SimPO Tuned    | SimPO Full     |
-| --------- | -------------- | -------------- |
-| β         | 2.0            | 2.0            |
-| Loss type | `sigmoid_norm` | `sigmoid_norm` |
-| Ref model | ✓              | ✓              |
-| γ         | —              | —              |
+| Setting   | SimPO Tuned    | SimPO Full         |
+| --------- | -------------- | ------------------ |
+| β         | 2.0            | 2.0                |
+| Loss type | `sigmoid_norm` | `simpo` (ref-free) |
+| Ref model | ✓              | ✗                  |
+| γ         | —              | 0.5                |
 
-**Note:** Originally planned as ref-free with γ=0.5, but implementation simplified to use
-TRL's `sigmoid_norm` which matches SimPO-tuned exactly. This run validates the full
-pipeline rather than testing a new hypothesis.
+The single variable vs SimPO-tuned is the **loss**: reference-based length-normalised
+`sigmoid_norm` → true reference-free SimPO with target margin γ=0.5, on identical
+max_reward data.
 
 ## Related
 

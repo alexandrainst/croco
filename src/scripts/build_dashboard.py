@@ -361,7 +361,7 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
     """Return the trainer state from the highest-step checkpoint in an HF repo."""
     try:
         result = subprocess.run(
-            ["hf", "list-files", "--repo-type", "model", repo_id],
+            ["hf", "models", "ls", "-R", "--repo-type", "model", repo_id],
             capture_output=True, text=True, check=False, timeout=30,
         )
         if result.returncode != 0:

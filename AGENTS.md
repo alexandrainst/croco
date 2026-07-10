@@ -182,16 +182,22 @@ git commit -m 'docs: update plots'
 
 ### Dashboard
 
-Generate locally from discovered config output directories:
+Generate locally with auto-discovered model directories:
 
 ```bash
-uv run src/scripts/build_dashboard.py \
+uv run src/scripts/build_dashboard.py --configs \
+  --ssh-host sparkie --remote-root /home/saattrupdan/croco \
   -r euroeval_benchmark_results.jsonl \
   -o croco_dashboard.html
 ```
 
-For the live local dashboard, `croco-dash` runs the same script in watch mode and
-pulls checkpoint/result data from sparkie over SSH.
+For the live local dashboard, `croco-dash` runs the same script in watch mode
+(`--watch 300`) pulling checkpoint/result data from sparkie over SSH.
+
+**HF push integration:** Training runs with `push_to_hub: true` upload checkpoints
+to `danish-foundation-models/croco-munin-apertus-8b-da*` HF repos. The dashboard
+fetches `trainer_state.json` directly from HF, so no local checkpoint copies are
+needed. Training curves appear automatically once the first checkpoint pushes.
 
 Open `croco_dashboard.html` in a browser. Charts are interactive (hover for
 details, camera icon to export PNG).
@@ -216,11 +222,14 @@ Update docs when:
   `croco_dashboard.html` every 5 minutes by pulling latest checkpoints from
   sparkie. If the dashboard appears stale, check if `croco-dash` is still
   running.
+- **Dashboard HF integration** — Training runs with `push_to_hub: true` upload
+  checkpoints to HF. The dashboard fetches `trainer_state.json` directly from HF
+  repos, so training curves auto-populate without local checkpoint copies.
 - **Dashboard visibility** — Active training runs do not appear in the dashboard
-  until the first `checkpoint-*/trainer_state.json` exists. SimPO-tuned can spend
-  over an hour precomputing reference log probs before step 1; with
-  `save_steps: 100`, it stays invisible until checkpoint 100 is written and the
-  next `croco-dash` refresh runs.
+  until the first `checkpoint-*/trainer_state.json` exists (locally or on HF).
+  SimPO-tuned can spend over an hour precomputing reference log probs before
+  step 1; with `save_steps: 100`, it stays invisible until checkpoint 100 is
+  written and the next `croco-dash` refresh runs.
 - **All scripts in `src/scripts/`** — No `.sh` files in root or separate
   `scripts/` directory. Run via `uv run src/scripts/<script>.sh`.
 - **Custom TRL code** — Custom losses (SimPO, label smoothing) are in

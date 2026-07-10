@@ -108,12 +108,23 @@ def build_grpo_config(*, config: PipelineConfig) -> GRPOConfig:
     save_kwargs: dict[str, t.Any] = {}
     if grpo.save_steps > 0:
         # Keep every checkpoint so the learning curve can be evaluated, matching
-        # the DPO runs.
+        # the DPO runs (unless save_total_limit is set).
         save_kwargs = {
             "save_strategy": "steps",
             "save_steps": grpo.save_steps,
-            "save_total_limit": None,
+            "save_total_limit": grpo.save_total_limit,
         }
+
+    # Push to Hub settings (optional)
+    hub_kwargs: dict[str, t.Any] = {}
+    if grpo.hf_repo_id is not None:
+        hub_kwargs = {
+            "push_to_hub": True,
+            "hub_model_id": grpo.hf_repo_id,
+            "hub_strategy": "checkpoint",  # Push at each save_steps interval
+        }
+        if grpo.hf_token is not None:
+            hub_kwargs["hub_token"] = grpo.hf_token
 
     return GRPOConfig(
         output_dir=str(grpo.output_dir),
@@ -140,6 +151,7 @@ def build_grpo_config(*, config: PipelineConfig) -> GRPOConfig:
         # repeat-sampler (which groups generations) is otherwise untouched.
         shuffle_dataset=not grpo.curriculum,
         **save_kwargs,
+        **hub_kwargs,
     )
 
 

@@ -361,7 +361,7 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
     """Return the trainer state from the highest-step checkpoint in an HF repo."""
     try:
         result = subprocess.run(
-            ["hf", "models", "ls", "-R", "--repo-type", "model", repo_id],
+            ["hf", "models", "ls", "-R", repo_id],
             capture_output=True, text=True, check=False, timeout=30,
         )
         if result.returncode != 0:
@@ -374,7 +374,7 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
         if not steps:
             with tempfile.TemporaryDirectory() as tmpdir:
                 dl = subprocess.run(
-                    ["hf", "download", "--repo-type", "model", "--local-dir", tmpdir, repo_id, "trainer_state.json"],
+                    ["hf", "download", "--type", "model", "--local-dir", tmpdir, repo_id, "trainer_state.json"],
                     capture_output=True, text=True, check=False, timeout=300,
                 )
                 path = os.path.join(tmpdir, "trainer_state.json")
@@ -385,7 +385,7 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
         max_step = max(steps)
         with tempfile.TemporaryDirectory() as tmpdir:
             dl = subprocess.run(
-                ["hf", "download", "--repo-type", "model", "--local-dir", tmpdir, repo_id, f"checkpoint-{max_step}/trainer_state.json"],
+                ["hf", "download", "--type", "model", "--local-dir", tmpdir, repo_id, f"checkpoint-{max_step}/trainer_state.json"],
                 capture_output=True, text=True, check=False, timeout=300,
             )
             path = os.path.join(tmpdir, f"checkpoint-{max_step}/trainer_state.json")

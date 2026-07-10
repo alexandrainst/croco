@@ -347,7 +347,7 @@ def _hf_repo_for_model_dir(*, model_dir: str, reader: "_Reader") -> str | None:
             for config_path in glob.glob("config/*.yaml"):
                 with open(config_path) as f:
                     content = f.read()
-                    if f"output_dir: {model_dir}" in content:
+                    if f"output_dir: {model_dir}\n" in content or f"output_dir: {model_dir} " in content or content.strip().endswith(f"output_dir: {model_dir}"):
                         for line in content.split("\n"):
                             if line.strip().startswith("hf_repo_id:"):
                                 val = line.split(":", 1)[1].strip()
@@ -361,7 +361,7 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
     """Return the trainer state from the highest-step checkpoint in an HF repo."""
     try:
         result = subprocess.run(
-            ["hf", "models", "ls", "-R", repo_id],
+            ["/home/saattrupdan/croco/.venv/bin/hf", "models", "ls", "-R", repo_id],
             capture_output=True, text=True, check=False, timeout=30,
         )
         if result.returncode != 0:
@@ -374,7 +374,7 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
         if not steps:
             with tempfile.TemporaryDirectory() as tmpdir:
                 dl = subprocess.run(
-                    ["hf", "download", "--type", "model", "--local-dir", tmpdir, repo_id, "trainer_state.json"],
+                    ["/home/saattrupdan/croco/.venv/bin/hf", "download", "--type", "model", "--local-dir", tmpdir, repo_id, "trainer_state.json"],
                     capture_output=True, text=True, check=False, timeout=300,
                 )
                 path = os.path.join(tmpdir, "trainer_state.json")
@@ -385,7 +385,7 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
         max_step = max(steps)
         with tempfile.TemporaryDirectory() as tmpdir:
             dl = subprocess.run(
-                ["hf", "download", "--type", "model", "--local-dir", tmpdir, repo_id, f"checkpoint-{max_step}/trainer_state.json"],
+                ["/home/saattrupdan/croco/.venv/bin/hf", "download", "--type", "model", "--local-dir", tmpdir, repo_id, f"checkpoint-{max_step}/trainer_state.json"],
                 capture_output=True, text=True, check=False, timeout=300,
             )
             path = os.path.join(tmpdir, f"checkpoint-{max_step}/trainer_state.json")

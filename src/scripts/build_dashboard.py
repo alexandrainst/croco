@@ -336,7 +336,7 @@ def _hf_repo_for_model_dir(*, model_dir: str, reader: "_Reader") -> str | None:
             if result.returncode != 0 or not result.stdout.strip():
                 return None
             config_file = result.stdout.strip().split("\n")[0]
-            parse_cmd = f"cd {reader.root} && grep -E 'output_dir:.*{model_dir}$' {config_file} -A1 | grep hf_repo_id: | awk '{{print $2}}'"
+            parse_cmd = f"cd {reader.root} && grep 'hf_repo_id:' {config_file} | awk '{{print $2}}'"
             result = subprocess.run(["ssh", reader.ssh_host, parse_cmd], capture_output=True, text=True, check=False)
             if result.returncode == 0 and result.stdout.strip():
                 val = result.stdout.strip()

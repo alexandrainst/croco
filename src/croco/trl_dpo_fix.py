@@ -14,7 +14,7 @@ Usage (at module import, before creating DPOTrainer):
 """
 
 import logging
-from typing import Any
+import os
 
 import torch
 from datasets import Dataset, concatenate_datasets
@@ -26,10 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def _patched_precompute_ref_logps(
-    self: DPOTrainer,
-    dataset: Dataset,
-    name: str,
-    batch_size: int,
+    self: DPOTrainer, dataset: Dataset, name: str, batch_size: int
 ) -> Dataset:
     """Patched version of DPOTrainer._precompute_ref_logps().
 
@@ -42,7 +39,9 @@ def _patched_precompute_ref_logps(
     fingerprint = Hasher.hash((dataset._fingerprint, model_hash))
     cache_file = dataset._get_cache_file_path(fingerprint)
 
-    logger.info(f"Precomputing ref log probs for {name} dataset, cache_file={cache_file}")
+    logger.info(
+        f"Precomputing ref log probs for {name} dataset, cache_file={cache_file}"
+    )
 
     if os.path.exists(cache_file):
         logger.info(f"Cache already exists, loading from {cache_file}")
@@ -91,7 +90,7 @@ def _patched_precompute_ref_logps(
             cache_file_name=cache_file,  # <-- THE FIX
             desc=f"Caching reference log probs for {name} dataset",
         )
-        logger.info(f"Cache written successfully")
+        logger.info("Cache written successfully")
     self.accelerator.wait_for_everyone()
 
     return concatenate_datasets([dataset, Dataset.from_file(cache_file)], axis=1)
@@ -110,27 +109,27 @@ def patch_dpo_precompute() -> None:
 
     # Add missing imports to the function
     global _patched_precompute_ref_logps
-    original_func = _patched_precompute_ref_logps
 
     # Create wrapper with proper imports
     def patched(self, dataset, name, batch_size):
-        import os
         import torch
         from datasets import Dataset, concatenate_datasets
         from torch.utils.data import DataLoader
         from tqdm import tqdm
-        from datasets.fingerprint import Hasher
-        from trl.trainer.utils import hash_module
 
         model_hash = hash_module(self.ref_model or self.model)
         fingerprint = Hasher.hash((dataset._fingerprint, model_hash))
         cache_file = dataset._get_cache_file_path(fingerprint)
 
-        logger.info(f"Precomputing ref log probs for {name} dataset, cache_file={cache_file}")
+        logger.info(
+            f"Precomputing ref log probs for {name} dataset, cache_file={cache_file}"
+        )
 
         if os.path.exists(cache_file):
             logger.info(f"Cache already exists, loading from {cache_file}")
-            return concatenate_datasets([dataset, Dataset.from_file(cache_file)], axis=1)
+            return concatenate_datasets(
+                [dataset, Dataset.from_file(cache_file)], axis=1
+            )
 
         dataloader = DataLoader(
             dataset,
@@ -144,9 +143,12 @@ def patch_dpo_precompute() -> None:
         ref_chosen_logps = []
         ref_rejected_logps = []
         for padded_batch in tqdm(
-            iterable=data_loader, desc=f"Computing reference log probs for {name} dataset"
+            iterable=data_loader,
+            desc=f"Computing reference log probs for {name} dataset",
         ):
-            ref_chosen_logp, ref_rejected_logp = self.compute_ref_log_probs(padded_batch)
+            ref_chosen_logp, ref_rejected_logp = self.compute_ref_log_probs(
+                padded_batch
+            )
             ref_chosen_logp, ref_rejected_logp = self.accelerator.gather_for_metrics(
                 (ref_chosen_logp, ref_rejected_logp)
             )
@@ -174,7 +176,7 @@ def patch_dpo_precompute() -> None:
                 cache_file_name=cache_file,  # THE FIX
                 desc=f"Caching reference log probs for {name} dataset",
             )
-            logger.info(f"Cache written successfully")
+            logger.info("Cache written successfully")
         self.accelerator.wait_for_everyone()
 
         return concatenate_datasets([dataset, Dataset.from_file(cache_file)], axis=1)

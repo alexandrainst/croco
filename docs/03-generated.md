@@ -12,15 +12,16 @@ output: models/croco-munin-apertus-8b-da-generated
 
 ## Hypothesis
 
-Standard generated mode (no max-reward selection, no gold outputs) provides a valid
-baseline for comparing construction strategies.
+Standard generated mode (no max-reward selection, gold outputs not used for pair
+construction) provides a valid baseline for comparing construction strategies.
 
 ## Method
 
 ### Construction Mode: `generated`
 
 Paper-faithful CroCo construction (Eq. 2): **both chosen and rejected are policy
-self-generations**; the dataset's gold output is unused (`score_gold_output: false`).
+self-generations**. Gold outputs are not used for chosen/rejected selection, but fresh
+gold outputs are still scored and stored in the candidate cache for cross-mode reuse.
 
 1. Generate 4 candidates per prompt (vLLM, temp=0.7)
 2. Score all candidates with Skywork-Reward-V2-Qwen3-8B

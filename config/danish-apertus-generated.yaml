@@ -2,7 +2,9 @@
 #
 # The original CroCo construction (Eq. 2): both chosen and rejected are policy
 # self-generations - chosen is the highest-reward generation, rejected is the
-# generation nearest mu - 2*sigma below it. The dataset gold output is unused.
+# generation nearest mu - 2*sigma below it. Gold outputs are not used for
+# chosen/rejected pair construction, but fresh gold outputs are still scored
+# and stored in the candidate cache for cross-mode reuse (e.g., max_reward).
 # This is the fully on-policy baseline: it isolates whether bringing the gold
 # reference into the chosen set (max_reward's ~30% off-policy gold) actually
 # helps over pure self-generation.
@@ -15,9 +17,8 @@
 #     --candidate-cache data/candidates_cache.jsonl
 
 construction_mode: generated
-# Gold output is unused in this mode; the cache already holds gold scores so this
-# changes nothing for cache hits, it just reflects that gold plays no role here.
-score_gold_output: false
+# Gold outputs are not used for chosen/rejected selection in this mode. Fresh gold
+# outputs are still scored and cached for cross-mode reuse (e.g., max_reward mode).
 language: da
 
 policy:

@@ -178,9 +178,7 @@ class TestEvalConfig:
 
     def test_create_eval_config(self) -> None:
         """Test creating an EvalConfig instance."""
-        config = EvalConfig(
-            language="en", tasks=["truthfulqa", "mmlu"]
-        )
+        config = EvalConfig(language="en", tasks=["truthfulqa", "mmlu"])
         assert config.language == "en"
         assert config.tasks == ["truthfulqa", "mmlu"]
 
@@ -203,7 +201,6 @@ class TestPipelineConfig:
         """Test creating a minimal pipeline configuration."""
         config = PipelineConfig(
             construction_mode="generated",
-            score_gold_output=False,
             language="en",
             policy=PolicyModelConfig(
                 model_id="test/policy", attn_implementation="sdpa", max_model_len=1024
@@ -250,7 +247,6 @@ class TestPipelineConfig:
             eval=EvalConfig(language="en", tasks=None),
         )
         assert config.construction_mode == "generated"
-        assert config.score_gold_output is False
         assert config.language == "en"
         assert config.policy.model_id == "test/policy"
         assert config.reward.model_id == "test/reward"
@@ -263,7 +259,6 @@ class TestPipelineConfig:
         """Test creating a gold_chosen mode pipeline configuration."""
         config = PipelineConfig(
             construction_mode="gold_chosen",
-            score_gold_output=True,
             language="da",
             policy=PolicyModelConfig(
                 model_id="danish/policy",
@@ -309,12 +304,9 @@ class TestPipelineConfig:
                 lora_dropout=0.1,
                 seed=123,
             ),
-            eval=EvalConfig(
-                language="da", tasks=["mmlu", "hellaswag"]
-            ),
+            eval=EvalConfig(language="da", tasks=["mmlu", "hellaswag"]),
         )
         assert config.construction_mode == "gold_chosen"
-        assert config.score_gold_output is True
         assert config.language == "da"
         assert config.policy.attn_implementation == "eager"
         assert config.reward.max_model_len == 1024
@@ -331,7 +323,6 @@ class TestLoadConfig:
         """Test loading configuration from a YAML file."""
         config_dict = {
             "construction_mode": "generated",
-            "score_gold_output": False,
             "language": "en",
             "policy": {
                 "model_id": "test/policy",
@@ -394,12 +385,10 @@ class TestLoadConfig:
         assert config.data.num_samples == 1000
         assert config.dpo.beta == 0.1
 
-
     def test_load_with_all_fields(self, tmp_path: Path) -> None:
         """Test loading configuration with all fields set."""
         config_dict = {
             "construction_mode": "gold_chosen",
-            "score_gold_output": True,
             "language": "da",
             "policy": {
                 "model_id": "danish/policy",
@@ -445,10 +434,7 @@ class TestLoadConfig:
                 "lora_dropout": 0.1,
                 "seed": 123,
             },
-            "eval": {
-                "language": "da",
-                "tasks": ["mmlu", "hellaswag"],
-            },
+            "eval": {"language": "da", "tasks": ["mmlu", "hellaswag"]},
         }
 
         config_path = tmp_path / "config.yaml"
@@ -458,7 +444,6 @@ class TestLoadConfig:
         config = load_config(path=config_path)
 
         assert config.construction_mode == "gold_chosen"
-        assert config.score_gold_output is True
         assert config.language == "da"
         assert config.policy.attn_implementation == "eager"
         assert config.generation.tensor_parallel_size == 2
@@ -488,7 +473,6 @@ class TestLengthBudgetValidator:
         """
         return PipelineConfig(
             construction_mode="generated",
-            score_gold_output=False,
             language="da",
             policy=PolicyModelConfig(
                 model_id="test/policy",

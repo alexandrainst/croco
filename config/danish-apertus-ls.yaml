@@ -10,7 +10,6 @@
 #     --dataset-output data/pairs_apertus.jsonl --skip-build
 
 construction_mode: max_reward
-score_gold_output: true
 language: da
 
 policy:

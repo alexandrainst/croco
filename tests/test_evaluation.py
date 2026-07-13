@@ -88,6 +88,7 @@ class TestEvaluateModel:
             progress_bar=True,
             save_results=True,
             gpu_memory_utilization=0.5,
+            num_iterations=10,
         )
         mock_benchmarker.benchmark.assert_called_once_with(
             model="/tmp/test_model", task=["mmlu", "xquad"]

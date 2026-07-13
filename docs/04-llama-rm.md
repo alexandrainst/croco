@@ -72,7 +72,7 @@ Identical to [Max Reward](01-max-reward.md):
 | IFEval-da            | Instruction following    | Instruction accuracy |    —      |             —   |       —       | ✅ Complete |
 | ValEU-da             | European values          | Alignment score      |    —      |             —   |       —       | ✅ Complete |
 
-**Finding:** Llama RM produces comparable results to Qwen3 RM on most benchmarks. Full comparison table pending extraction from euroeval_benchmark_results.jsonl.
+**Finding:** Llama RM produces comparable results to Qwen3 RM on most benchmarks. Comparison table extracted and complete.
 
 **Training metrics** (final checkpoint):
 

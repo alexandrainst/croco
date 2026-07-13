@@ -366,3 +366,61 @@ class TestSortByEvolution:
 
         assert len(sorted_pairs) == 1
         assert sorted_pairs[0].evolution == 5
+
+
+class TestSortByEvolutionKey:
+    """Tests for the generic sort_by_evolution_key helper."""
+
+    def test_sorts_data_examples(self) -> None:
+        """Test sorting DataExample objects."""
+        from croco.data_models import DataExample
+
+        examples = [
+            DataExample(instruction="c", output="x", evolution=5, hash="c"),
+            DataExample(instruction="a", output="x", evolution=1, hash="a"),
+            DataExample(instruction="n", output="x", evolution=None, hash="n"),
+            DataExample(instruction="b", output="x", evolution=3, hash="b"),
+        ]
+
+        from croco.data import sort_by_evolution_key
+
+        ordered = sort_by_evolution_key(items=examples)
+        assert [e.instruction for e in ordered] == ["n", "a", "b", "c"]
+
+    def test_sorts_preference_pairs(self) -> None:
+        """Test sorting PreferencePair objects."""
+        from croco.data_models import PreferencePair
+
+        pairs = [
+            PreferencePair(
+                prompt="p3", chosen="c3", rejected="r3", rejected_score=0.5, pool_size=4, mode="generated", evolution=3
+            ),
+            PreferencePair(
+                prompt="p1", chosen="c1", rejected="r1", rejected_score=0.5, pool_size=4, mode="generated", evolution=1
+            ),
+            PreferencePair(
+                prompt="pn", chosen="cn", rejected="rn", rejected_score=0.5, pool_size=4, mode="generated", evolution=None
+            ),
+        ]
+
+        from croco.data import sort_by_evolution_key
+
+        ordered = sort_by_evolution_key(items=pairs)
+        assert [p.evolution for p in ordered] == [None, 1, 3]
+
+    def test_none_first_behavior(self) -> None:
+        """Test that None evolution values are placed first (treated as easiest)."""
+        from croco.data_models import DataExample
+
+        examples = [
+            DataExample(instruction="high", output="x", evolution=10, hash="h"),
+            DataExample(instruction="none1", output="x", evolution=None, hash="n1"),
+            DataExample(instruction="low", output="x", evolution=2, hash="l"),
+            DataExample(instruction="none2", output="x", evolution=None, hash="n2"),
+        ]
+
+        from croco.data import sort_by_evolution_key
+
+        ordered = sort_by_evolution_key(items=examples)
+        # None values come first, then ascending order
+        assert [e.instruction for e in ordered] == ["none1", "none2", "low", "high"]

@@ -9,17 +9,19 @@ from pathlib import Path
 import torch
 import torch.nn.functional as F
 from datasets import Dataset
-from peft import LoraConfig
 from torch.utils.data import Sampler, SequentialSampler
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import DPOConfig, DPOTrainer
 
 from .config import DPOTrainConfig, PipelineConfig
-from .data import sort_by_evolution
+from .data import build_lora_config, sort_by_evolution
 from .dataset import load_pairs, to_trl_records
 from .trl_dpo_fix import patch_dpo_precompute
 
 logger = logging.getLogger(__name__)
+
+# Re-export for backwards compatibility
+__all__ = ["build_lora_config", "sort_by_evolution"]
 
 
 def _simpo_sequence_loss(
@@ -207,34 +209,6 @@ class CurriculumSimPODPOTrainer(SimPOLossMixin, CurriculumDPOTrainer):
     """CurriculumDPOTrainer with ref-free SimPO loss support."""
 
     pass
-
-
-def build_lora_config(*, config: DPOTrainConfig) -> LoraConfig:
-    """Build a LoRA configuration from DPO training config.
-
-    Args:
-        config:
-          The DPO training configuration.
-
-    Returns:
-        LoraConfig with target modules for transformer attention layers.
-    """
-    return LoraConfig(
-        r=config.lora_r,
-        lora_alpha=config.lora_alpha,
-        lora_dropout=config.lora_dropout,
-        target_modules=[
-            "q_proj",
-            "k_proj",
-            "v_proj",
-            "o_proj",
-            "gate_proj",
-            "up_proj",
-            "down_proj",
-        ],
-        bias="none",
-        task_type="CAUSAL_LM",
-    )
 
 
 def build_dpo_config(*, config: DPOTrainConfig) -> DPOConfig:

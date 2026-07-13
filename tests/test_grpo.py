@@ -5,8 +5,9 @@ from pathlib import Path
 import pytest
 
 from croco.config import GRPOTrainConfig, load_config
+from croco.data import build_lora_config, sort_by_evolution_key
 from croco.data_models import DataExample
-from croco.grpo import _build_grpo_lora_config, _sort_by_evolution, build_grpo_config
+from croco.grpo import build_grpo_config
 
 _GRPO_CONFIG = (
     Path(__file__).resolve().parent.parent / "config" / "danish-apertus-grpo.yaml"
@@ -92,12 +93,12 @@ class TestBuildGrpoConfig:
             build_grpo_config(config=cfg)
 
 
-class TestBuildGrpoLoraConfig:
-    """Tests for the GRPO LoRA configuration builder."""
+class TestBuildLoraConfig:
+    """Tests for the shared LoRA configuration builder."""
 
     def test_lora_config_values(self) -> None:
         """LoRA config maps all fields from GRPOTrainConfig."""
-        lora_config = _build_grpo_lora_config(config=_grpo_train_config())
+        lora_config = build_lora_config(config=_grpo_train_config())
 
         assert lora_config.r == 16
         assert lora_config.lora_alpha == 32
@@ -116,15 +117,15 @@ class TestBuildGrpoLoraConfig:
 
 
 class TestSortByEvolution:
-    """Curriculum ordering places easy examples first and unknowns last."""
+    """Curriculum ordering places unknowns first, then easy-to-hard."""
 
-    def test_ascending_with_none_last(self) -> None:
-        """Examples sort by ascending evolution, with None pushed to the end."""
+    def test_ascending_with_none_first(self) -> None:
+        """Examples sort by ascending evolution, with None pushed to the start."""
         examples = [
             DataExample(instruction="c", output="x", evolution=5, hash="c"),
             DataExample(instruction="a", output="x", evolution=1, hash="a"),
             DataExample(instruction="n", output="x", evolution=None, hash="n"),
             DataExample(instruction="b", output="x", evolution=3, hash="b"),
         ]
-        ordered = _sort_by_evolution(examples=examples)
-        assert [e.instruction for e in ordered] == ["a", "b", "c", "n"]
+        ordered = sort_by_evolution_key(items=examples)
+        assert [e.instruction for e in ordered] == ["n", "a", "b", "c"]

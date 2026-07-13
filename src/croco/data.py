@@ -6,11 +6,95 @@ import random
 import typing as t
 
 import datasets
+from peft import LoraConfig
 
 from .config import DataConfig
 from .data_models import DataExample, PreferencePair
 
 logger = logging.getLogger(__name__)
+
+
+class _HasEvolution(t.Protocol):
+    """Protocol for types with an evolution attribute."""
+
+    evolution: int | None
+
+
+class _HasLoraConfig(t.Protocol):
+    """Protocol for training configs with LoRA parameters."""
+
+    lora_r: int
+    lora_alpha: int
+    lora_dropout: float
+
+
+def _evolution_sort_key(item: _HasEvolution) -> tuple[int, int]:
+    """Compute sort key for evolution-based ordering.
+
+    Items with None evolution are treated as easiest (come first), enabling
+    curriculum learning to start with known-simple examples before progressing
+    to harder ones. Unknown-difficulty items (None) are placed at the start
+    to ensure the curriculum begins with a consistent baseline.
+
+    Args:
+        item:
+            Any object with an evolution attribute (int or None).
+
+    Returns:
+        Sort key tuple: (0, 0) for None evolution, (1, evolution) otherwise.
+        This ensures None values sort first, followed by ascending evolution.
+    """
+    evolution = item.evolution
+    if evolution is None:
+        return (0, 0)
+    return (1, evolution)
+
+
+def sort_by_evolution_key(*, items: list[_HasEvolution]) -> list[_HasEvolution]:
+    """Sort items by evolution level (ascending), with None values first.
+
+    Generic helper for curriculum learning across different data types.
+    None evolution values are treated as easiest and placed first.
+
+    Args:
+        items:
+            List of items with an evolution attribute to sort.
+
+    Returns:
+        Sorted list with None evolution items first, then ascending by evolution.
+    """
+    return sorted(items, key=_evolution_sort_key)
+
+
+def build_lora_config(*, config: _HasLoraConfig) -> LoraConfig:
+    """Build a LoRA configuration from training config with LoRA parameters.
+
+    Shared helper for DPO and GRPO training configs. Both configs share the
+    same LoRA hyperparameters (r, alpha, dropout) and target modules.
+
+    Args:
+        config:
+            Training configuration with lora_r, lora_alpha, lora_dropout fields.
+
+    Returns:
+        LoraConfig targeting transformer attention and MLP projection layers.
+    """
+    return LoraConfig(
+        r=config.lora_r,
+        lora_alpha=config.lora_alpha,
+        lora_dropout=config.lora_dropout,
+        target_modules=[
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj",
+        ],
+        bias="none",
+        task_type="CAUSAL_LM",
+    )
 
 
 def load_examples(*, config: DataConfig) -> list[DataExample]:
@@ -118,9 +202,9 @@ def filter_by_prompt_length(
 
 
 def sort_by_evolution(*, pairs: list[PreferencePair]) -> list[PreferencePair]:
-    """Sort preference pairs by evolution level (ascending).
+    """Sort preference pairs by evolution level (ascending), with None first.
 
-    Pairs with None evolution are treated as -infinity and come first.
+    Pairs with None evolution are treated as easiest and placed first.
     The sort is stable.
 
     Args:
@@ -130,14 +214,8 @@ def sort_by_evolution(*, pairs: list[PreferencePair]) -> list[PreferencePair]:
     Returns:
         Sorted list of preference pairs.
     """
-
-    def sort_key(pair: PreferencePair) -> tuple[int, int]:
-        evolution = pair.evolution
-        if evolution is None:
-            return (0, 0)
-        return (1, evolution)
-
-    return sorted(pairs, key=sort_key)
+    # Type ignore: PreferencePair has evolution: int | None, matching _HasEvolution
+    return sort_by_evolution_key(items=t.cast(list[_HasEvolution], pairs))  # ty: ignore
 
 
 def _subsample(

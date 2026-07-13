@@ -19,12 +19,16 @@ import typing as t
 from pathlib import Path
 
 from datasets import Dataset
-from peft import LoraConfig
 from transformers import AutoTokenizer
 from trl import GRPOConfig, GRPOTrainer
 
-from .config import GRPOTrainConfig, PipelineConfig
-from .data import filter_by_prompt_length, load_examples
+from .config import PipelineConfig
+from .data import (
+    build_lora_config,
+    filter_by_prompt_length,
+    load_examples,
+    sort_by_evolution_key,
+)
 from .data_models import DataExample
 from .utils import build_user_message
 
@@ -59,7 +63,7 @@ def train_grpo(*, config: PipelineConfig) -> Path:
     dataset = _build_prompt_dataset(config=config, tokenizer=tokenizer)
     logger.info("Training on %d prompts", len(dataset))
 
-    peft_config = _build_grpo_lora_config(config=grpo_config)
+    peft_config = build_lora_config(config=grpo_config)
     grpo_cfg = build_grpo_config(config=config)
 
     logger.info("Initialising GRPOTrainer (reward model %s)", config.reward.model_id)
@@ -167,7 +171,7 @@ def _build_prompt_dataset(*, config: PipelineConfig, tokenizer: object) -> Datas
 
     Returns:
         A dataset with a conversational ``prompt`` column, ordered by ascending
-        evolution when the curriculum is enabled.
+        evolution (None first) when the curriculum is enabled.
     """
 
     def count_prompt_tokens(instruction: str) -> int:
@@ -186,54 +190,15 @@ def _build_prompt_dataset(*, config: PipelineConfig, tokenizer: object) -> Datas
     )
 
     if config.grpo is not None and config.grpo.curriculum:
-        examples = _sort_by_evolution(examples=examples)
+        # DataExample has evolution: int | None, compatible with the shared sort helper
+        # Type ignore: list invariance prevents structural typing
+        examples = t.cast(
+            list[DataExample],
+            sort_by_evolution_key(items=examples),  # ty: ignore
+        )
 
     records = [
         {"prompt": build_user_message(instruction=example.instruction)}
         for example in examples
     ]
     return Dataset.from_list(records)
-
-
-def _sort_by_evolution(*, examples: list[DataExample]) -> list[DataExample]:
-    """Order examples easy-to-hard by evolution, with unknowns last.
-
-    Args:
-        examples:
-            Examples to order.
-
-    Returns:
-        The examples sorted by ascending evolution.
-    """
-    return sorted(
-        examples,
-        key=lambda example: (example.evolution is None, example.evolution or 0),
-    )
-
-
-def _build_grpo_lora_config(*, config: GRPOTrainConfig) -> LoraConfig:
-    """Build a LoRA configuration for GRPO training.
-
-    Args:
-        config:
-            The GRPO training configuration.
-
-    Returns:
-        LoraConfig targeting the transformer attention and MLP projections.
-    """
-    return LoraConfig(
-        r=config.lora_r,
-        lora_alpha=config.lora_alpha,
-        lora_dropout=config.lora_dropout,
-        target_modules=[
-            "q_proj",
-            "k_proj",
-            "v_proj",
-            "o_proj",
-            "gate_proj",
-            "up_proj",
-            "down_proj",
-        ],
-        bias="none",
-        task_type="CAUSAL_LM",
-    )

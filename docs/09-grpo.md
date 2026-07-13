@@ -144,7 +144,7 @@ iterations.
 
 ```bash
 # 1. Run GRPO training
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-grpo.yaml
+uv run src/scripts/train_grpo.py -c config/danish-apertus-grpo.yaml
 
 # 2. Evaluate with EuroEval (Danish benchmarks, 10 iterations, bootstrap 95% CIs)
 euroeval -m models/croco-munin-apertus-8b-da-grpo -l da --save-results

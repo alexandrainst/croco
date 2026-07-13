@@ -393,13 +393,31 @@ class TestSortByEvolutionKey:
 
         pairs = [
             PreferencePair(
-                prompt="p3", chosen="c3", rejected="r3", rejected_score=0.5, pool_size=4, mode="generated", evolution=3
+                prompt="p3",
+                chosen="c3",
+                rejected="r3",
+                rejected_score=0.5,
+                pool_size=4,
+                mode="generated",
+                evolution=3,
             ),
             PreferencePair(
-                prompt="p1", chosen="c1", rejected="r1", rejected_score=0.5, pool_size=4, mode="generated", evolution=1
+                prompt="p1",
+                chosen="c1",
+                rejected="r1",
+                rejected_score=0.5,
+                pool_size=4,
+                mode="generated",
+                evolution=1,
             ),
             PreferencePair(
-                prompt="pn", chosen="cn", rejected="rn", rejected_score=0.5, pool_size=4, mode="generated", evolution=None
+                prompt="pn",
+                chosen="cn",
+                rejected="rn",
+                rejected_score=0.5,
+                pool_size=4,
+                mode="generated",
+                evolution=None,
             ),
         ]
 

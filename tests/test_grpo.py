@@ -5,9 +5,10 @@ from pathlib import Path
 import pytest
 
 from croco.config import GRPOTrainConfig, load_config
-from croco.data import build_lora_config, sort_by_evolution_key
+from croco.data import sort_by_evolution_key
 from croco.data_models import DataExample
 from croco.grpo import build_grpo_config
+from croco.lora import build_lora_config
 
 _GRPO_CONFIG = (
     Path(__file__).resolve().parent.parent / "config" / "danish-apertus-grpo.yaml"

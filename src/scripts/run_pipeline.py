@@ -16,6 +16,7 @@ from pathlib import Path
 import click
 
 from croco.config import load_config
+from croco.eval_subprocess import run_euroeval_subprocess
 from croco.pipeline import upload_to_huggingface
 
 logging.basicConfig(
@@ -135,10 +136,10 @@ def main(
 
     if not skip_eval and not cfg.eval.skip:
         logger.info("=== Step 3: Evaluating model ===")
-        _run_euroeval(
+        run_euroeval_subprocess(
             model_path=model_output,
             language=cfg.eval.language,
-            tasks=cfg.eval.tasks,
+            tasks=cfg.eval.tasks or [],
             gpu_memory_utilization=cfg.eval.gpu_memory_utilization,
         )
     else:
@@ -158,42 +159,6 @@ def _run_script(*, script: str, args: list[str]) -> None:
           ``check=True``, so a non-zero exit aborts the pipeline.
     """
     cmd = [sys.executable, str(SCRIPTS_DIR / script), *args]
-    logger.info("Running: %s", " ".join(cmd))
-    subprocess.run(cmd, check=True)
-
-
-def _run_euroeval(
-    *,
-    model_path: Path,
-    language: str,
-    tasks: list[str] | None,
-    gpu_memory_utilization: float,
-) -> None:
-    """Run EuroEval CLI as a subprocess.
-
-    Args:
-        model_path:
-          Path to the model directory to evaluate.
-        language:
-          EuroEval language code.
-        tasks:
-          Tasks to evaluate, or None for full language suite.
-        gpu_memory_utilization:
-          vLLM GPU memory utilisation.
-    """
-    cmd = [
-        str(Path(sys.executable).with_name("euroeval")),
-        "--model",
-        str(model_path),
-        "--language",
-        language,
-        "--gpu-memory-utilization",
-        str(gpu_memory_utilization),
-        "--save-results",
-    ]
-    if tasks:
-        for task in tasks:
-            cmd += ["--task", task]
     logger.info("Running: %s", " ".join(cmd))
     subprocess.run(cmd, check=True)
 

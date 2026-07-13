@@ -9,11 +9,11 @@ curve over training-set size.
 """
 
 import logging
-import subprocess
-import sys
 from pathlib import Path
 
 import click
+
+from croco.eval_subprocess import run_euroeval_subprocess
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -92,7 +92,7 @@ def main(
     )
     for target in targets:
         logger.info("=== Evaluating %s ===", target)
-        _run_euroeval(
+        run_euroeval_subprocess(
             model_path=target,
             language=language,
             tasks=tasks,
@@ -127,49 +127,6 @@ def _checkpoint_dirs(*, model_dir: Path, include_final: bool) -> list[Path]:
     if include_final and (model_dir / "adapter_config.json").exists():
         targets.append(model_dir)
     return targets
-
-
-def _run_euroeval(
-    *,
-    model_path: Path,
-    language: str,
-    tasks: tuple[str, ...],
-    gpu_memory_utilization: float,
-    force: bool,
-) -> None:
-    """Run EuroEval on a single checkpoint as a subprocess.
-
-    Args:
-        model_path:
-          Path to the checkpoint adapter directory.
-        language:
-          EuroEval language code.
-        tasks:
-          Tasks to restrict to, or empty for the full language suite.
-        gpu_memory_utilization:
-          vLLM GPU memory utilisation.
-        force:
-          Whether to recompute existing EuroEval results.
-    """
-    # EuroEval ships only a console-script entry point (no ``__main__``), so it
-    # cannot be run via ``python -m euroeval``; invoke the binary next to the
-    # active interpreter instead.
-    cmd = [
-        str(Path(sys.executable).with_name("euroeval")),
-        "--model",
-        str(model_path),
-        "--language",
-        language,
-        "--gpu-memory-utilization",
-        str(gpu_memory_utilization),
-        "--save-results",
-    ]
-    for task in tasks:
-        cmd += ["--task", task]
-    if force:
-        cmd.append("--force")
-    logger.info("Running: %s", " ".join(cmd))
-    subprocess.run(cmd, check=True)
 
 
 if __name__ == "__main__":

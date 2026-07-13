@@ -58,7 +58,7 @@ We chose **2.0** (conservative, matches base models).
 | 2026-07-05 10:44 | Training started (step 0/625)     |
 | 2026-07-06 01:54 | Training completed (step 625/625) |
 
-**Runtime:** ~15 hours (training only; evals pending)
+**Runtime:** ~15 hours (training complete; evals complete)
 
 **Training metrics** (checkpoint-625):
 

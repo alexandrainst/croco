@@ -2,8 +2,8 @@
 title: GRPO Online RL Baseline
 description: Group Relative Policy Optimization with online rollouts
 created: 2026-07-02
-updated: 2026-07-09
-status: queued
+updated: 2026-07-13
+status: complete
 config: config/danish-apertus-grpo.yaml
 output: models/croco-munin-apertus-8b-da-grpo
 ---
@@ -35,8 +35,9 @@ Contrast with [DPO](https://arxiv.org/abs/2305.18290):
 
 ### Settings
 
-- **β = 0.04** (GRPO KL-penalty coefficient against the reference policy; distinct from DPO's β)
-- **vLLM memory**: 0.30 (rollouts), 0.35 (RM), 0.45 (generation)
+- **β = 0.04** (GRPO KL-penalty coefficient against the reference policy; distinct from
+  DPO's β)
+- **vLLM memory**: 0.20 (rollouts + training in same process)
 - **Batch size**: 4 prompts/step, 4 candidates/prompt
 - **Curriculum learning**: enabled
 
@@ -49,7 +50,7 @@ grpo:
   num_train_epochs: 1
   beta: 0.04
   use_vllm: true
-  vllm_gpu_memory_utilization: 0.3
+  vllm_gpu_memory_utilization: 0.2
 ```
 
 ## Pre-Flight
@@ -60,10 +61,37 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 - Same memory footprint as full run
 - Catches OOM before committing GPU hours
 
-## Expected Results
+## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations final, 3
-checkpoint).
+**Training:** 59h 48m (1249 steps), final checkpoint saved to
+`models/croco-munin-apertus-8b-da-grpo/checkpoint-1249/`
+
+**Evaluation:** 10 Danish benchmarks, 10 iterations each (with 95% CIs):
+
+| Benchmark            | Metric                     | GRPO Score       |
+| -------------------- | -------------------------- | ---------------- |
+| AngryTweets          | MCC                        | 47.71% ± 2.97%   |
+|                      | Macro F1                   | 64.89% ± 2.00%   |
+| ScaLA-da             | MCC                        | 33.93% ± 3.13%   |
+|                      | Macro F1                   | 60.55% ± 3.50%   |
+| DANSK                | Micro F1                   | 31.24% ± 2.31%   |
+|                      | Micro F1 (no MISC)         | 44.19% ± 1.68%   |
+| MultiWikiQA-da       | F1                         | 75.65% ± 1.54%   |
+|                      | Exact Match                | 59.05% ± 2.04%   |
+| Nordjylland News     | ChrF3++                    | 37.53% ± 0.39%   |
+|                      | ChrF4++                    | 41.26% ± 0.36%   |
+| Danske Talemåder     | MCC                        | 63.46% ± 3.51%   |
+|                      | Accuracy                   | 69.38% ± 3.36%   |
+| Danish Citizen Tests | MCC                        | 76.69% ± 3.01%   |
+|                      | Accuracy                   | 84.11% ± 2.20%   |
+| HellaSwag-da         | MCC                        | 40.72% ± 3.95%   |
+|                      | Accuracy                   | 53.24% ± 3.55%   |
+| IFEval-da            | Instruction Accuracy       | 52.40% ± 1.56%   |
+| ValEU-da             | European Values            | 9.91% ± 8.70%    |
+
+Full comparison against all DPO ablations in [`README.md`](README.md).
+
+## Expected Results
 
 | Benchmark            | Task                     | Metric               | Target       |
 | -------------------- | ------------------------ | -------------------- | ------------ |
@@ -92,23 +120,23 @@ cost.
 
 ## Current Status
 
-⏳ **Queued** — launches after SimPO-full completes (~2026-07-10 04:00–07:00 CEST).
-
-SimPO-full started 2026-07-09 16:20, running in `simpo_grpo` session (~12–20 hours remaining).
+✅ **Training complete** (2026-07-13 08:00). 1249 steps in 59h 48m.  
+✅ **Evaluation complete** (2026-07-13 14:00). All 10 benchmarks evaluated with 10
+iterations.
 
 ## Comparison
 
 | Metric        | DPO (Main)      | GRPO                |
 | ------------- | --------------- | ------------------- |
-| Build Cost    | ~$X             | $0                  |
-| Training Time | ~6.5h (actual)  | ~12h (est.)         |
+| Build Cost    | ~2h             | $0                  |
+| Training Time | ~6.5h (actual)  | ~60h                |
 | Memory        | Ref + LoRA      | vLLM + RM           |
 | Data Reuse    | ✓ (fixed pairs) | ✗ (fresh each step) |
 
 ## Related
 
 - [Max Reward](01-max-reward.md) — DPO baseline
-- [SimPO Full](08-simpo-full.md) — currently training, GRPO queued after
+- [SimPO Full](08-simpo-full.md) — ref-free SimPO loss
 
 ---
 
@@ -119,5 +147,6 @@ SimPO-full started 2026-07-09 16:20, running in `simpo_grpo` session (~12–20 h
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-grpo.yaml
 
 # Run evals only (10 iterations)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-grpo.yaml --eval-only --eval.num-iterations 10
+uv run src/scripts/eval_model.py -c config/danish-apertus-grpo.yaml \
+  -m models/croco-munin-apertus-8b-da-grpo
 ```

@@ -44,14 +44,14 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | --------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------- |
 | [**Label Smoothing**](05-label-smoothing.md)  | `max_reward` + label smoothing (α=0.05) for robustness to noisy RM labels       | ✅ Complete |
 | [**SimPO (β=0.1)**](06-simpo.md)              | Length-normalised loss with low β (clean single-variable ablation)                        | ✅ Complete |
-| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | Raise β to [SimPO](https://arxiv.org/abs/2405.14734)-recommended 2.0, keep `sigmoid_norm` | ✅ Training done, ⏳ evals pending |
+| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | Raise β to [SimPO](https://arxiv.org/abs/2405.14734)-recommended 2.0, keep `sigmoid_norm` | ✅ Training done, ⏳ eval running |
 | [**SimPO Full (ref-free)**](08-simpo-full.md) | True ref-free SimPO loss (`simpo`) + target margin γ=0.5, on max_reward data | ✅ Complete |
 
 ### Online RL Baseline
 
 | Experiment             | Description                                                                                                                       | Status    |
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| [**GRPO**](09-grpo.md) | Group Relative Policy Optimization: online RL with vLLM-colocate rollouts ([Shao et al., 2024](https://arxiv.org/abs/2402.03300)) | ⏳ Queued — **next up** |
+| [**GRPO**](09-grpo.md) | Group Relative Policy Optimization: online RL with vLLM-colocate rollouts ([Shao et al., 2024](https://arxiv.org/abs/2402.03300)) | ✅ Complete |
 
 ---
 
@@ -98,16 +98,15 @@ It neither helps nor hurts here. **SimPO at β=0.1 is under-tuned and clearly hu
 it degrades reading comprehension, summarization, instruction following and alignment vs
 both base and `max_reward` — motivating the β=2.0 retune ([SimPO Tuned](07-simpo-tuned.md)).
 
-**Note on SimPO Tuned (β=2.0):** Training completed (625 steps, 7 checkpoints) but
-**final evals never wrote results** — `simpo_tuned_eval.log` shows only GPU waiting,
-no benchmark scores in `euroeval_benchmark_results.jsonl`. The 5k regime remains too
-noisy to separate `sigmoid_norm` (SimPO Tuned) from ref-free `simpo` (SimPO Full) until
-the eval is re-run.
+**Note on SimPO Tuned (β=2.0):** Training completed (625 steps, 7 checkpoints) on
+2026-07-06. Final 10-iter eval started 2026-07-13 14:21, running in `simpo_tuned_eval`
+session (~45-60 min ETA).
 
 ### Online RL
 
-- **GRPO**: ⏳ Queued — next up. Tests online RL vs the offline DPO/CroCo pipeline on the
-  same Skywork RM (the paradigm fork).
+- **GRPO**: ✅ **Complete** — training (59h 48m) + evals done. GRPO is now in the dashboard
+  with full 10-iter CIs. See [GRPO doc](09-grpo.md) for results. Online RL is ~9× slower
+  than DPO training (~60h vs ~6.5h) but has $0 dataset build cost.
 
 ### SimPO Full (ref-free, β=2.0, γ=0.5)
 

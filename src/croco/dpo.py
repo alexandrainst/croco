@@ -14,13 +14,14 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import DPOConfig, DPOTrainer
 
 from .config import DPOTrainConfig, PipelineConfig
-from .data import build_lora_config, sort_by_evolution
+from .data import sort_by_evolution
 from .dataset import load_pairs, to_trl_records
+from .lora import build_lora_config
 from .trl_dpo_fix import patch_dpo_precompute
 
 logger = logging.getLogger(__name__)
 
-# Re-export for backwards compatibility
+# Re-export for backwards compatibility (imported above from .lora)
 __all__ = ["build_lora_config", "sort_by_evolution"]
 
 

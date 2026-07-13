@@ -138,7 +138,7 @@ def main(
         _run_euroeval(
             model_path=model_output,
             language=cfg.eval.language,
-            datasets=cfg.eval.tasks,
+            tasks=cfg.eval.tasks,
             gpu_memory_utilization=cfg.eval.gpu_memory_utilization,
         )
     else:
@@ -166,7 +166,7 @@ def _run_euroeval(
     *,
     model_path: Path,
     language: str,
-    datasets: list[str] | None,
+    tasks: list[str] | None,
     gpu_memory_utilization: float,
 ) -> None:
     """Run EuroEval CLI as a subprocess.
@@ -176,8 +176,8 @@ def _run_euroeval(
           Path to the model directory to evaluate.
         language:
           EuroEval language code.
-        datasets:
-          Datasets to evaluate, or None for full language suite.
+        tasks:
+          Tasks to evaluate, or None for full language suite.
         gpu_memory_utilization:
           vLLM GPU memory utilisation.
     """
@@ -191,9 +191,9 @@ def _run_euroeval(
         str(gpu_memory_utilization),
         "--save-results",
     ]
-    if datasets:
-        for dataset in datasets:
-            cmd += ["--dataset", dataset]
+    if tasks:
+        for task in tasks:
+            cmd += ["--task", task]
     logger.info("Running: %s", " ".join(cmd))
     subprocess.run(cmd, check=True)
 

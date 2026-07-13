@@ -36,10 +36,10 @@ logger = logging.getLogger(__name__)
     help="EuroEval language code to benchmark. Defaults to da.",
 )
 @click.option(
-    "--dataset",
-    "datasets",
+    "--task",
+    "tasks",
     multiple=True,
-    help="Restrict to these datasets (repeatable). Omit for the full language suite.",
+    help="Restrict to these tasks (repeatable). Omit for the full language suite.",
 )
 @click.option(
     "--gpu-memory-utilization",
@@ -61,7 +61,7 @@ def main(
     *,
     model_dir: Path,
     language: str,
-    datasets: tuple[str, ...],
+    tasks: tuple[str, ...],
     gpu_memory_utilization: float,
     include_final: bool,
     force: bool,
@@ -73,8 +73,8 @@ def main(
           DPO output directory containing checkpoint-* subdirectories.
         language:
           EuroEval language code to benchmark.
-        datasets:
-          Datasets to restrict to, or empty for the full language suite.
+        tasks:
+          Tasks to restrict to, or empty for the full language suite.
         gpu_memory_utilization:
           vLLM GPU memory utilisation for EuroEval.
         include_final:
@@ -95,7 +95,7 @@ def main(
         _run_euroeval(
             model_path=target,
             language=language,
-            datasets=datasets,
+            tasks=tasks,
             gpu_memory_utilization=gpu_memory_utilization,
             force=force,
         )
@@ -133,7 +133,7 @@ def _run_euroeval(
     *,
     model_path: Path,
     language: str,
-    datasets: tuple[str, ...],
+    tasks: tuple[str, ...],
     gpu_memory_utilization: float,
     force: bool,
 ) -> None:
@@ -144,8 +144,8 @@ def _run_euroeval(
           Path to the checkpoint adapter directory.
         language:
           EuroEval language code.
-        datasets:
-          Datasets to restrict to, or empty for the full language suite.
+        tasks:
+          Tasks to restrict to, or empty for the full language suite.
         gpu_memory_utilization:
           vLLM GPU memory utilisation.
         force:
@@ -164,8 +164,8 @@ def _run_euroeval(
         str(gpu_memory_utilization),
         "--save-results",
     ]
-    for dataset in datasets:
-        cmd += ["--dataset", dataset]
+    for task in tasks:
+        cmd += ["--task", task]
     if force:
         cmd.append("--force")
     logger.info("Running: %s", " ".join(cmd))

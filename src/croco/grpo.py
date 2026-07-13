@@ -23,13 +23,9 @@ from transformers import AutoTokenizer
 from trl import GRPOConfig, GRPOTrainer
 
 from .config import PipelineConfig
-from .data import (
-    build_lora_config,
-    filter_by_prompt_length,
-    load_examples,
-    sort_by_evolution_key,
-)
+from .data import filter_by_prompt_length, load_examples, sort_by_evolution_key
 from .data_models import DataExample
+from .lora import build_lora_config
 from .utils import build_user_message
 
 logger = logging.getLogger(__name__)
@@ -191,11 +187,7 @@ def _build_prompt_dataset(*, config: PipelineConfig, tokenizer: object) -> Datas
 
     if config.grpo is not None and config.grpo.curriculum:
         # DataExample has evolution: int | None, compatible with the shared sort helper
-        # Type ignore: list invariance prevents structural typing
-        examples = t.cast(
-            list[DataExample],
-            sort_by_evolution_key(items=examples),  # ty: ignore
-        )
+        examples = sort_by_evolution_key(items=examples)
 
     records = [
         {"prompt": build_user_message(instruction=example.instruction)}

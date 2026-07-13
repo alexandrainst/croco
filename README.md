@@ -14,7 +14,8 @@
 
 Experiments with the CroCo post-training method.
 
-______________________________________________________________________
+---
+
 [![Code Coverage](https://img.shields.io/badge/Coverage-70%25-yellow.svg)](https://github.com/alexandrainst/croco/tree/main/tests)
 [![License](https://img.shields.io/github/license/alexandrainst/croco)](https://github.com/alexandrainst/croco/blob/main/LICENSE)
 [![LastCommit](https://img.shields.io/github/last-commit/alexandrainst/croco)](https://github.com/alexandrainst/croco/commits/main)
@@ -76,15 +77,14 @@ The project includes the following convenience commands:
 
 ## A Word on Modules and Scripts
 
-In the `src` directory there are two subdirectories, `croco`
-and `scripts`. This is a brief explanation of the differences between the two.
+In the `src` directory there are two subdirectories, `croco` and `scripts`. This is a
+brief explanation of the differences between the two.
 
 ### Modules
 
-All Python files in the `croco` directory are _modules_
-internal to the project package. Examples here could be a general data loading script,
-a definition of a model, or a training function. Think of modules as all the building
-blocks of a project.
+All Python files in the `croco` directory are _modules_ internal to the project package.
+Examples here could be a general data loading script, a definition of a model, or a
+training function. Think of modules as all the building blocks of a project.
 
 When a module is importing functions/classes from other modules we use the _relative
 import_ notation - here's an example:
@@ -95,11 +95,11 @@ from .other_module import some_function
 
 ### Scripts
 
-Python files in the `scripts` folder are scripts, which are short code snippets that
-are _external_ to the project package, and which is meant to actually run the code. As
-such, _only_ scripts will be called from the terminal. An analogy here is that the
-internal `numpy` code are all modules, but the Python code you write where you import
-some `numpy` functions and actually run them, that a script.
+Python files in the `scripts` folder are scripts, which are short code snippets that are
+_external_ to the project package, and which is meant to actually run the code. As such,
+_only_ scripts will be called from the terminal. An analogy here is that the internal
+`numpy` code are all modules, but the Python code you write where you import some
+`numpy` functions and actually run them, that a script.
 
 When importing module functions/classes when you're in a script, you do it like you
 would normally import from any other package:
@@ -159,8 +159,8 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml
 
 ### Configuration
 
-Available configurations (all use `danish-foundation-models/munin-apertus-8b` as
-the policy and `Skywork/Skywork-Reward-V2-Qwen3-8B` as the reward model):
+Available configurations (all use `danish-foundation-models/munin-apertus-8b` as the
+policy and `Skywork/Skywork-Reward-V2-Qwen3-8B` as the reward model):
 
 - **`config/danish-apertus.yaml`**: main run, `max_reward` construction mode.
 - **`config/danish-apertus-gold.yaml`**: `gold_chosen` ablation of the above.
@@ -181,11 +181,31 @@ Key sections:
 Both construction modes (`generated` and `gold_chosen`) use **vLLM** for candidate
 generation and reward scoring, and DPO training needs a CUDA GPU. The heavy steps
 (generation, scoring, DPO) are intended to run on the DGX/CUDA host; the Mac is used for
-development and the test suite (which exercises the pipeline with in-memory fake engines,
-so no GPU is required).
+development and the test suite (which exercises the pipeline with in-memory fake
+engines, so no GPU is required).
 
 vLLM itself installs on both platforms via `make install` (CUDA wheels on Linux,
 `vllm-metal` built from git on Apple silicon), so the library is importable everywhere.
+
+## Research Status
+
+As of 2026-07-13, final EuroEval runs are complete for all primary ablation experiments:
+`max_reward`, `gold_chosen`, `generated`, `label_smoothing`, SimPO low-beta, SimPO full,
+SimPO tuned, Llama RM, and GRPO.
+
+**SimPO-tuned** (β=2.0, γ=0.5): Evaluated on 10 Danish benchmarks. Key results: IFEval
+instruction accuracy 54.28, Citizen Tests accuracy 85.00, MultiWikiQA F1 73.85, ValEU
+near zero (0.067). Broadly similar performance to `max_reward`.
+
+**GRPO**: Final evaluation completed after 1249 steps (59h48m runtime). MultiWikiQA F1
+75.65 / EM 59.05, IFEval 52.40. Final checkpoint at
+`models/croco-munin-apertus-8b-da-grpo/checkpoint-1249/`.
+
+Checkpoint learning-curve evaluations for GRPO and SimPO-tuned are queued on Sparkie
+(one GPU workload at a time).
+
+Detailed tables and analysis live in `docs/README.md`, `docs/07-simpo-tuned.md`, and
+`docs/09-grpo.md`.
 
 ## Features
 
@@ -211,6 +231,5 @@ for the repository (can be enabled on Github in the repository settings).
 Code Spaces is a new feature on Github, that allows you to develop on a project
 completely in the cloud, without having to do any local setup at all. This repo comes
 included with a configuration file for running code spaces on Github. When hosted on
-`alexandrainst/croco` then simply press the `<> Code` button
-and add a code space to get started, which will open a VSCode window directly in your
-browser.
+`alexandrainst/croco` then simply press the `<> Code` button and add a code space to get
+started, which will open a VSCode window directly in your browser.

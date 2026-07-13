@@ -63,7 +63,6 @@ _TRAINING_KEYS = {
     "rewards/rejected": "rejected",
     "grad_norm": "grad_norm",
 }
-_ITERATION_FIELDS = ("num_iterations", "iterations", "n_iterations")
 _SAMPLE_COUNT_FIELDS = ("num_samples",)
 
 
@@ -534,7 +533,7 @@ def _should_replace_eval(
 def _iteration_count(
     *, record: dict[str, t.Any], result: dict[str, t.Any]
 ) -> int | None:
-    """Extract the EuroEval iteration count from known row metadata locations.
+    """Extract the EuroEval iteration count from uncertainty metadata.
 
     Args:
         record:
@@ -556,19 +555,6 @@ def _iteration_count(
         if value is not None:
             return value
 
-    containers = (
-        record,
-        record.get("metadata"),
-        record.get("benchmark_config"),
-        record.get("config"),
-        result,
-        details,
-        uncertainty,
-    )
-    for container in containers:
-        value = _int_field(data=container, fields=_ITERATION_FIELDS)
-        if value is not None:
-            return value
     return None
 
 

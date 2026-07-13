@@ -24,7 +24,6 @@ def evaluate_model(*, model_id_or_path: str | Path, config: PipelineConfig) -> l
         progress_bar=True,
         save_results=True,
         gpu_memory_utilization=config.eval.gpu_memory_utilization,
-        num_iterations=10,
     )
     results = benchmarker.benchmark(model=str(model_id_or_path), task=config.eval.tasks)
     return list(results)

@@ -27,9 +27,7 @@ class TestEvaluateModel:
         mock_benchmarker.benchmark.return_value = []
         mock_benchmarker_class.return_value = mock_benchmarker
 
-        eval_config = EvalConfig(
-            language="da", tasks=["mmlu", "xquad"]
-        )
+        eval_config = EvalConfig(language="da", tasks=["mmlu", "xquad"])
         config = PipelineConfig(
             construction_mode="generated",
             score_gold_output=True,
@@ -88,7 +86,6 @@ class TestEvaluateModel:
             progress_bar=True,
             save_results=True,
             gpu_memory_utilization=0.5,
-            num_iterations=10,
         )
         mock_benchmarker.benchmark.assert_called_once_with(
             model="/tmp/test_model", task=["mmlu", "xquad"]
@@ -104,9 +101,7 @@ class TestEvaluateModel:
         mock_benchmarker.benchmark.return_value = []
         mock_benchmarker_class.return_value = mock_benchmarker
 
-        eval_config = EvalConfig(
-            language="en", tasks=None
-        )
+        eval_config = EvalConfig(language="en", tasks=None)
         config = PipelineConfig(
             construction_mode="generated",
             score_gold_output=False,
@@ -173,9 +168,7 @@ class TestEvaluateModel:
         mock_benchmarker.benchmark.return_value = iter([mock_result1, mock_result2])
         mock_benchmarker_class.return_value = mock_benchmarker
 
-        eval_config = EvalConfig(
-            language="da", tasks=None
-        )
+        eval_config = EvalConfig(language="da", tasks=None)
         config = PipelineConfig(
             construction_mode="generated",
             score_gold_output=False,

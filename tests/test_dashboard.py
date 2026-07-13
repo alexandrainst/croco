@@ -29,7 +29,6 @@ def _result_record(
     *,
     model_id: str,
     score: float,
-    iterations: int | None = None,
     num_samples: int | None = None,
     raw_results: str | None = None,
     lower: float | None = None,
@@ -68,8 +67,6 @@ def _result_record(
         "model_info": {"id": model_id},
         "evaluation_results": [result],
     }
-    if iterations is not None:
-        record["num_iterations"] = iterations
     return json.dumps(record)
 
 
@@ -274,34 +271,34 @@ class TestEvalSeries:
         assert len(series["curves"]["simpo_tuned"][key]) == 1
         assert series["finals"]["simpo_tuned"][key]["score"] == 0.80
 
-    def test_duplicate_rows_prefer_ten_iterations_over_three(self) -> None:
-        """Duplicate checkpoint/final scores keep the 10-iteration row."""
+    def test_duplicate_rows_prefer_higher_sample_count(self) -> None:
+        """Duplicate checkpoint/final scores keep the higher sample count row."""
         key = "angry-tweets-test||macro_f1"
         ten_checkpoint = _result_record(
             model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
             score=0.10,
-            iterations=10,
+            num_samples=10,
             lower=0.09,
             upper=0.11,
         )
         three_checkpoint = _result_record(
             model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
             score=0.30,
-            iterations=3,
+            num_samples=3,
             lower=0.20,
             upper=0.40,
         )
         ten_final = _result_record(
             model_id="models/croco-munin-apertus-8b-da",
             score=0.50,
-            iterations=10,
+            num_samples=10,
             lower=0.49,
             upper=0.51,
         )
         three_final = _result_record(
             model_id="models/croco-munin-apertus-8b-da",
             score=0.70,
-            iterations=3,
+            num_samples=3,
             lower=0.60,
             upper=0.80,
         )
@@ -320,8 +317,8 @@ class TestEvalSeries:
             assert final["lower"] == 0.49
             assert final["upper"] == 0.51
 
-    def test_eee_num_samples_prefers_ten_iterations(self) -> None:
-        """EEE uncertainty sample counts keep the higher-iteration duplicate."""
+    def test_eee_num_samples_prefers_higher_count(self) -> None:
+        """EEE uncertainty sample counts keep the higher-count duplicate."""
         key = "angry-tweets-test||macro_f1"
         ten_checkpoint = _result_record(
             model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
@@ -351,7 +348,7 @@ class TestEvalSeries:
         assert series["curves"]["max_reward"][key][0]["score"] == 0.10
         assert series["finals"]["max_reward"][key]["score"] == 0.50
 
-    def test_eee_raw_results_fallback_prefers_ten_iterations(self) -> None:
+    def test_eee_raw_results_fallback_prefers_higher_count(self) -> None:
         """EEE raw per-iteration results are used when sample counts are absent."""
         key = "angry-tweets-test||macro_f1"
         ten_raw_results = json.dumps(
@@ -417,15 +414,14 @@ class TestEvalSeries:
 
         assert series["curves"]["max_reward"][key][0]["score"] == 0.20
 
-    def test_missing_iteration_count_keeps_later_row_wins(self) -> None:
-        """Rows missing iteration metadata preserve the old later-row-wins rule."""
+    def test_missing_sample_count_keeps_later_row_wins(self) -> None:
+        """Rows missing sample count metadata preserve the old later-row-wins rule."""
         key = "angry-tweets-test||macro_f1"
         series = _eval_series(
             rows=(
                 _result_record(
                     model_id="models/croco-munin-apertus-8b-da/checkpoint-100",
                     score=0.10,
-                    iterations=10,
                 ),
                 _result_record(
                     model_id="models/croco-munin-apertus-8b-da/checkpoint-100",

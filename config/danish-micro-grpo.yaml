@@ -12,7 +12,6 @@
 
 # Required by the schema but unused by the GRPO path.
 construction_mode: max_reward
-score_gold_output: false
 language: da
 
 policy:

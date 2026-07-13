@@ -20,7 +20,7 @@ baseline for comparing construction strategies.
 ### Construction Mode: `generated`
 
 Paper-faithful CroCo construction (Eq. 2): **both chosen and rejected are policy
-self-generations**; the dataset's gold output is unused (`score_gold_output: false`).
+self-generations**; the dataset's gold output is unused.
 
 1. Generate 4 candidates per prompt (vLLM, temp=0.7)
 2. Score all candidates with Skywork-Reward-V2-Qwen3-8B

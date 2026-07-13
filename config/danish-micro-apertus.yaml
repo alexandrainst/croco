@@ -7,7 +7,6 @@
 #   uv run src/scripts/run_pipeline.py --config config/danish-micro-apertus.yaml
 
 construction_mode: gold_chosen
-score_gold_output: true
 language: da
 
 policy:

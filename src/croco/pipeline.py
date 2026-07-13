@@ -21,7 +21,6 @@ def build_preference_dataset(
     scoring_engine: ScoringEngine,
     num_candidates: int,
     construction_mode: str,
-    score_gold_output: bool,
     output_path: Path,
     examples: list[DataExample] | None = None,
     batch_size: int = 64,
@@ -32,7 +31,7 @@ def build_preference_dataset(
     """Build a preference dataset.
 
     This function runs the full CroCo pipeline in prompt batches:
-    1. Reuse or generate+score candidate responses (and gold scores) per example
+    1. Reuse or generate+score candidate responses per example
     2. Construct preference pairs (chosen vs rejected) per example
     3. Append the batch's pairs to disk before moving on
 
@@ -44,7 +43,9 @@ def build_preference_dataset(
     When ``candidate_cache_path`` is given, raw scored candidates (and gold
     scores) are persisted there keyed by example hash. A subsequent build with a
     matching ``generation_signature`` reuses them, so different construction modes
-    can share a single (expensive) generation pass.
+    can share a single (expensive) generation pass. Gold outputs are always scored
+    for freshly generated records to ensure the cache is reusable across
+    construction modes.
 
     Args:
         generation_engine:
@@ -55,9 +56,6 @@ def build_preference_dataset(
             Number of candidate responses to generate per instruction.
         construction_mode:
             One of "generated", "gold_chosen", or "max_reward".
-        score_gold_output:
-            Whether to score the gold output in "gold_chosen" mode (always scored
-            otherwise, so the cache is reusable across modes).
         output_path:
             Path to save the resulting preference dataset (JSONL).
         examples (optional):

@@ -12,7 +12,6 @@
 #   uv run src/scripts/run_pipeline.py --config config/danish-micro-simpo.yaml
 
 construction_mode: max_reward
-score_gold_output: true
 language: da
 
 policy:

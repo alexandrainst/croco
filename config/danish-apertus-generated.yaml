@@ -17,7 +17,6 @@
 construction_mode: generated
 # Gold output is unused in this mode; the cache already holds gold scores so this
 # changes nothing for cache hits, it just reflects that gold plays no role here.
-score_gold_output: false
 language: da
 
 policy:

@@ -109,7 +109,6 @@ class TestBuildPreferenceDataset:
             scoring_engine=score_engine,
             num_candidates=3,
             construction_mode="generated",
-            score_gold_output=False,
             output_path=output_path,
             examples=examples,
             batch_size=2,
@@ -152,7 +151,6 @@ class TestBuildPreferenceDataset:
             scoring_engine=score_engine,
             num_candidates=2,
             construction_mode="max_reward",
-            score_gold_output=True,
             output_path=output_path,
             examples=examples,
         )
@@ -188,7 +186,6 @@ class TestBuildPreferenceDataset:
             scoring_engine=score_engine,
             num_candidates=2,
             construction_mode="generated",
-            score_gold_output=False,
             output_path=output_path,
             examples=examples[:1],
         )
@@ -199,7 +196,6 @@ class TestBuildPreferenceDataset:
             scoring_engine=score_engine,
             num_candidates=2,
             construction_mode="generated",
-            score_gold_output=False,
             output_path=output_path,
             examples=examples,
             resume=True,
@@ -234,7 +230,6 @@ class TestBuildPreferenceDataset:
             scoring_engine=score_engine,
             num_candidates=2,
             construction_mode="generated",
-            score_gold_output=False,
             output_path=tmp_path / "pairs_gen.jsonl",
             examples=examples,
             candidate_cache_path=cache_path,
@@ -248,7 +243,6 @@ class TestBuildPreferenceDataset:
             scoring_engine=_ExplodingScoringEngine(),
             num_candidates=2,
             construction_mode="max_reward",
-            score_gold_output=True,
             output_path=tmp_path / "pairs_max.jsonl",
             examples=examples,
             candidate_cache_path=cache_path,
@@ -354,17 +348,13 @@ class FakeScoringEngine(ScoringEngine):
 
 
 def _make_config(
-    construction_mode: str = "generated",
-    score_gold_output: bool = True,
-    include_eval: bool = True,
+    construction_mode: str = "generated", include_eval: bool = True
 ) -> PipelineConfig:
     """Create a minimal pipeline config for tests.
 
     Args:
         construction_mode:
             Either "generated" or "gold_chosen".
-        score_gold_output:
-            Whether to score gold output in gold_chosen mode.
         include_eval:
             Whether to include the eval field. Defaults to True.
 
@@ -373,7 +363,6 @@ def _make_config(
     """
     return PipelineConfig(
         construction_mode=construction_mode,
-        score_gold_output=score_gold_output,
         language="da",
         policy=PolicyModelConfig(
             model_id="test/policy", attn_implementation="sdpa", max_model_len=4096
@@ -732,7 +721,7 @@ class TestIntegrationGoldChosenMode:
 
         score_engine = StatefulFakeScoringEngine()
 
-        config = _make_config(construction_mode="gold_chosen", score_gold_output=True)
+        config = _make_config(construction_mode="gold_chosen")
 
         pairs, gold_scores = _build_pairs_gold(
             examples=examples,

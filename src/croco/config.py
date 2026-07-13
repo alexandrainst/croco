@@ -164,7 +164,6 @@ class PipelineConfig(BaseModel):
     """Top-level pipeline configuration."""
 
     construction_mode: t.Literal["generated", "gold_chosen", "max_reward"]
-    score_gold_output: bool
     language: str
     policy: PolicyModelConfig
     reward: RewardModelConfig

@@ -21,7 +21,6 @@
 #   tail -f ~/croco/smoke_test.log
 
 construction_mode: max_reward
-score_gold_output: true
 language: da
 
 policy:

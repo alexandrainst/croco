@@ -11,7 +11,6 @@
 # example is kept whether the policy or the gold answer scores best (unlike
 # gold_chosen, which skips when the policy beats gold).
 construction_mode: max_reward
-score_gold_output: true
 language: da
 
 policy:

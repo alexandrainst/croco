@@ -53,7 +53,6 @@ clear reward margin.
 
 ```yaml
 construction_mode: max_reward
-score_gold_output: true
 data:
     dataset_id: danish-foundation-models/laerebogen
     subset: evolved

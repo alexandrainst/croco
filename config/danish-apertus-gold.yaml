@@ -11,7 +11,6 @@
 # self-generation nearest mu-2sigma. Gold is the chosen response regardless of
 # its reward, so no example is discarded (even when a generation outscores gold).
 construction_mode: gold_chosen
-score_gold_output: true
 language: da
 
 policy:

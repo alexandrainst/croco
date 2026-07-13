@@ -117,7 +117,6 @@ def main(*, config: Path, output: Path, candidate_cache: Path) -> None:
         scoring_engine=scoring_engine,
         num_candidates=cfg.generation.num_candidates,
         construction_mode=cfg.construction_mode,
-        score_gold_output=cfg.score_gold_output,
         output_path=output,
         examples=examples,
         batch_size=cfg.generation.batch_size,

@@ -112,6 +112,9 @@ uv run src/scripts/run_pipeline.py \
   --dataset-output data/pairs_llama_rm.jsonl \
   --candidate-cache data/candidates_cache_llama_rm.jsonl
 
-# Run evals only
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-llama-rm.yaml --eval-only
+# 3. Evaluate with EuroEval (Danish benchmarks, 10 iterations, bootstrap 95% CIs)
+euroeval -m models/croco-munin-apertus-8b-da-llamarm -l da --save-results
+
+# 4. Evaluate specific checkpoints
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-llamarm -l da
 ```

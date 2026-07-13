@@ -143,9 +143,12 @@ iterations.
 ## Reproduction
 
 ```bash
-# Run full GRPO pipeline (no build step needed)
+# 1. Run GRPO training
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-grpo.yaml
 
-# Run evals only (10 iterations)
-euroeval -m models/croco-munin-apertus-8b-da-grpo -l da
+# 2. Evaluate with EuroEval (Danish benchmarks, 10 iterations, bootstrap 95% CIs)
+euroeval -m models/croco-munin-apertus-8b-da-grpo -l da --save-results
+
+# 3. Evaluate specific checkpoints
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-grpo -l da
 ```

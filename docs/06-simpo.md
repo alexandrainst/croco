@@ -104,10 +104,10 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo.yaml
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo.yaml --skip-build
 
 # 3. Run evals only (10 iterations)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo.yaml --eval-only --eval.num-iterations 10
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo.yaml --eval-only
 
 # 4. Evaluate specific checkpoint
-uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-simpo -l da --num-iterations 10
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-simpo -l da
 ```
 
 **Tips:**

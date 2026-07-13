@@ -55,7 +55,7 @@ Identical to [Max Reward](01-max-reward.md):
 
 ## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations final, 7 checkpoints × 3 iterations).
+**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations for both final and checkpoint evals).
 
 **Legend:** ▲ significantly better than Max Reward (baseline), ▼ significantly worse (non-overlapping 95% CIs).
 

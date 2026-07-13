@@ -19,7 +19,7 @@ All experiments follow the **CroCo (Contrastive Preference Optimization)** pipel
 2. **Train**: [DPO](https://arxiv.org/abs/2305.18290) with
    [curriculum learning](https://doi.org/10.1145/1553374.1553380) (gated access by
    evolution score)
-3. **Evaluate**: Danish language benchmarks (10 iter final + 3 iter checkpoint evals)
+3. **Evaluate**: Danish language benchmarks (10 iterations for both final and checkpoint evals)
 
 Base model: `danish-foundation-models/munin-apertus-8b`  
 Reward model: `Skywork/Skywork-Reward-V2-Qwen3-8B`  

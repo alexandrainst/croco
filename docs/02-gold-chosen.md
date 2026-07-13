@@ -129,10 +129,10 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml --skip-build
 
 # 3. Run evals (standard: 10 iterations, bootstrap 95% CIs)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml --eval-only --eval.num-iterations 10
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-gold.yaml --eval-only
 
 # 4. Evaluate specific checkpoint
-uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-gold -l da --num-iterations 10
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-gold -l da
 ```
 
 **Tips:**

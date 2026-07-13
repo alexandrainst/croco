@@ -51,7 +51,7 @@ identical max_reward data.
 ## Status
 
 ✅ **Complete** — trained 2026-07-09→10, 625 steps, 7 checkpoints
-(`checkpoint-100`…`625`). Final eval done; 10-iteration checkpoint evals run afterwards.
+(`checkpoint-100`…`625`). Final eval done; checkpoint evals (10 iterations each) run afterwards.
 
 ### Training dynamics
 
@@ -142,7 +142,7 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yam
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml --skip-build
 
 # Run evals only (10 iterations)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml --eval-only --eval.num-iterations 10
+uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml --eval-only
 ```
 
 **Tips:**

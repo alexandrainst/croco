@@ -14,8 +14,8 @@ completed: 2026-07-06 01:54
 
 ## Hypothesis
 
-Raising β to SimPO-recommended range (2.0) unlocks the full benefit of length-normalised
-loss.
+Raising β to SimPO-recommended range (2.0) unlocks the full benefit of
+length-normalised loss.
 
 ## Method
 
@@ -53,12 +53,12 @@ We chose **2.0** (conservative, matches base models).
 
 ## Training Timeline
 
-| Date              | Milestone                        |
-| ----------------- | -------------------------------- |
-| 2026-07-05 10:44  | Training started (step 0/625)    |
-| 2026-07-06 01:54  | Training completed (step 625/625)|
+| Date             | Milestone                         |
+| ---------------- | --------------------------------- |
+| 2026-07-05 10:44 | Training started (step 0/625)     |
+| 2026-07-06 01:54 | Training completed (step 625/625) |
 
-**Runtime:** ~15 hours (training only; evals pending)
+**Runtime:** ~15 hours (training complete; evals complete)
 
 **Training metrics** (checkpoint-625):
 
@@ -71,7 +71,8 @@ We chose **2.0** (conservative, matches base models).
 
 ✅ **Training complete** (2026-07-06 01:54). Checkpoints 100–625 saved.
 
-⏳ **Evals pending** — EuroEval benchmark evaluation queued behind SimPO-full + GRPO.
+✅ **Evals complete** (2026-07-13) — SimPO-full and GRPO evaluations completed; SimPO
+Tuned benchmark results available in dashboard and summary tables.
 
 ## Single Variable Tested
 
@@ -89,18 +90,24 @@ We chose **2.0** (conservative, matches base models).
 **Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations final, 3
 checkpoint).
 
-| Benchmark            | Task                     | Metric               | Target       |
-| -------------------- | ------------------------ | -------------------- | ------------ |
-| AngryTweets          | Sentiment classification | MCC                  | > Max Reward |
-| ScaLA-da             | Linguistic acceptability | MCC                  | > Max Reward |
-| DANSK                | Named entity recognition | Micro F1             | > Max Reward |
-| MultiWikiQA-da       | Reading comprehension    | F1                   | > Max Reward |
-| Nordjylland News     | Summarization            | chrF++               | > Max Reward |
-| Danske Talemåder     | Knowledge                | Accuracy             | > Max Reward |
-| Danish Citizen Tests | Knowledge                | Accuracy             | > Max Reward |
-| HellaSwag-da         | Common sense reasoning   | Accuracy             | > Max Reward |
-| IFEval-da            | Instruction following    | Instruction accuracy | > Max Reward |
-| ValEU-da             | European values          | Alignment score      | > Max Reward |
+| Benchmark            | Task            | Metric    | Target       |
+| -------------------- | --------------- | --------- | ------------ |
+| AngryTweets          | Sentiment       | MCC       | > Max Reward |
+| ScaLA-da             | Linguistic      | MCC       | > Max Reward |
+|                      | acceptability   |           |              |
+| DANSK                | Named entity    | Micro F1  | > Max Reward |
+|                      | recognition     |           |              |
+| MultiWikiQA-da       | Reading         | F1        | > Max Reward |
+|                      | comprehension   |           |              |
+| Nordjylland News     | Summarization   | chrF++    | > Max Reward |
+| Danske Talemåder     | Knowledge       | Accuracy  | > Max Reward |
+| Danish Citizen Tests | Knowledge       | Accuracy  | > Max Reward |
+| HellaSwag-da         | Common sense    | Accuracy  | > Max Reward |
+|                      | reasoning       |           |              |
+| IFEval-da            | Instruction     | Accuracy  | > Max Reward |
+|                      | following       |           |              |
+| ValEU-da             | European values | Alignment | > Max Reward |
+|                      |                 | score     |              |
 
 **Hypothesis:** β=2.0 should improve reward margin and downstream task performance vs
 β=0.1.
@@ -108,7 +115,7 @@ checkpoint).
 ## Related
 
 - [SimPO](06-simpo.md) — β=0.1 baseline
-- [SimPO Full](08-simpo-full.md) — adds ref-free loss + target margin (currently training)
+- [SimPO Full](08-simpo-full.md) — adds ref-free loss + target margin (complete)
 
 ---
 
@@ -116,14 +123,18 @@ checkpoint).
 
 ```bash
 # Run full pipeline (build + train + eval)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-tuned.yaml
+uv run src/scripts/run_pipeline.py \
+  --config config/danish-apertus-simpo-tuned.yaml
 
 # Resume from existing cache (skip build step)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-tuned.yaml --skip-build
+uv run src/scripts/run_pipeline.py \
+  --config config/danish-apertus-simpo-tuned.yaml --skip-build
 
-# Run evals only (10 iterations)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-tuned.yaml --eval-only
+# Evaluate with EuroEval (Danish benchmarks, 10 iterations, bootstrap 95% CIs)
+euroeval -m models/croco-munin-apertus-8b-da-simpo-tuned \
+  -l da --save-results
 
 # Evaluate specific checkpoints
-uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-simpo-tuned -l da
+uv run src/scripts/eval_checkpoints.py \
+  -m models/croco-munin-apertus-8b-da-simpo-tuned -l da
 ```

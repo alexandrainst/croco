@@ -29,6 +29,26 @@ def _load_eval_checkpoints() -> types.ModuleType:
     return module
 
 
+def _load_eval_subprocess() -> types.ModuleType:
+    """Load the shared eval_subprocess module from src/croco.
+
+    Returns:
+        Loaded eval_subprocess module.
+
+    Raises:
+        RuntimeError:
+          If the module cannot be loaded.
+    """
+    module_path = Path("src/croco/eval_subprocess.py")
+    spec = importlib.util.spec_from_file_location("eval_subprocess", module_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load {module_path}")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def _checkpoint_model_dir(tmp_path: Path) -> Path:
     """Create a model directory with one evaluable checkpoint.
 
@@ -60,7 +80,8 @@ def test_cli_forwards_force_only_when_requested(
     def fake_run_euroeval(**kwargs: object) -> None:
         seen_force.append(kwargs["force"])
 
-    monkeypatch.setattr(module, "_run_euroeval", fake_run_euroeval)
+    # Patch the imported run_euroeval_subprocess in the eval_checkpoints namespace
+    monkeypatch.setattr(module, "run_euroeval_subprocess", fake_run_euroeval)
 
     result = CliRunner().invoke(
         module.main, ["-m", str(model_dir), "--no-include-final", *force_args]
@@ -74,7 +95,7 @@ def test_run_euroeval_appends_force_only_when_requested(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """EuroEval receives --force only when the wrapper force flag is true."""
-    module = _load_eval_checkpoints()
+    eval_subprocess = _load_eval_subprocess()
     commands: list[list[str]] = []
 
     def fake_run(cmd: list[str], *, check: bool) -> subprocess.CompletedProcess[str]:
@@ -82,13 +103,14 @@ def test_run_euroeval_appends_force_only_when_requested(
         assert check is True
         return subprocess.CompletedProcess(args=cmd, returncode=0)
 
-    monkeypatch.setattr(module.subprocess, "run", fake_run)
+    monkeypatch.setattr(eval_subprocess, "subprocess", types.ModuleType("subprocess"))
+    eval_subprocess.subprocess.run = fake_run  # type: ignore[attr-defined]
 
     for force in (False, True):
-        module._run_euroeval(
+        eval_subprocess.run_euroeval_subprocess(
             model_path=tmp_path / "checkpoint-100",
             language="da",
-            datasets=(),
+            tasks=(),
             gpu_memory_utilization=0.5,
             force=force,
         )

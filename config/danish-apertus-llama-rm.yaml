@@ -91,9 +91,10 @@ dpo:
   # wins; leave neither if vanilla DPO wins.
   #
   # OPTIMIZATIONS (TRL 1.7.0+):
-  torch_compile: true              # ~30-50% faster after warmup
-  precompute_ref_log_probs: true   # Skip ref forward pass per step (~30-50% faster)
-  dataloader_num_workers: 4        # Parallel data loading
+  precompute_ref_log_probs: true  # Skip ref forward pass per step (~30-50% faster)
+  # NOTE: `torch_compile` and `dataloader_num_workers` are NOT DPOTrainConfig
+  # fields - pydantic silently drops them and they never reach the trainer. They
+  # have been removed from this config (they were never actually enabled).
 
 eval:
   language: da

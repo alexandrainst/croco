@@ -145,7 +145,10 @@ class GRPOTrainConfig(BaseModel):
     use_vllm: bool = True
     vllm_gpu_memory_utilization: float = 0.3
     hf_repo_id: str | None = None
+    hf_token: str | None = None
     save_steps: int = 0
+    # Maximum number of checkpoints to keep (None = keep all).
+    save_total_limit: int | None = None
 
 
 class EvalConfig(BaseModel):

@@ -16,6 +16,7 @@ from pathlib import Path
 import click
 
 from croco.config import load_config
+from croco.eval_subprocess import run_euroeval_subprocess
 from croco.pipeline import upload_to_huggingface
 
 logging.basicConfig(
@@ -135,9 +136,11 @@ def main(
 
     if not skip_eval and not cfg.eval.skip:
         logger.info("=== Step 3: Evaluating model ===")
-        _run_script(
-            script="eval_model.py",
-            args=["--config", str(config), "--model", str(model_output)],
+        run_euroeval_subprocess(
+            model_path=model_output,
+            language=cfg.eval.language,
+            tasks=cfg.eval.tasks or [],
+            gpu_memory_utilization=cfg.eval.gpu_memory_utilization,
         )
     else:
         logger.info("Skipping evaluation step")

@@ -13,6 +13,53 @@ from .data_models import DataExample, PreferencePair
 logger = logging.getLogger(__name__)
 
 
+class _HasEvolution(t.Protocol):
+    """Protocol for types with an evolution attribute."""
+
+    evolution: int | None
+
+
+def _evolution_sort_key(item: _HasEvolution) -> tuple[int, int]:
+    """Compute sort key for evolution-based ordering.
+
+    Items with None evolution are treated as easiest (come first), enabling
+    curriculum learning to start with known-simple examples before progressing
+    to harder ones. Unknown-difficulty items (None) are placed at the start
+    to ensure the curriculum begins with a consistent baseline.
+
+    Args:
+        item:
+            Any object with an evolution attribute (int or None).
+
+    Returns:
+        Sort key tuple: (0, 0) for None evolution, (1, evolution) otherwise.
+        This ensures None values sort first, followed by ascending evolution.
+    """
+    evolution = item.evolution
+    if evolution is None:
+        return (0, 0)
+    return (1, evolution)
+
+
+_T = t.TypeVar("_T", bound=_HasEvolution)
+
+
+def sort_by_evolution_key(*, items: list[_T]) -> list[_T]:
+    """Sort items by evolution level (ascending), with None values first.
+
+    Generic helper for curriculum learning across different data types.
+    None evolution values are treated as easiest and placed first.
+
+    Args:
+        items:
+            List of items with an evolution attribute to sort.
+
+    Returns:
+        Sorted list with None evolution items first, then ascending by evolution.
+    """
+    return sorted(items, key=_evolution_sort_key)
+
+
 def load_examples(*, config: DataConfig) -> list[DataExample]:
     """Load examples from the Laerebogen dataset.
 
@@ -118,9 +165,9 @@ def filter_by_prompt_length(
 
 
 def sort_by_evolution(*, pairs: list[PreferencePair]) -> list[PreferencePair]:
-    """Sort preference pairs by evolution level (ascending).
+    """Sort preference pairs by evolution level (ascending), with None first.
 
-    Pairs with None evolution are treated as -infinity and come first.
+    Pairs with None evolution are treated as easiest and placed first.
     The sort is stable.
 
     Args:
@@ -130,14 +177,7 @@ def sort_by_evolution(*, pairs: list[PreferencePair]) -> list[PreferencePair]:
     Returns:
         Sorted list of preference pairs.
     """
-
-    def sort_key(pair: PreferencePair) -> tuple[int, int]:
-        evolution = pair.evolution
-        if evolution is None:
-            return (0, 0)
-        return (1, evolution)
-
-    return sorted(pairs, key=sort_key)
+    return sort_by_evolution_key(items=pairs)
 
 
 def _subsample(

@@ -9,11 +9,11 @@ curve over training-set size.
 """
 
 import logging
-import subprocess
-import sys
 from pathlib import Path
 
 import click
+
+from croco.eval_subprocess import run_euroeval_subprocess
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -36,10 +36,10 @@ logger = logging.getLogger(__name__)
     help="EuroEval language code to benchmark. Defaults to da.",
 )
 @click.option(
-    "--dataset",
-    "datasets",
+    "--task",
+    "tasks",
     multiple=True,
-    help="Restrict to these datasets (repeatable). Omit for the full language suite.",
+    help="Restrict to these tasks (repeatable). Omit for the full language suite.",
 )
 @click.option(
     "--gpu-memory-utilization",
@@ -61,7 +61,7 @@ def main(
     *,
     model_dir: Path,
     language: str,
-    datasets: tuple[str, ...],
+    tasks: tuple[str, ...],
     gpu_memory_utilization: float,
     include_final: bool,
     force: bool,
@@ -73,8 +73,8 @@ def main(
           DPO output directory containing checkpoint-* subdirectories.
         language:
           EuroEval language code to benchmark.
-        datasets:
-          Datasets to restrict to, or empty for the full language suite.
+        tasks:
+          Tasks to restrict to, or empty for the full language suite.
         gpu_memory_utilization:
           vLLM GPU memory utilisation for EuroEval.
         include_final:
@@ -92,10 +92,10 @@ def main(
     )
     for target in targets:
         logger.info("=== Evaluating %s ===", target)
-        _run_euroeval(
+        run_euroeval_subprocess(
             model_path=target,
             language=language,
-            datasets=datasets,
+            tasks=tasks,
             gpu_memory_utilization=gpu_memory_utilization,
             force=force,
         )
@@ -127,49 +127,6 @@ def _checkpoint_dirs(*, model_dir: Path, include_final: bool) -> list[Path]:
     if include_final and (model_dir / "adapter_config.json").exists():
         targets.append(model_dir)
     return targets
-
-
-def _run_euroeval(
-    *,
-    model_path: Path,
-    language: str,
-    datasets: tuple[str, ...],
-    gpu_memory_utilization: float,
-    force: bool,
-) -> None:
-    """Run EuroEval on a single checkpoint as a subprocess.
-
-    Args:
-        model_path:
-          Path to the checkpoint adapter directory.
-        language:
-          EuroEval language code.
-        datasets:
-          Datasets to restrict to, or empty for the full language suite.
-        gpu_memory_utilization:
-          vLLM GPU memory utilisation.
-        force:
-          Whether to recompute existing EuroEval results.
-    """
-    # EuroEval ships only a console-script entry point (no ``__main__``), so it
-    # cannot be run via ``python -m euroeval``; invoke the binary next to the
-    # active interpreter instead.
-    cmd = [
-        str(Path(sys.executable).with_name("euroeval")),
-        "--model",
-        str(model_path),
-        "--language",
-        language,
-        "--gpu-memory-utilization",
-        str(gpu_memory_utilization),
-        "--save-results",
-    ]
-    for dataset in datasets:
-        cmd += ["--dataset", dataset]
-    if force:
-        cmd.append("--force")
-    logger.info("Running: %s", " ".join(cmd))
-    subprocess.run(cmd, check=True)
 
 
 if __name__ == "__main__":

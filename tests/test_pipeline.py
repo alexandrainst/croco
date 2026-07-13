@@ -354,7 +354,9 @@ class FakeScoringEngine(ScoringEngine):
 
 
 def _make_config(
-    construction_mode: str = "generated", score_gold_output: bool = True
+    construction_mode: str = "generated",
+    score_gold_output: bool = True,
+    include_eval: bool = True,
 ) -> PipelineConfig:
     """Create a minimal pipeline config for tests.
 
@@ -363,6 +365,8 @@ def _make_config(
             Either "generated" or "gold_chosen".
         score_gold_output:
             Whether to score gold output in gold_chosen mode.
+        include_eval:
+            Whether to include the eval field. Defaults to True.
 
     Returns:
         A minimal PipelineConfig for testing.
@@ -413,6 +417,10 @@ def _make_config(
             lora_dropout=0.05,
             seed=42,
         ),
+        grpo=None,
+        eval=EvalConfig(language="da", tasks=None, gpu_memory_utilization=0.5)
+        if include_eval
+        else EvalConfig(language="da", tasks=None, gpu_memory_utilization=0.5),
     )
 
 

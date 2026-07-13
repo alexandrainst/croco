@@ -51,21 +51,22 @@ identical max_reward data.
 ## Status
 
 ✅ **Complete** — trained 2026-07-09→10, 625 steps, 7 checkpoints
-(`checkpoint-100`…`625`). Final eval done; checkpoint evals (10 iterations each) run afterwards.
+(`checkpoint-100`…`625`). Final eval done; checkpoint evals (10 iterations each) run
+afterwards.
 
 ### Training dynamics
 
 | step | loss | reward-acc | reward-margin |
 | ---- | ---- | ---------- | ------------- |
-| 10   | 1.05 | 0.61 | 0.18 |
-| 80   | 1.28 | 0.43 | −0.34 |
-| 240  | 0.98 | 0.61 | 0.97 |
-| 400  | 0.90 | 0.58 | 1.25 |
-| 560  | 0.96 | 0.59 | 1.36 |
+| 10   | 1.05 | 0.61       | 0.18          |
+| 80   | 1.28 | 0.43       | −0.34         |
+| 240  | 0.98 | 0.61       | 0.97          |
+| 400  | 0.90 | 0.58       | 1.25          |
+| 560  | 0.96 | 0.59       | 1.36          |
 
 Loss is essentially **flat** across all 625 steps and reward accuracy never leaves the
-0.52–0.66 band (chance = 0.5). The model barely learns to separate chosen from rejected —
-a sign of under-fitting and/or weak preference pairs (max_reward best-of-4 gives small
+0.52–0.66 band (chance = 0.5). The model barely learns to separate chosen from rejected
+— a sign of under-fitting and/or weak preference pairs (max_reward best-of-4 gives small
 reward gaps).
 
 ## Results
@@ -73,27 +74,27 @@ reward gaps).
 Final EuroEval (Danish) scores vs the construction-mode baselines. Scores 0–100, higher
 is better; **bold** = significant vs max_reward (non-overlapping 95% bootstrap CIs).
 
-| Dataset / metric          | max_reward | generated | gold | simpo_full |
-| ------------------------- | ---------: | --------: | ---: | ---------: |
-| angry-tweets · macro_f1   | 64.9 | 65.0 | 64.9 | 64.0 |
-| angry-tweets · mcc        | 48.0 | 48.1 | 48.7 | 46.5 |
-| citizen-tests · accuracy  | 84.4 | 83.6 | 83.7 | 85.3 |
-| citizen-tests · mcc       | 77.6 | 76.1 | 75.8 | 78.7 |
-| dansk · micro_f1          | 31.5 | 30.7 | 29.8 | 31.0 |
-| dansk · micro_f1_no_misc  | 45.2 | 44.2 | 42.3 | 46.4 |
-| talemaader · accuracy     | 69.2 | 68.0 | 70.8 | 70.6 |
-| talemaader · mcc          | 62.6 | 61.0 | 64.6 | 63.8 |
-| hellaswag · accuracy      | 53.9 | 52.6 | 55.0 | 54.7 |
-| hellaswag · mcc           | 41.6 | 39.7 | 42.4 | 42.4 |
-| ifeval · instruction_acc  | 56.1 | 47.2 | 54.3 | **62.4** |
-| multi-wiki-qa · em        | 57.5 | 58.5 | 58.8 | 57.1 |
-| multi-wiki-qa · f1        | 74.6 | 74.3 | 74.3 | 73.9 |
-| nordjylland · chr_f3pp    | 37.6 | 37.4 | 34.2 | 37.2 |
-| nordjylland · chr_f4pp    | 41.2 | 41.1 | 35.1 | **39.9** |
-| scala · macro_f1          | 62.8 | 62.6 | 47.5 | 59.4 |
-| scala · mcc               | 35.7 | 35.5 | 23.0 | 32.7 |
-| valeu · european_values   | 5.4 | 10.1 | 0.3 | 0.2 |
-| **Mean**                  | **52.78** | 51.98 | 50.30 | **52.56** |
+| Dataset / metric         | max_reward | generated |  gold | simpo_full |
+| ------------------------ | ---------: | --------: | ----: | ---------: |
+| angry-tweets · macro_f1  |       64.9 |      65.0 |  64.9 |       64.0 |
+| angry-tweets · mcc       |       48.0 |      48.1 |  48.7 |       46.5 |
+| citizen-tests · accuracy |       84.4 |      83.6 |  83.7 |       85.3 |
+| citizen-tests · mcc      |       77.6 |      76.1 |  75.8 |       78.7 |
+| dansk · micro_f1         |       31.5 |      30.7 |  29.8 |       31.0 |
+| dansk · micro_f1_no_misc |       45.2 |      44.2 |  42.3 |       46.4 |
+| talemaader · accuracy    |       69.2 |      68.0 |  70.8 |       70.6 |
+| talemaader · mcc         |       62.6 |      61.0 |  64.6 |       63.8 |
+| hellaswag · accuracy     |       53.9 |      52.6 |  55.0 |       54.7 |
+| hellaswag · mcc          |       41.6 |      39.7 |  42.4 |       42.4 |
+| ifeval · instruction_acc |       56.1 |      47.2 |  54.3 |   **62.4** |
+| multi-wiki-qa · em       |       57.5 |      58.5 |  58.8 |       57.1 |
+| multi-wiki-qa · f1       |       74.6 |      74.3 |  74.3 |       73.9 |
+| nordjylland · chr_f3pp   |       37.6 |      37.4 |  34.2 |       37.2 |
+| nordjylland · chr_f4pp   |       41.2 |      41.1 |  35.1 |   **39.9** |
+| scala · macro_f1         |       62.8 |      62.6 |  47.5 |       59.4 |
+| scala · mcc              |       35.7 |      35.5 |  23.0 |       32.7 |
+| valeu · european_values  |        5.4 |      10.1 |   0.3 |        0.2 |
+| **Mean**                 |  **52.78** |     51.98 | 50.30 |  **52.56** |
 
 ### Analysis
 
@@ -128,7 +129,7 @@ max_reward data.
 
 - [SimPO Tuned](07-simpo-tuned.md) — identical config (β=2.0, sigmoid_norm)
 - [SimPO](06-simpo.md) — β=0.1 baseline
-- [GRPO](09-grpo.md) — online RL baseline (queued after this run)
+- [GRPO](09-grpo.md) — online RL baseline (complete)
 
 ---
 
@@ -141,12 +142,17 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yam
 # Resume from existing cache (skip build step)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml --skip-build
 
-# Run evals only (10 iterations)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml --eval-only
+# 3. Evaluate with EuroEval (Danish benchmarks, 10 iterations, bootstrap 95% CIs)
+euroeval -m models/croco-munin-apertus-8b-da-simpo-full -l da --save-results
+
+# 4. Evaluate specific checkpoints
+uv run src/scripts/eval_checkpoints.py \
+  -m models/croco-munin-apertus-8b-da-simpo-full -l da
 ```
 
 **Tips:**
 
 - `--skip-build` reuses cached candidate pairs
-- Dataset uses `danish-foundation-models/laerebogen` (evolved split, ~5M examples filtered)
+- Dataset uses `danish-foundation-models/laerebogen` (evolved split, ~5M examples
+  filtered)
 - See `config/danish-apertus-simpo-full.yaml` for full hyperparameters

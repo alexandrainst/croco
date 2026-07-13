@@ -153,7 +153,6 @@ class EvalConfig(BaseModel):
 
     language: str
     tasks: list[str] | None
-    num_iterations: int
     skip: bool = False  # Skip evaluation (e.g., for LoRA models)
     gpu_memory_utilization: float = 0.5
 

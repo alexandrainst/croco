@@ -179,18 +179,16 @@ class TestEvalConfig:
     def test_create_eval_config(self) -> None:
         """Test creating an EvalConfig instance."""
         config = EvalConfig(
-            language="en", tasks=["truthfulqa", "mmlu"], num_iterations=3
+            language="en", tasks=["truthfulqa", "mmlu"]
         )
         assert config.language == "en"
         assert config.tasks == ["truthfulqa", "mmlu"]
-        assert config.num_iterations == 3
 
     def test_eval_config_with_none_tasks(self) -> None:
         """Test EvalConfig with None tasks."""
-        config = EvalConfig(language="da", tasks=None, num_iterations=5)
+        config = EvalConfig(language="da", tasks=None)
         assert config.language == "da"
         assert config.tasks is None
-        assert config.num_iterations == 5
 
     def test_eval_config_requires_all_fields(self) -> None:
         """Test that all fields are required."""
@@ -249,7 +247,7 @@ class TestPipelineConfig:
                 lora_dropout=0.05,
                 seed=42,
             ),
-            eval=EvalConfig(language="en", tasks=None, num_iterations=3),
+            eval=EvalConfig(language="en", tasks=None),
         )
         assert config.construction_mode == "generated"
         assert config.score_gold_output is False
@@ -312,7 +310,7 @@ class TestPipelineConfig:
                 seed=123,
             ),
             eval=EvalConfig(
-                language="da", tasks=["mmlu", "hellaswag"], num_iterations=5
+                language="da", tasks=["mmlu", "hellaswag"]
             ),
         )
         assert config.construction_mode == "gold_chosen"
@@ -379,7 +377,7 @@ class TestLoadConfig:
                 "lora_dropout": 0.05,
                 "seed": 42,
             },
-            "eval": {"language": "en", "tasks": None, "num_iterations": 3},
+            "eval": {"language": "en", "tasks": None},
         }
 
         config_path = tmp_path / "config.yaml"
@@ -395,7 +393,7 @@ class TestLoadConfig:
         assert config.generation.num_candidates == 4
         assert config.data.num_samples == 1000
         assert config.dpo.beta == 0.1
-        assert config.eval.num_iterations == 3
+
 
     def test_load_with_all_fields(self, tmp_path: Path) -> None:
         """Test loading configuration with all fields set."""
@@ -450,7 +448,6 @@ class TestLoadConfig:
             "eval": {
                 "language": "da",
                 "tasks": ["mmlu", "hellaswag"],
-                "num_iterations": 5,
             },
         }
 
@@ -537,7 +534,7 @@ class TestLengthBudgetValidator:
                 lora_dropout=0.05,
                 seed=42,
             ),
-            eval=EvalConfig(language="da", tasks=None, num_iterations=1),
+            eval=EvalConfig(language="da", tasks=None),
         )
 
     def test_within_budget_is_valid(self) -> None:

@@ -89,7 +89,6 @@ def test_run_euroeval_appends_force_only_when_requested(
             model_path=tmp_path / "checkpoint-100",
             language="da",
             datasets=(),
-            num_iterations=10,
             gpu_memory_utilization=0.5,
             force=force,
         )

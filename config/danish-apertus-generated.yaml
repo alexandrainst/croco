@@ -77,6 +77,5 @@ dpo:
 eval:
   language: da
   tasks: null
-  num_iterations: 1
   skip: true
   gpu_memory_utilization: 0.5

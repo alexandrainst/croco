@@ -413,7 +413,6 @@ def _make_config(
             lora_dropout=0.05,
             seed=42,
         ),
-        eval=EvalConfig(language="da", tasks=None, num_iterations=1),
     )
 
 

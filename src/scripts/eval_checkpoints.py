@@ -42,12 +42,6 @@ logger = logging.getLogger(__name__)
     help="Restrict to these datasets (repeatable). Omit for the full language suite.",
 )
 @click.option(
-    "--num-iterations",
-    type=int,
-    default=10,
-    help="Number of EuroEval iterations per dataset. Defaults to 10.",
-)
-@click.option(
     "--gpu-memory-utilization",
     type=float,
     default=0.5,
@@ -68,7 +62,6 @@ def main(
     model_dir: Path,
     language: str,
     datasets: tuple[str, ...],
-    num_iterations: int,
     gpu_memory_utilization: float,
     include_final: bool,
     force: bool,
@@ -82,8 +75,6 @@ def main(
           EuroEval language code to benchmark.
         datasets:
           Datasets to restrict to, or empty for the full language suite.
-        num_iterations:
-          Number of EuroEval iterations per dataset.
         gpu_memory_utilization:
           vLLM GPU memory utilisation for EuroEval.
         include_final:
@@ -105,7 +96,6 @@ def main(
             model_path=target,
             language=language,
             datasets=datasets,
-            num_iterations=num_iterations,
             gpu_memory_utilization=gpu_memory_utilization,
             force=force,
         )
@@ -144,7 +134,6 @@ def _run_euroeval(
     model_path: Path,
     language: str,
     datasets: tuple[str, ...],
-    num_iterations: int,
     gpu_memory_utilization: float,
     force: bool,
 ) -> None:
@@ -157,8 +146,6 @@ def _run_euroeval(
           EuroEval language code.
         datasets:
           Datasets to restrict to, or empty for the full language suite.
-        num_iterations:
-          Number of EuroEval iterations per dataset.
         gpu_memory_utilization:
           vLLM GPU memory utilisation.
         force:
@@ -173,8 +160,6 @@ def _run_euroeval(
         str(model_path),
         "--language",
         language,
-        "--num-iterations",
-        str(num_iterations),
         "--gpu-memory-utilization",
         str(gpu_memory_utilization),
         "--save-results",

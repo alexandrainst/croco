@@ -98,9 +98,13 @@ ssh sparkie 'tmux ls | grep -v dr_scraper'
 **Completed model runs (do NOT re-run):**
 
 - Construction mode: `max_reward`, `gold_chosen`, `generated`
-- Loss functions: `label_smoothing`, `simpo`
+- Loss functions: `label_smoothing`, `simpo` (β=0.1), `simpo_tuned` (β=2.0),
+  `simpo_full` (ref-free)
 - Reward model: `llamarm`
-- Tuned SimPO: `simpo_tuned`
+- Online RL: `grpo` (final eval complete)
+
+**In progress:** Checkpoint learning-curve evals for GRPO and SimPO-tuned (queued on
+sparkie, one GPU workload at a time).
 
 ## Testing
 
@@ -207,16 +211,16 @@ Update docs when:
 - **Reward model caching** — Candidate cache signature does NOT include the reward
   model. Swapping RMs requires explicit re-scoring
   (`src/scripts/rescore_candidates.py`).
-- **LoRA ref-free training** — TRL sets `ref_model=None` when LoRA is enabled.
-  Reference log probs computed via adapter-off forward (not a bug).
+- **LoRA ref-free training** — TRL sets `ref_model=None` when LoRA is enabled. Reference
+  log probs computed via adapter-off forward (not a bug).
 - **Parallel experiments** — Ensure different model directories to avoid checkpoint
   collisions.
-- **EuroEval cache** — Results cached in `.euroeval_cache/`. Old 3-iteration
-  checkpoint re-evals completed 2026-07-09; scripts deleted.
+- **EuroEval cache** — Results cached in `.euroeval_cache/`. Old 3-iteration checkpoint
+  re-evals completed 2026-07-09; scripts deleted.
 - **GPU memory** — vLLM needs ~20GB VRAM for 8B models at `max_model_len=4096`. Reduce
   length or use `--tensor-parallel-size` if OOM.
-- **Significance markers** — ▲▼ in tables = non-overlapping 95% CIs
-  (bootstrap, 1000 samples), not p-values.
+- **Significance markers** — ▲▼ in tables = non-overlapping 95% CIs (bootstrap, 1000
+  samples), not p-values.
 - **Dashboard regeneration** — If models/results change, regenerate dashboard before
   exporting plots, otherwise they will be stale.
 - **TMPDIR + HF_DATASETS_CACHE** — Both must be set for training runs:

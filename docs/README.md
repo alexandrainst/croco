@@ -131,24 +131,24 @@ diagnosed bottleneck is **preference-pair quality**, not the loss.
 
 ### Recently Completed
 
-1. **GRPO baseline** — Completed 2026-07-13. The paradigm fork: online RL on the Skywork
-   RM vs the offline CroCo pipeline. Read its **training-reward trajectory** — if it
-   climbs where offline reward-acc was flat, the offline pairs are the bottleneck.
+- **SimPO Tuned** (β=2.0, `sigmoid_norm`) — Final eval complete 2026-07-13. Performance
+  comparable to `max_reward` baseline, no significant wins/degradations.
+- **GRPO baseline** — Training + final eval complete 2026-07-13. Online RL paradigm
+  comparison: ~60h training vs ~6.5h for DPO, but $0 dataset build cost.
 
-### Next Experiments (plan)
+### Next Steps
 
-In order — one GPU workload at a time:
+Checkpoint learning-curve evals are being started on sparkie (one GPU workload at a
+time) for both GRPO and SimPO-tuned. After these complete:
 
-2. **Recipe-quality fix at 5k.** One run: RM-margin filtering (or K≥8) + LR→1e-5 + 2
-   epochs. Success = reward-acc > ~0.7 and a CI-clean win over `max_reward`. If it can't
-   beat baseline at 5k, scaling won't help.
-3. **Data-scaling ladder: 5k → 25k → 100k** on the winning recipe/paradigm. Measures the
-   scaling slope — the decisive input for whether more data pays off.
-4. **5M only if** the recipe beats baseline **and** the 5k→100k curve is still climbing.
-   Estimate generation + RM-scoring wall-clock and disk before committing.
+1. **Dashboard update & learning-curve comparison** — Export new plots, compare
+   checkpoint-by-checkpoint trajectories across all experiments.
 
-**Do not** jump straight to 5M: it is ~1000× the generation + scoring cost (plausibly
-weeks on one DGX Spark) and would lock in an unproven recipe with no course-correction.
+Later (not immediate GPU work):
+
+2. **Recipe-quality fix at 5k** — RM-margin filtering (or K≥8) + LR→1e-5 + 2 epochs.
+3. **Data-scaling ladder: 5k → 25k → 100k** on winning recipe.
+4. **5M only if** recipe beats baseline **and** 5k→100k curve still climbing.
 
 ---
 
@@ -167,28 +167,28 @@ CIs.
 _Each cell is the mean score with its bootstrap 95% CI in brackets. ▲/▼ mark scores
 whose CI does not overlap the base model's CI (significantly better / worse)._
 
-| Dataset              | Metric     | Base Model    | Max Reward      | Gold            | Generated     | Label Smooth    | SimPO-Full      |
-| -------------------- | ---------- | ------------- | --------------- | --------------- | ------------- | --------------- | --------------- |
-| AngryTweets          | MCC        | 48.51 [45.30, | 48.05 [45.66,   | 48.68 [45.38,   | 48.07 [45.62, | 47.76 [45.62,   | 46.50 [44.11,   |
-|                      |            | 51.71]        | 50.43]          | 51.97]          | 50.51]        | 49.90]          | 48.90]          |
-| ScaLA-da             | MCC        | 34.56 [32.06, | 35.70 [32.15,   | 23.04 ▼ [18.50, | 35.46 [32.56, | 32.37 [28.74,   | 32.68 [28.20,   |
-|                      |            | 37.06]        | 39.26]          | 27.58]          | 38.35]        | 36.00]          | 37.16]          |
-| DANSK                | Micro F1   | 43.96 [41.79, | 45.20 [42.75,   | 42.25 [39.44,   | 44.19 [42.34, | 44.79 [43.03,   | 46.41 [44.77,   |
-|                      |            | 46.14]        | 47.64]          | 45.07]          | 46.05]        | 46.55]          | 48.04]          |
-| MultiWikiQA-da       | F1         | 75.73 [74.53, | 74.60 [73.17,   | 74.35 [73.06,   | 74.34 [72.73, | 74.07 [72.75,   | 73.85 [72.73,   |
-|                      |            | 76.92]        | 76.02]          | 75.63]          | 75.96]        | 75.39]          | 74.98]          |
-| Nordjylland News     | chrF++     | 37.51 [37.01, | 37.62 [37.07,   | 34.20 ▼ [33.43, | 37.38 [36.80, | 37.59 [37.07,   | 37.18 [36.79,   |
-|                      |            | 38.01]        | 38.18]          | 34.97]          | 37.96]        | 38.11]          | 37.57]          |
-| Danske Talemåder     | Accuracy   | 69.22 [66.05, | 69.22 [66.84,   | 70.78 [68.45,   | 67.97 [64.97, | 69.22 [66.15,   | 70.62 [66.76,   |
-|                      |            | 72.38]        | 71.59]          | 73.11]          | 70.97]        | 72.28]          | 74.49]          |
-| Danish Citizen Tests | Accuracy   | 84.78 [82.16, | 84.44 [81.60,   | 83.67 [81.15,   | 83.56 [81.05, | 84.00 [80.95,   | 85.33 [83.02,   |
-|                      |            | 87.40]        | 87.29]          | 86.18]          | 86.07]        | 87.05]          | 87.65]          |
-| HellaSwag-da         | Accuracy   | 53.28 [49.54, | 53.95 [50.02,   | 54.96 [51.05,   | 52.62 [49.28, | 52.77 [48.70,   | 54.73 [51.10,   |
-|                      |            | 57.02]        | 57.87]          | 58.87]          | 55.96]        | 56.84]          | 58.36]          |
-| IFEval-da            | Instr. Acc | 50.29 [48.75, | 56.13 ▲ [54.84, | 54.25 ▲ [53.55, | 47.21 [45.62, | 54.47 ▲ [53.08, | 62.38 ▲ [61.84, |
-|                      |            | 51.83]        | 57.41]          | 54.96]          | 48.79]        | 55.85]          | 62.92]          |
-| ValEU-da             | Alignment  | 12.46 [6.86,  | 5.45 [-1.09,    | 0.28 ▼ [-0.04,  | 10.08 [2.19,  | 4.81 [-1.78,    | 0.19 ▼ [0.03,   |
-|                      |            | 18.07]        | 11.98]          | 0.61]           | 17.97]        | 11.40]          | 0.35]           |
+| Dataset              | Metric     | Base Model    | Max Reward      | Gold            | Generated     | Label Smooth    | SimPO-Full      | SimPO Tuned   |
+| -------------------- | ---------- | ------------- | --------------- | --------------- | ------------- | --------------- | --------------- | ------------- |
+| AngryTweets          | MCC        | 48.51 [45.30, | 48.05 [45.66,   | 48.68 [45.38,   | 48.07 [45.62, | 47.76 [45.62,   | 46.50 [44.11,   | 47.28 [44.28, |
+|                      |            | 51.71]        | 50.43]          | 51.97]          | 50.51]        | 49.90]          | 48.90]          | 50.28]        |
+| ScaLA-da             | MCC        | 34.56 [32.06, | 35.70 [32.15,   | 23.04 ▼ [18.50, | 35.46 [32.56, | 32.37 [28.74,   | 32.68 [28.20,   | 32.88 [30.16, |
+|                      |            | 37.06]        | 39.26]          | 27.58]          | 38.35]        | 36.00]          | 37.16]          | 35.60]        |
+| DANSK                | Micro F1   | 43.96 [41.79, | 45.20 [42.75,   | 42.25 [39.44,   | 44.19 [42.34, | 44.79 [43.03,   | 46.41 [44.77,   | 30.90 [29.02, |
+|                      |            | 46.14]        | 47.64]          | 45.07]          | 46.05]        | 46.55]          | 48.04]          | 32.78]        |
+| MultiWikiQA-da       | F1         | 75.73 [74.53, | 74.60 [73.17,   | 74.35 [73.06,   | 74.34 [72.73, | 74.07 [72.75,   | 73.85 [72.73,   | 73.85 [72.29, |
+|                      |            | 76.92]        | 76.02]          | 75.63]          | 75.96]        | 75.39]          | 74.98]          | 75.41]        |
+| Nordjylland News     | chrF++     | 37.51 [37.01, | 37.62 [37.07,   | 34.20 ▼ [33.43, | 37.38 [36.80, | 37.59 [37.07,   | 37.18 [36.79,   | 37.11 [36.70, |
+|                      |            | 38.01]        | 38.18]          | 34.97]          | 37.96]        | 38.11]          | 37.57]          | 37.53]        |
+| Danske Talemåder     | Accuracy   | 69.22 [66.05, | 69.22 [66.84,   | 70.78 [68.45,   | 67.97 [64.97, | 69.22 [66.15,   | 70.62 [66.76,   | 69.06 [66.15, |
+|                      |            | 72.38]        | 71.59]          | 73.11]          | 70.97]        | 72.28]          | 74.49]          | 71.98]        |
+| Danish Citizen Tests | Accuracy   | 84.78 [82.16, | 84.44 [81.60,   | 83.67 [81.15,   | 83.56 [81.05, | 84.00 [80.95,   | 85.33 [83.02,   | 85.00 [83.21, |
+|                      |            | 87.40]        | 87.29]          | 86.18]          | 86.07]        | 87.05]          | 87.65]          | 86.79]        |
+| HellaSwag-da         | Accuracy   | 53.28 [49.54, | 53.95 [50.02,   | 54.96 [51.05,   | 52.62 [49.28, | 52.77 [48.70,   | 54.73 [51.10,   | 53.79 [49.94, |
+|                      |            | 57.02]        | 57.87]          | 58.87]          | 55.96]        | 56.84]          | 58.36]          | 57.63]        |
+| IFEval-da            | Instr. Acc | 50.29 [48.75, | 56.13 ▲ [54.84, | 54.25 ▲ [53.55, | 47.21 [45.62, | 54.47 ▲ [53.08, | 62.38 ▲ [61.84, | 54.28 [52.93, |
+|                      |            | 51.83]        | 57.41]          | 54.96]          | 48.79]        | 55.85]          | 62.92]          | 55.64]        |
+| ValEU-da             | Alignment  | 12.46 [6.86,  | 5.45 [-1.09,    | 0.28 ▼ [-0.04,  | 10.08 [2.19,  | 4.81 [-1.78,    | 0.19 ▼ [0.03,   | 0.07 [-0.03,  |
+|                      |            | 18.07]        | 11.98]          | 0.61]           | 17.97]        | 11.40]          | 0.35]           | 0.17]         |
 
 **Legend:** ▲ better than base (base CI and this CI do not overlap), ▼ worse
 
@@ -286,19 +286,20 @@ All configs in `config/` directory:
 
 ## Timeline
 
-| Date             | Milestone                                                  |
-| ---------------- | ---------------------------------------------------------- |
-| 2026-06-26       | Micro ablation runs (debug)                                |
-| 2026-06-28       | Initial CroCo runs (main, gold, generated)                 |
-| 2026-06-29       | RM ablation started (Llama vs Skywork)                     |
-| 2026-06-30       | Loss ablations started (ls, simpo)                         |
-| 2026-07-01       | SimPO (β=0.1) complete                                     |
-| 2026-07-02       | SimPO ablations queued (tuned, full)                       |
-| 2026-07-03       | Llama RM training complete                                 |
-| 2026-07-04       | Llama RM evals complete                                    |
-| 2026-07-05       | SimPO-tuned training started                               |
-| 2026-07-06       | SimPO-tuned training complete                              |
-| 2026-07-08       | Label smoothing evals complete                             |
-| 2026-07-09 16:20 | SimPO Full training started (→ SimPO-tuned evals)          |
-| 2026-07-10       | SimPO Full complete; GRPO training started                 |
-| 2026-07-13       | GRPO training + evals complete; SimPO-tuned evals complete |
+| Date             | Milestone                                            |
+| ---------------- | ---------------------------------------------------- |
+| 2026-06-26       | Micro ablation runs (debug)                          |
+| 2026-06-28       | Initial CroCo runs (main, gold, generated)           |
+| 2026-06-29       | RM ablation started (Llama vs Skywork)               |
+| 2026-06-30       | Loss ablations started (ls, simpo)                   |
+| 2026-07-01       | SimPO (β=0.1) complete                               |
+| 2026-07-02       | SimPO ablations queued (tuned, full)                 |
+| 2026-07-03       | Llama RM training complete                           |
+| 2026-07-04       | Llama RM evals complete                              |
+| 2026-07-05       | SimPO-tuned training started                         |
+| 2026-07-06       | SimPO-tuned training complete                        |
+| 2026-07-08       | Label smoothing evals complete                       |
+| 2026-07-09 16:20 | SimPO Full training started (→ SimPO-tuned evals)    |
+| 2026-07-10       | SimPO Full complete; GRPO training started           |
+| 2026-07-13       | GRPO + SimPO-tuned final evals complete              |
+| 2026-07-13+      | Checkpoint evals queued (one GPU workload at a time) |

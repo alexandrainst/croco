@@ -53,10 +53,10 @@ We chose **2.0** (conservative, matches base models).
 
 ## Training Timeline
 
-| Date              | Milestone                        |
-| ----------------- | -------------------------------- |
-| 2026-07-05 10:44  | Training started (step 0/625)    |
-| 2026-07-06 01:54  | Training completed (step 625/625)|
+| Date             | Milestone                         |
+| ---------------- | --------------------------------- |
+| 2026-07-05 10:44 | Training started (step 0/625)     |
+| 2026-07-06 01:54 | Training completed (step 625/625) |
 
 **Runtime:** ~15 hours (training only; evals pending)
 
@@ -108,7 +108,7 @@ checkpoint).
 ## Related
 
 - [SimPO](06-simpo.md) — β=0.1 baseline
-- [SimPO Full](08-simpo-full.md) — adds ref-free loss + target margin (currently training)
+- [SimPO Full](08-simpo-full.md) — adds ref-free loss + target margin (complete)
 
 ---
 

@@ -32,27 +32,27 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 
 ### Construction Mode Ablations
 
-| Experiment                       | Description                                          | Status      |
-| -------------------------------- | ---------------------------------------------------- | ----------- |
-| [**Max Reward**](01-max-reward.md) | `max_reward` construction: 4 candidates, select best | ✅ Complete |
-| [**Gold Chosen**](02-gold.md)      | Use Qwen3-235B outputs as chosen                     | ✅ Complete |
-| [**Generated**](03-generated.md)   | Standard generated mode, all candidates              | ✅ Complete |
-| [**Llama RM**](04-llama-rm.md)     | Swap Skywork RM backbone to Llama-3.1                | ✅ Complete |
+| Experiment                           | Description                                          | Status      |
+| ------------------------------------ | ---------------------------------------------------- | ----------- |
+| [**Max Reward**](01-max-reward.md)   | `max_reward` construction: 4 candidates, select best | ✅ Complete |
+| [**Gold Chosen**](02-gold-chosen.md) | Use Qwen3-235B outputs as chosen                     | ✅ Complete |
+| [**Generated**](03-generated.md)     | Standard generated mode, all candidates              | ✅ Complete |
+| [**Llama RM**](04-llama-rm.md)       | Swap Skywork RM backbone to Llama-3.1                | ✅ Complete |
 
 ### Loss Function Ablations
 
-| Experiment                            | Description                                 | Status                            |
-| ------------------------------------- | ------------------------------------------- | --------------------------------- |
-| [**Label Smoothing**](05-label-smoothing.md) | `max_reward` + label smoothing (α=0.05)   | ✅ Complete                       |
-| [**SimPO (β=0.1)**](06-simpo.md)      | Length-normalised loss, low β ablation      | ✅ Complete                       |
-| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md) | β=2.0, `sigmoid_norm` loss                | ✅ Training done, ⏳ eval running |
-| [**SimPO Full (ref-free)**](08-simpo-full.md) | Ref-free SimPO loss, γ=0.5                | ✅ Complete                       |
+| Experiment                                    | Description                             | Status      |
+| --------------------------------------------- | --------------------------------------- | ----------- |
+| [**Label Smoothing**](05-label-smoothing.md)  | `max_reward` + label smoothing (α=0.05) | ✅ Complete |
+| [**SimPO (β=0.1)**](06-simpo.md)              | Length-normalised loss, low β ablation  | ✅ Complete |
+| [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | β=2.0, `sigmoid_norm` loss              | ✅ Complete |
+| [**SimPO Full (ref-free)**](08-simpo-full.md) | Ref-free SimPO loss, γ=0.5              | ✅ Complete |
 
 ### Online RL Baseline
 
-| Experiment         | Description                                   | Status      |
-| ------------------ | --------------------------------------------- | ----------- |
-| [**GRPO**](09-grpo.md) | Online RL with vLLM-colocate rollouts       | ✅ Complete |
+| Experiment             | Description                           | Status      |
+| ---------------------- | ------------------------------------- | ----------- |
+| [**GRPO**](09-grpo.md) | Online RL with vLLM-colocate rollouts | ✅ Complete |
 
 ---
 
@@ -104,8 +104,7 @@ summarization, instruction following and alignment vs both base and `max_reward`
 motivating the β=2.0 retune ([SimPO Tuned](07-simpo-tuned.md)).
 
 **Note on SimPO Tuned (β=2.0):** Training completed (625 steps, 7 checkpoints) on
-2026-07-06. Final 10-iter eval started 2026-07-13 14:21, running in `simpo_tuned_eval`
-session (~45-60 min ETA).
+2026-07-06. Evals complete 2026-07-13.
 
 ### Online RL
 
@@ -143,8 +142,8 @@ In order — one GPU workload at a time:
 2. **Recipe-quality fix at 5k.** One run: RM-margin filtering (or K≥8) + LR→1e-5 + 2
    epochs. Success = reward-acc > ~0.7 and a CI-clean win over `max_reward`. If it can't
    beat baseline at 5k, scaling won't help.
-3. **Data-scaling ladder: 5k → 25k → 100k** on the winning recipe/paradigm.
-   Measures the scaling slope — the decisive input for whether more data pays off.
+3. **Data-scaling ladder: 5k → 25k → 100k** on the winning recipe/paradigm. Measures the
+   scaling slope — the decisive input for whether more data pays off.
 4. **5M only if** the recipe beats baseline **and** the 5k→100k curve is still climbing.
    Estimate generation + RM-scoring wall-clock and disk before committing.
 
@@ -233,30 +232,34 @@ samples). Significance determined by non-overlapping CIs._
 
 All 18 dataset-metric combinations (checkpoint-by-checkpoint performance):
 
-| Dataset & Metric             | Learning Curve                                      | Dataset & Metric            | Learning Curve                                 |
-| ---------------------------- | --------------------------------------------------- | --------------------------- | ---------------------------------------------- |
-| **Angry Tweets**<br>Macro F1 | ![angry-macro](gfx/curve*angry-tweets-test*         |
-|                              | macro_f1.png)                                       | **Angry Tweets**<br>MCC     | ![angry-mcc](gfx/curve*angry-tweets-test*      |
-|                              |                                                     |                             | mcc.png)                                       |
-| \*\*Danish Citizen           | ![dct-acc](gfx/curve*danish-citizen-tests-test*     |
-| **Tests**<br>Accuracy        | accuracy.png)                                       | \*\*Danish Citizen          | ![dct-mcc](gfx/curve_danish-citizen-tests-     |
-|                              |                                                     | **Tests**<br>MCC            | test_mcc.png)                                  |
-| **Dansk (NER)**<br>Micro F1  | ![dansk-f1](gfx/curve_dansk-test_micro_f1.png)      | **Dansk (NER)**<br>Micro F1 | ![dansk-f1-nm](gfx/curve*dansk-test_micro*     |
-|                              |                                                     | (no misc)                   | f1_no_misc.png)                                |
-| **Danske Talemåder**<br>     | ![dt-acc](gfx/curve*danske-talemaader-test*         |
-| **Accuracy**                 | accuracy.png)                                       | **Danske Talemåder**<br>MCC | ![dt-mcc](gfx/curve*danske-talemaader-test*    |
-|                              |                                                     |                             | mcc.png)                                       |
-| **Hellaswag-da**<br>Accuracy | ![hs-acc](gfx/curve_hellaswag-da-test_accuracy.png) | **Hellaswag-da**<br>MCC     | ![hs-mcc](gfx/curve_hellaswag-da-test_mcc.png) |
-| **IFEval-da**<br>Instruction | ![ifeval](gfx/curve*ifeval-da-test_instruction*     |
-| **Accuracy**                 | accuracy.png)                                       | **Multi-Wiki QA-da**<br>    | ![mw-em](gfx/curve*multi-wiki-qa-da-test*      |
-|                              |                                                     | **Exact Match**             | em.png)                                        |
-| **Multi-Wiki QA-da**<br>F1   | ![mw-f1](gfx/curve_multi-wiki-qa-da-test_f1.png)    | **Nordjylland News**<br>    | ![nn-f3](gfx/curve*nordjylland-news-test*      |
-|                              |                                                     | **chrF3++**                 | chr_f3pp.png)                                  |
-| **Nordjylland News**<br>     | ![nn-f4](gfx/curve*nordjylland-news-test_chr*       |
-| **chrF4++**                  | f4pp.png)                                           | **ScaLA-da**<br>Macro F1    | ![scala-f1](gfx/curve*scala-da-test*           |
-|                              |                                                     |                             | macro_f1.png)                                  |
-| **ScaLA-da**<br>MCC          | ![scala-mcc](gfx/curve_scala-da-test_mcc.png)       | **ValEU-da**<br>European    | ![valeu](gfx/curve*valeu-da-test_european*     |
-|                              |                                                     | **Values**                  | values.png)                                    |
+- **Angry Tweets**
+    - Macro F1: ![angry-macro](gfx/curve_angry-tweets-test_macro_f1.png)
+    - MCC: ![angry-mcc](gfx/curve_angry-tweets-test_mcc.png)
+- **Danish Citizen Tests**
+    - Accuracy: ![dct-acc](gfx/curve_danish-citizen-tests-test_accuracy.png)
+    - MCC: ![dct-mcc](gfx/curve_danish-citizen-tests-test_mcc.png)
+- **Dansk (NER)**
+    - Micro F1: ![dansk-f1](gfx/curve_dansk-test_micro_f1.png)
+    - Micro F1 (no misc): ![dansk-f1-nm](gfx/curve_dansk-test_micro_f1_no_misc.png)
+- **Danske Talemåder**
+    - Accuracy: ![dt-acc](gfx/curve_danske-talemaader-test_accuracy.png)
+    - MCC: ![dt-mcc](gfx/curve_danske-talemaader-test_mcc.png)
+- **Hellaswag-da**
+    - Accuracy: ![hs-acc](gfx/curve_hellaswag-da-test_accuracy.png)
+    - MCC: ![hs-mcc](gfx/curve_hellaswag-da-test_mcc.png)
+- **IFEval-da**
+    - Instruction Accuracy: ![ifeval](gfx/curve_ifeval-da-test_instruction_accuracy.png)
+- **Multi-Wiki QA-da**
+    - Exact Match: ![mw-em](gfx/curve_multi-wiki-qa-da-test_em.png)
+    - F1: ![mw-f1](gfx/curve_multi-wiki-qa-da-test_f1.png)
+- **Nordjylland News**
+    - chrF3++: ![nn-f3](gfx/curve_nordjylland-news-test_chr_f3pp.png)
+    - chrF4++: ![nn-f4](gfx/curve_nordjylland-news-test_chr_f4pp.png)
+- **ScaLA-da**
+    - Macro F1: ![scala-f1](gfx/curve_scala-da-test_macro_f1.png)
+    - MCC: ![scala-mcc](gfx/curve_scala-da-test_mcc.png)
+- **ValEU-da**
+    - European Values: ![valeu](gfx/curve_valeu-da-test_european_values.png)
 
 _Error bars show 95% CIs (bootstrap, 1000 samples); runs dodged horizontally for
 visibility._
@@ -283,18 +286,19 @@ All configs in `config/` directory:
 
 ## Timeline
 
-| Date             | Milestone                                                        |
-| ---------------- | ---------------------------------------------------------------- |
-| 2026-06-26       | Micro ablation runs (debug)                                      |
-| 2026-06-28       | Initial CroCo runs (main, gold, generated)                       |
-| 2026-06-29       | RM ablation started (Llama vs Skywork)                           |
-| 2026-06-30       | Loss ablations started (ls, simpo)                               |
-| 2026-07-01       | SimPO (β=0.1) complete                                           |
-| 2026-07-02       | SimPO ablations queued (tuned, full)                             |
-| 2026-07-03       | Llama RM training complete                                       |
-| 2026-07-04       | Llama RM evals complete                                          |
-| 2026-07-05       | SimPO-tuned training started                                     |
-| 2026-07-06       | SimPO-tuned training complete                                    |
-| 2026-07-08       | Label smoothing evals complete                                   |
-| 2026-07-09 16:20 | SimPO Full training started (→ GRPO queued, → SimPO-tuned evals) |
-| 2026-07-10       | SimPO Full complete; GRPO next, then recipe-fix + scaling ladder |
+| Date             | Milestone                                                  |
+| ---------------- | ---------------------------------------------------------- |
+| 2026-06-26       | Micro ablation runs (debug)                                |
+| 2026-06-28       | Initial CroCo runs (main, gold, generated)                 |
+| 2026-06-29       | RM ablation started (Llama vs Skywork)                     |
+| 2026-06-30       | Loss ablations started (ls, simpo)                         |
+| 2026-07-01       | SimPO (β=0.1) complete                                     |
+| 2026-07-02       | SimPO ablations queued (tuned, full)                       |
+| 2026-07-03       | Llama RM training complete                                 |
+| 2026-07-04       | Llama RM evals complete                                    |
+| 2026-07-05       | SimPO-tuned training started                               |
+| 2026-07-06       | SimPO-tuned training complete                              |
+| 2026-07-08       | Label smoothing evals complete                             |
+| 2026-07-09 16:20 | SimPO Full training started (→ SimPO-tuned evals)          |
+| 2026-07-10       | SimPO Full complete; GRPO training started                 |
+| 2026-07-13       | GRPO training + evals complete; SimPO-tuned evals complete |

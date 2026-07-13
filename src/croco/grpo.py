@@ -24,7 +24,6 @@ from trl import GRPOConfig, GRPOTrainer
 
 from .config import PipelineConfig
 from .data import filter_by_prompt_length, load_examples, sort_by_evolution_key
-from .data_models import DataExample
 from .lora import build_lora_config
 from .utils import build_user_message
 

@@ -3,8 +3,8 @@
 
 This is the no-preference-construction baseline: unlike ``train.py`` (offline
 CroCo DPO), GRPO needs no pre-built dataset - it generates and scores completions
-during training. Evaluate the resulting adapter with ``eval_model.py`` /
-``eval_checkpoints.py`` exactly like the DPO runs.
+during training. Evaluate the resulting adapter with the EuroEval CLI
+(``euroeval -m <model> -l da``) or ``eval_checkpoints.py`` exactly like the DPO runs.
 """
 
 import logging

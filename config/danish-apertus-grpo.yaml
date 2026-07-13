@@ -15,7 +15,8 @@
 #
 # Usage (no dataset build - GRPO generates online):
 #   uv run src/scripts/train_grpo.py -c config/danish-apertus-grpo.yaml
-# Then evaluate the adapter with eval_model.py / eval_checkpoints.py as usual.
+# Then evaluate the adapter with EuroEval CLI (`euroeval -m <model> -l da`) or
+# eval_checkpoints.py as usual.
 
 # Required by the schema but unused by the GRPO path (no preference construction).
 construction_mode: max_reward

@@ -2,8 +2,8 @@
 title: SimPO Tuned Ablation (β=2.0)
 description: Raises beta to SimPO-recommended 2.0, keeps sigmoid_norm loss
 created: 2026-07-02
-updated: 2026-07-09
-status: training-complete
+updated: 2026-07-13
+status: complete
 config: config/danish-apertus-simpo-tuned.yaml
 output: models/croco-munin-apertus-8b-da-simpo-tuned
 started: 2026-07-05 10:44
@@ -14,8 +14,8 @@ completed: 2026-07-06 01:54
 
 ## Hypothesis
 
-Raising β to SimPO-recommended range (2.0) unlocks the full benefit of
-length-normalised loss.
+Raising β to SimPO-recommended range (2.0) unlocks the full benefit of length-normalised
+loss.
 
 ## Method
 
@@ -69,10 +69,11 @@ We chose **2.0** (conservative, matches base models).
 
 ## Current Status
 
-✅ **Training complete** (2026-07-06 01:54). Checkpoints 100–625 saved.
+✅ **Training complete** (2026-07-06 01:54). 625 steps, checkpoints 100–625 saved.
 
-✅ **Evals complete** (2026-07-13) — SimPO-full and GRPO evaluations completed; SimPO
-Tuned benchmark results available in dashboard and summary tables.
+✅ **Final evaluation complete** (2026-07-13). All 10 Danish benchmarks evaluated with
+10 iterations each (bootstrap 95% CIs). Checkpoint learning-curve evals are being
+started on sparkie (one GPU workload at a time).
 
 ## Single Variable Tested
 
@@ -85,32 +86,37 @@ Tuned benchmark results available in dashboard and summary tables.
 
 **Only β changes** — tests whether low β was limiting performance.
 
-## Expected Results
+## Results
 
-**Evaluation suite:** Same 10 Danish benchmarks as Max Reward (10 iterations final, 3
-checkpoint).
+**Final EuroEval** (Danish benchmarks, 10 iterations, bootstrap 95% CIs):
 
-| Benchmark            | Task            | Metric    | Target       |
-| -------------------- | --------------- | --------- | ------------ |
-| AngryTweets          | Sentiment       | MCC       | > Max Reward |
-| ScaLA-da             | Linguistic      | MCC       | > Max Reward |
-|                      | acceptability   |           |              |
-| DANSK                | Named entity    | Micro F1  | > Max Reward |
-|                      | recognition     |           |              |
-| MultiWikiQA-da       | Reading         | F1        | > Max Reward |
-|                      | comprehension   |           |              |
-| Nordjylland News     | Summarization   | chrF++    | > Max Reward |
-| Danske Talemåder     | Knowledge       | Accuracy  | > Max Reward |
-| Danish Citizen Tests | Knowledge       | Accuracy  | > Max Reward |
-| HellaSwag-da         | Common sense    | Accuracy  | > Max Reward |
-|                      | reasoning       |           |              |
-| IFEval-da            | Instruction     | Accuracy  | > Max Reward |
-|                      | following       |           |              |
-| ValEU-da             | European values | Alignment | > Max Reward |
-|                      |                 | score     |              |
+| Benchmark            | Metric               | SimPO Tuned Score |
+| -------------------- | -------------------- | ----------------- |
+| AngryTweets          | MCC                  | 47.28% ± 2.99%    |
+|                      | Macro F1             | 64.54% ± 1.99%    |
+| ScaLA-da             | MCC                  | 32.88% ± 2.72%    |
+|                      | Macro F1             | 60.30% ± 4.05%    |
+| DANSK                | Micro F1             | 30.90% ± 1.88%    |
+|                      | Micro F1 (no MISC)   | 46.49% ± 1.78%    |
+| MultiWikiQA-da       | F1                   | 73.85% ± 1.56%    |
+|                      | Exact Match          | 56.56% ± 2.11%    |
+| Nordjylland News     | ChrF3++              | 37.11% ± 0.41%    |
+|                      | ChrF4++              | 40.61% ± 0.42%    |
+| Danske Talemåder     | MCC                  | 62.04% ± 3.54%    |
+|                      | Accuracy             | 69.06% ± 2.92%    |
+| Danish Citizen Tests | MCC                  | 77.72% ± 2.63%    |
+|                      | Accuracy             | 85.00% ± 1.79%    |
+| HellaSwag-da         | MCC                  | 41.84% ± 4.01%    |
+|                      | Accuracy             | 53.79% ± 3.85%    |
+| IFEval-da            | Instruction Accuracy | 54.28% ± 1.35%    |
+| ValEU-da             | European Values      | 0.07% ± 0.04%     |
 
-**Hypothesis:** β=2.0 should improve reward margin and downstream task performance vs
-β=0.1.
+**Analysis:** β=2.0 with `sigmoid_norm` loss yields performance comparable to
+`max_reward` baseline—within 1–2 percentage points on most tasks, with no significant
+wins or degradations by non-overlapping CI criteria. The higher β stabilises training
+but does not produce clear gains over β=0.1 when using reference-based DPO.
+
+Full comparison against all ablations in [`README.md`](README.md).
 
 ## Related
 

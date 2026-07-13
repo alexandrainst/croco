@@ -141,8 +141,11 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yam
 # Resume from existing cache (skip build step)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml --skip-build
 
-# Run evals only (10 iterations)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full.yaml --eval-only
+# 3. Evaluate with EuroEval (Danish benchmarks, 10 iterations, bootstrap 95% CIs)
+euroeval -m models/croco-munin-apertus-8b-da-simpo -l da --save-results
+
+# 4. Evaluate specific checkpoints
+uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-simpo -l da
 ```
 
 **Tips:**

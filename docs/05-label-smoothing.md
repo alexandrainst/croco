@@ -142,10 +142,10 @@ uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml
 # 2. Or resume from existing cache (skip build step)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml --skip-build
 
-# 3. Run evals (standard: 10 iterations, bootstrap 95% CIs)
-uv run src/scripts/run_pipeline.py --config config/danish-apertus-ls.yaml --eval-only
+# Evaluate with EuroEval (Danish benchmarks, 10 iterations, bootstrap 95% CIs)
+euroeval -m models/croco-munin-apertus-8b-da-ls -l da --save-results
 
-# 4. Evaluate specific checkpoint
+# 3. Evaluate specific checkpoint
 uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da-ls -l da
 ```
 

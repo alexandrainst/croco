@@ -50,14 +50,17 @@ uv run src/scripts/eval_checkpoints.py -m models/croco-munin-apertus-8b-da -l da
 
 ### Ablation Experiments
 
-| Config                          | Construction Mode | Description                       |
-| ------------------------------- | ----------------- | --------------------------------- |
-| `danish-apertus.yaml`           | `max_reward`      | Select best-scoring candidate     |
-| `danish-apertus-gold.yaml`      | `gold_chosen`     | Use Qwen3-235B outputs as chosen  |
-| `danish-apertus-generated.yaml` | `generated`       | Keep all candidates, score all    |
-| `danish-apertus-ls.yaml`        | `max_reward`      | DPO with label smoothing (α=0.05) |
-| `danish-apertus-simpo.yaml`     | `max_reward`      | SimPO loss (γ=0.5, β=2.0)         |
-| `danish-apertus-llama-rm.yaml`  | `max_reward`      | Llama-3-based reward model        |
+| Config                          | Construction  | Description                   |
+| ------------------------------- | ------------- | ----------------------------- |
+| `danish-apertus.yaml`           | `max_reward`  | Select best-scoring candidate |
+| `danish-apertus-gold.yaml`      | `gold_chosen` | Use Qwen3-235B outputs as     |
+|                                 |               | chosen                        |
+| `danish-apertus-generated.yaml` | `generated`   | Keep all candidates, score    |
+|                                 |               | all                           |
+| `danish-apertus-ls.yaml`        | `max_reward`  | DPO with label smoothing      |
+|                                 |               | (α=0.05)                      |
+| `danish-apertus-simpo.yaml`     | `max_reward`  | SimPO loss (γ=0.5, β=2.0)     |
+| `danish-apertus-llama-rm.yaml`  | `max_reward`  | Llama-3-based reward model    |
 
 ### Running on Sparkie (GPU Server)
 
@@ -204,16 +207,16 @@ Update docs when:
 - **Reward model caching** — Candidate cache signature does NOT include the reward
   model. Swapping RMs requires explicit re-scoring
   (`src/scripts/rescore_candidates.py`).
-- **LoRA ref-free training** — TRL sets `ref_model=None` when LoRA is enabled; reference
-  log probs computed via adapter-off forward (not a bug).
+- **LoRA ref-free training** — TRL sets `ref_model=None` when LoRA is enabled.
+  Reference log probs computed via adapter-off forward (not a bug).
 - **Parallel experiments** — Ensure different model directories to avoid checkpoint
   collisions.
-- **EuroEval cache** — Results cached in `.euroeval_cache/`. Old 3-iteration checkpoint
-  re-evals completed 2026-07-09; scripts deleted.
+- **EuroEval cache** — Results cached in `.euroeval_cache/`. Old 3-iteration
+  checkpoint re-evals completed 2026-07-09; scripts deleted.
 - **GPU memory** — vLLM needs ~20GB VRAM for 8B models at `max_model_len=4096`. Reduce
   length or use `--tensor-parallel-size` if OOM.
-- **Significance markers** — ▲▼ in tables = non-overlapping 95% CIs (bootstrap, 1000
-  samples), not p-values.
+- **Significance markers** — ▲▼ in tables = non-overlapping 95% CIs
+  (bootstrap, 1000 samples), not p-values.
 - **Dashboard regeneration** — If models/results change, regenerate dashboard before
   exporting plots, otherwise they will be stale.
 - **TMPDIR + HF_DATASETS_CACHE** — Both must be set for training runs:

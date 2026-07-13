@@ -151,7 +151,7 @@ uv run src/scripts/build_dataset.py --config config/danish-apertus.yaml
 uv run src/scripts/train.py --config config/danish-apertus.yaml
 
 # Evaluate the trained model
-uv run src/scripts/eval_model.py --config config/danish-apertus.yaml --model path/to/model
+euroeval -m path/to/model -l da
 
 # Run the full pipeline (build -> train -> evaluate)
 uv run src/scripts/run_pipeline.py --config config/danish-apertus.yaml

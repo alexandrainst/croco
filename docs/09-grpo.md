@@ -147,6 +147,5 @@ iterations.
 uv run src/scripts/run_pipeline.py --config config/danish-apertus-grpo.yaml
 
 # Run evals only (10 iterations)
-uv run src/scripts/eval_model.py -c config/danish-apertus-grpo.yaml \
-  -m models/croco-munin-apertus-8b-da-grpo
+euroeval -m models/croco-munin-apertus-8b-da-grpo -l da
 ```

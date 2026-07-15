@@ -2,7 +2,7 @@
 title: CroCo Research Experiments
 description: Overview of all preference optimisation ablation studies
 created: 2026-07-02
-updated: 2026-07-10
+updated: 2026-07-15
 status: active
 ---
 
@@ -123,7 +123,7 @@ the 5k models: `max_reward ≈ simpo_full > generated > gold`.
 
 ---
 
-## Completed Experiments (2026-07-13)
+## Completed Experiments (2026-07-15)
 
 The 5k ablations have converged into a near-tie (~50–53 mean; ≤2/18 metrics clear
 significance), so the small-data regime is too noisy to separate methods and the
@@ -135,11 +135,17 @@ diagnosed bottleneck is **preference-pair quality**, not the loss.
   comparable to `max_reward` baseline, no significant wins/degradations.
 - **GRPO baseline** — Training + final eval complete 2026-07-13. Online RL paradigm
   comparison: ~60h training vs ~6.5h for DPO, but $0 dataset build cost.
+- **GRPO checkpoint evals** — Learning-curve evaluation complete 2026-07-15. All
+  checkpoints (100–1249) evaluated across 10 Danish benchmarks.
+
+### In Progress
+
+- **SimPO-tuned checkpoint evals** — Running on sparkie, currently evaluating
+  checkpoint-600. Expected completion: ~2026-07-15 evening.
 
 ### Next Steps
 
-Checkpoint learning-curve evals are being started on sparkie (one GPU workload at a
-time) for both GRPO and SimPO-tuned. After these complete:
+After SimPO-tuned checkpoint evals complete:
 
 1. **Dashboard update & learning-curve comparison** — Export new plots, compare
    checkpoint-by-checkpoint trajectories across all experiments.

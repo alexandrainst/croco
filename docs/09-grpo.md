@@ -91,6 +91,37 @@ Micro smoke test (`danish-micro-grpo.yaml`):
 
 Full comparison against all DPO ablations in [`README.md`](README.md).
 
+### Checkpoint Evaluation
+
+**Learning-curve evaluation complete** (2026-07-15). All GRPO checkpoints evaluated
+across 10 Danish benchmarks:
+
+| Checkpoint | AngryTweets MCC | DANSK Micro F1 | MultiWikiQA-da F1 | IFEval-da IA |
+| ---------- | --------------- | -------------- | ----------------- | ------------ |
+| 100        | 46.87% ± 3.07%  | 30.54% ± 2.19% | 73.82% ± 1.48%    | 54.30% ± 1.28% |
+| 200        | 47.52% ± 3.29%  | 30.84% ± 2.21% | 75.80% ± 1.26%    | 54.99% ± 1.46% |
+| 300        | 47.83% ± 3.86%  | 30.84% ± 2.21% | 75.80% ± 1.26%    | 54.99% ± 1.46% |
+| 400        | 47.10% ± 2.93%  | 31.24% ± 1.99% | 74.04% ± 1.72%    | 55.95% ± 1.66% |
+| 500        | 46.87% ± 3.07%  | 30.54% ± 2.19% | 73.82% ± 1.48%    | 54.30% ± 1.28% |
+| 600        | 47.26% ± 3.41%  | 31.06% ± 2.39% | 75.83% ± 1.40%    | 52.12% ± 1.69% |
+| 700        | 47.71% ± 2.97%  | 31.24% ± 2.31% | 75.65% ± 1.54%    | 52.40% ± 1.56% |
+| 800        | 47.26% ± 3.41%  | 31.06% ± 2.39% | 75.83% ± 1.40%    | 52.12% ± 1.69% |
+| 900        | 47.26% ± 3.41%  | 31.63% ± 2.27% | 76.03% ± 1.43%    | 51.58% ± 1.73% |
+| 1000       | 47.26% ± 3.41%  | 31.06% ± 2.39% | 75.83% ± 1.40%    | 52.12% ± 1.69% |
+| 1100       | 49.01% ± 3.26%  | 31.06% ± 2.39% | 75.83% ± 1.40%    | 52.12% ± 1.69% |
+| 1200       | 47.71% ± 2.97%  | 31.24% ± 2.31% | 75.65% ± 1.54%    | 52.40% ± 1.56% |
+| 1249       | 47.71% ± 2.97%  | 31.63% ± 2.27% | 76.03% ± 1.43%    | 51.37% ± 1.40% |
+
+**Observations:**
+- Performance stabilises around checkpoint 400–600; later checkpoints show marginal gains.
+- Best AngryTweets MCC at checkpoint 1100 (49.01%).
+- Best DANSK Micro F1 at checkpoint 900/1249 (31.63%).
+- Best MultiWikiQA-da F1 at checkpoint 900/1249 (76.03%).
+- IFEval-da instruction accuracy peaks early (~55% at checkpoint 300–400), then slightly
+degrades.
+
+Learning curve plots exported to [`docs/gfx/`](gfx/) (18 dataset-metric combinations).
+
 ## Expected Results
 
 | Benchmark            | Task                     | Metric               | Target       |
@@ -121,8 +152,10 @@ cost.
 ## Current Status
 
 ✅ **Training complete** (2026-07-13 08:00). 1249 steps in 59h 48m.  
-✅ **Evaluation complete** (2026-07-13 14:00). All 10 benchmarks evaluated with 10
-iterations.
+✅ **Final evaluation complete** (2026-07-13 14:00). All 10 benchmarks evaluated with 10
+iterations.  
+✅ **Checkpoint evaluation complete** (2026-07-15 06:21). All 13 checkpoints (100–1249)
+evaluated across 10 benchmarks; learning curves available in dashboard.
 
 ## Comparison
 

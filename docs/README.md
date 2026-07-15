@@ -308,4 +308,6 @@ All configs in `config/` directory:
 | 2026-07-09 16:20 | SimPO Full training started (→ SimPO-tuned evals)    |
 | 2026-07-10       | SimPO Full complete; GRPO training started           |
 | 2026-07-13       | GRPO + SimPO-tuned final evals complete              |
-| 2026-07-13+      | Checkpoint evals queued (one GPU workload at a time) |
+| 2026-07-13+      | Checkpoint evals started (one GPU workload at a time) |
+| 2026-07-15 06:21 | GRPO checkpoint evals complete (13 checkpoints)       |
+| 2026-07-15+      | SimPO-tuned checkpoint evals in progress             |

@@ -112,6 +112,7 @@ across 10 Danish benchmarks:
 | 1200       | 47.46% ± 3.31%   | 30.42% ± 2.39%   | 75.80% ± 1.39%    | 51.71% ± 1.39% |
 | 1249       | 48.04% ± 2.34%   | 31.16% ± 2.42%   | 75.81% ± 1.29%    | 51.37% ± 1.40% |
 
+
 **Observations:**
 - Performance is relatively stable across checkpoints; most metrics vary within 1–2 percentage
   points.

@@ -96,21 +96,21 @@ Full comparison against all DPO ablations in [`README.md`](README.md).
 **Learning-curve evaluation complete** (2026-07-15). All GRPO checkpoints evaluated
 across 10 Danish benchmarks:
 
-| Checkpoint | AngryTweets MCC | DANSK Micro F1 | MultiWikiQA-da F1 | IFEval-da IA |
-| ---------- | --------------- | -------------- | ----------------- | ------------ |
-| 100        | 48.55%          | 30.88%         | 75.90%            | 49.32%         |
-| 200        | 48.39%          | 31.07%         | 75.97%            | 50.14%         |
-| 300        | 47.48%          | 30.89%         | 75.87%            | 49.75%         |
-| 400        | 47.81%          | 31.24%         | 75.87%            | 49.12%         |
-| 500        | 47.38%          | 31.01%         | 75.76%            | 50.53%         |
-| 600        | 47.52%          | 30.71%         | 75.92%            | 51.13%         |
-| 700        | 47.47%          | 31.11%         | 75.70%            | 52.94%         |
-| 800        | 48.58%          | 30.98%         | 75.89%            | 53.07%         |
-| 900        | 48.17%          | 31.63%         | 76.03%            | 51.58%         |
-| 1000       | 47.26%          | 31.06%         | 75.83%            | 52.12%         |
-| 1100       | 49.01%          | 30.63%         | 75.90%            | 52.46%         |
-| 1200       | 47.46%          | 30.42%         | 75.80%            | 51.71%         |
-| 1249       | 48.04%          | 31.16%         | 75.81%            | 51.37%         |
+| Checkpoint | AngryTweets MCC  | DANSK Micro F1   | MultiWikiQA-da F1 | IFEval-da IA   |
+| ---------- | ---------------- | ---------------- | ----------------- | -------------- |
+| 100        | 48.55% ± 3.55%   | 30.88% ± 2.82%   | 75.90% ± 1.39%    | 49.32% ± 1.25% |
+| 200        | 48.39% ± 3.35%   | 31.07% ± 2.05%   | 75.97% ± 1.23%    | 50.14% ± 1.39% |
+| 300        | 47.48% ± 2.86%   | 30.89% ± 2.22%   | 75.87% ± 1.28%    | 49.75% ± 1.52% |
+| 400        | 47.81% ± 3.17%   | 31.24% ± 2.24%   | 75.87% ± 1.43%    | 49.12% ± 1.46% |
+| 500        | 47.38% ± 2.59%   | 31.01% ± 2.22%   | 75.76% ± 1.35%    | 50.53% ± 1.60% |
+| 600        | 47.52% ± 2.99%   | 30.71% ± 2.69%   | 75.92% ± 1.38%    | 51.13% ± 1.46% |
+| 700        | 47.47% ± 2.89%   | 31.11% ± 2.31%   | 75.70% ± 1.31%    | 52.94% ± 1.19% |
+| 800        | 48.58% ± 3.21%   | 30.98% ± 2.45%   | 75.89% ± 1.33%    | 53.07% ± 1.65% |
+| 900        | 48.17% ± 3.16%   | 31.63% ± 2.27%   | 76.03% ± 1.43%    | 51.58% ± 1.73% |
+| 1000       | 47.26% ± 3.41%   | 31.06% ± 2.39%   | 75.83% ± 1.40%    | 52.12% ± 1.69% |
+| 1100       | 49.01% ± 3.26%   | 30.63% ± 2.40%   | 75.90% ± 1.27%    | 52.46% ± 1.50% |
+| 1200       | 47.46% ± 3.31%   | 30.42% ± 2.39%   | 75.80% ± 1.39%    | 51.71% ± 1.39% |
+| 1249       | 48.04% ± 2.34%   | 31.16% ± 2.42%   | 75.81% ± 1.29%    | 51.37% ± 1.40% |
 
 **Observations:**
 - Performance is relatively stable across checkpoints; most metrics vary within 1–2 percentage
@@ -121,8 +121,7 @@ across 10 Danish benchmarks:
 - IFEval-da instruction accuracy peaks at checkpoint 800 (53.07%), with a general upward
   trend from checkpoint 100–800, then plateauing.
 
-**Note:** Confidence intervals not shown in table above; bootstrap 95% CIs are available in
-the full EuroEval results (`euroeval_benchmark_results.jsonl`). Learning curve plots in
+**Note:** All values show mean ± bootstrap 95% CI (1000 samples). Learning curve plots in
 [`docs/gfx/`](gfx/) visualise all 18 dataset-metric combinations with error bars.
 
 ## Expected Results

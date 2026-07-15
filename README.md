@@ -201,8 +201,8 @@ near zero (0.067). Broadly similar performance to `max_reward`.
 75.65 / EM 59.05, IFEval 52.40. Final checkpoint at
 `models/croco-munin-apertus-8b-da-grpo/checkpoint-1249/`.
 
-Checkpoint learning-curve evaluations for GRPO and SimPO-tuned are queued on Sparkie
-(one GPU workload at a time).
+Checkpoint learning-curve evaluations: GRPO complete (2026-07-15), SimPO-tuned in
+progress on Sparkie (one GPU workload at a time).
 
 Detailed tables and analysis live in `docs/README.md`, `docs/07-simpo-tuned.md`, and
 `docs/09-grpo.md`.

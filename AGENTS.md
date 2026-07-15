@@ -103,8 +103,8 @@ ssh sparkie 'tmux ls | grep -v dr_scraper'
 - Reward model: `llamarm`
 - Online RL: `grpo` (final eval complete)
 
-**In progress:** Checkpoint learning-curve evals for GRPO and SimPO-tuned (queued on
-sparkie, one GPU workload at a time).
+**In progress:** SimPO-tuned checkpoint learning-curve evals (running on sparkie, one GPU
+workload at a time). GRPO checkpoint evals completed 2026-07-15.
 
 ## Testing
 

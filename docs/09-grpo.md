@@ -153,11 +153,11 @@ cost.
 
 ## Current Status
 
-✅ **Training complete** (2026-07-13 08:00). 1249 steps in 59h 48m.  
-✅ **Final evaluation complete** (2026-07-13 14:00). All 10 benchmarks evaluated with 10
-iterations.  
-✅ **Checkpoint evaluation complete** (2026-07-15 06:21). All 13 checkpoints (100–1249)
-evaluated across 10 benchmarks; learning curves available in dashboard.
+- ✅ **Training complete** (2026-07-13 08:00). 1249 steps in 59h 48m.
+- ✅ **Final evaluation complete** (2026-07-13 14:00). All 10 benchmarks evaluated with 10
+  iterations.
+- ✅ **Checkpoint evaluation complete** (2026-07-15 06:21). All 13 checkpoints (100–1249)
+  evaluated across 10 benchmarks; learning curves available in dashboard.
 
 ## Comparison
 

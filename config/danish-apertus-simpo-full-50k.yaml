@@ -9,9 +9,7 @@
 # Dataset: 50k samples from danish-foundation-models/laerebogen (evolved split)
 #   - Dataset output: data/pairs_apertus_50k.jsonl
 #   - Candidate cache: data/candidates_apertus_50k_cache.jsonl
-#     (distinct 50k cache to avoid mixing with 5k runs; the candidate scorer
-#     does not key by num_samples, so a separate cache prevents accidental reuse
-#     of 5k-scored candidates on 50k data)
+#     (separate from the shared 5k cache to avoid overwriting it with this larger scaling run)
 #
 # save_steps set to 1000 (vs 100 in the 5k run) to avoid creating ~60 checkpoints
 # over the larger dataset. With 50k samples, batch_size=8, 1 epoch ≈ 6250 steps;
@@ -29,11 +27,7 @@
 #     --candidate-cache data/candidates_apertus_50k_cache.jsonl
 #
 # Note: This config is prepared for future runs — not yet launched.
-# The --candidate-cache flag uses a distinct 50k cache to avoid mixing
-# with 5k-scored candidates (the candidate scorer does not key by num_samples).
 # Ensure sparkie has sufficient storage for the larger dataset cache before launching.
-# The --candidate-cache flag points to a distinct 50k cache to avoid mixing
-# with 5k-scored candidates (the candidate scorer does not key by num_samples).
 
 construction_mode: max_reward
 language: da

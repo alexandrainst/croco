@@ -198,17 +198,22 @@ instruction accuracy 54.28, Citizen Tests accuracy 85.00, MultiWikiQA F1 73.85, 
 near zero (0.067). Broadly similar performance to `max_reward`. Checkpoint
 learning-curve evals (checkpoints 100–625) completed 2026-07-15 23:54:47.
 
+**SimPO-full** (reference-free, β=2.0, γ=0.5): Final eval ties `max_reward` on mean
+score (52.56 vs 52.78) with a significant IFEval-da win but weaker ScaLA/Nordjylland.
+Checkpoint evals completed 2026-07-16 20:45:45; `checkpoint-100`/`200` dominate most
+metrics, while the final adapter only clearly wins IFEval-da and Dansk no-misc.
+
 **GRPO**: Final evaluation completed after 1249 steps (59h48m runtime). MultiWikiQA F1
 75.65 / EM 59.05, IFEval 52.40. Final checkpoint at
 `models/croco-munin-apertus-8b-da-grpo/checkpoint-1249/`. Checkpoint learning-curve
 evals completed 2026-07-15 06:21.
 
-**Sparkie status:** As of 2026-07-16 11:56 CEST, no GPU compute processes running.
-Checkpoint eval queue completed 2026-07-15 23:54:47. Disk usage: 3.7T total, 2.5T used,
-1.1T free (71%).
+**Sparkie status:** As of 2026-07-16 21:33 CEST, the 50k SimPO-full scaling run is
+running in tmux session `simpo_full_50k` with log `~/croco/run_simpo_full_50k.log`.
+The previous SimPO-full checkpoint-eval session has been closed.
 
-Detailed tables and analysis live in `docs/README.md`, `docs/07-simpo-tuned.md`, and
-`docs/09-grpo.md`.
+Detailed tables and analysis live in `docs/README.md`, `docs/07-simpo-tuned.md`,
+`docs/08-simpo-full.md`, and `docs/09-grpo.md`.
 
 ## Features
 

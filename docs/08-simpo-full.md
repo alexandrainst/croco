@@ -51,8 +51,8 @@ identical max_reward data.
 ## Status
 
 ✅ **Complete** — trained 2026-07-09→10, 625 steps, 7 checkpoints
-(`checkpoint-100`…`625`). Final eval done; checkpoint evals (10 iterations each) run
-afterwards.
+(`checkpoint-100`…`625`). Final eval done; checkpoint evals (10 iterations each)
+completed 2026-07-16 20:45:45 CEST.
 
 ### Training dynamics
 
@@ -111,6 +111,26 @@ is better; **bold** = significant vs max_reward (non-overlapping 95% bootstrap C
 
 Caveats: single-run final eval; only ifeval and nordjylland-chr_f4pp clear the CI bar vs
 max_reward. `valeu-da` is unreliable (all models near-zero) — exclude from means.
+
+### Checkpoint learning curve
+
+Checkpoint evals covered checkpoints 100, 200, 300, 400, 500, 600, 625, plus the
+final adapter. The curve does **not** show late-stage improvement: early checkpoints are
+usually as good as or better than the final model.
+
+| Pattern | Best checkpoint(s) | Notes |
+| ------- | ------------------ | ----- |
+| Broad aggregate | 100–200 | Best on most QA, social, summarisation, and grammar metrics. |
+| Danish Citizen Tests | 300 | Peak accuracy 86.00 and MCC 79.60; final is lower. |
+| HellaSwag-da | 400 | Peak accuracy 55.27 and MCC 43.15. |
+| IFEval-da | final | Final adapter is best at 62.38 instruction accuracy. |
+| Dansk no-misc | final | Final adapter narrowly wins at 46.41. |
+
+By the end of training, the final adapter only clearly improves IFEval-da and Dansk
+`micro_f1_no_misc`; most QA, social, summarisation, grammar, and values metrics peak
+earlier. `checkpoint-625` is not a new optimum, which reinforces the flat-training
+interpretation above and motivates testing whether more data, not more 5k training, is
+the limiting factor.
 
 ## Single Variables Tested
 

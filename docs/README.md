@@ -119,8 +119,10 @@ Ties `max_reward` on aggregate (52.56 vs 52.78 mean; only 2/18 metrics significa
 Ref-free SimPO on identical max_reward pairs gave **no aggregate gain** over
 reference-based DPO — training was flat (reward-acc stuck ~0.58), pointing at weak
 preference pairs / under-fitting. Its one significant win is **instruction following**
-(IFEval-da 62.4 vs 56.1); it costs ScaLA-da and Nordjylland summarisation. Ranking of
-the 5k models: `max_reward ≈ simpo_full > generated > gold`.
+(IFEval-da 62.4 vs 56.1); it costs ScaLA-da and Nordjylland summarisation. Checkpoint
+evals completed 2026-07-16 20:45:45 CEST: the curve peaks early on most metrics
+(`checkpoint-100`/`200` dominate), with only IFEval-da and Dansk no-misc best at the
+final adapter. Ranking of the 5k models: `max_reward ≈ simpo_full > generated > gold`.
 
 ---
 
@@ -142,15 +144,21 @@ diagnosed bottleneck is **preference-pair quality**, not the loss.
   200, 300, 400, 500, 600, 625 evaluated. `checkpoint-600` completed all 10 benchmarks
   at 21:19:43; `checkpoint-625` completed all 10 at 23:51:57. Final SimPO-tuned adapter
   had no benchmarks left (already evaluated on all selected datasets).
+- **SimPO-full checkpoint evals** — Completed 2026-07-16 20:45:45. Checkpoints 100,
+  200, 300, 400, 500, 600, 625 evaluated, plus the already-evaluated final adapter.
+  Early checkpoints (`100`/`200`) dominate most metrics; the final adapter only clearly
+  wins IFEval-da and Dansk no-misc.
 
 ### In Progress
 
-- **SimPO-full checkpoint evals** — Pending; next in queue.
+- **SimPO-full 50k** (`config/danish-apertus-simpo-full-50k.yaml`) — Launched on
+  Sparkie 2026-07-16 in tmux session `simpo_full_50k`. Tests whether scaling data
+  (5k → 50k) unlocks the potential of ref-free SimPO.
 
 ### Planned
 
-- **SimPO-full 50k** (`config/danish-apertus-simpo-full-50k.yaml`) — Not launched. Tests
-  whether scaling data (5k → 50k) unlocks the potential of ref-free SimPO.
+- **Post-50k analysis** — Evaluate the 50k run after training completes and compare
+  against the 5k SimPO-full curve.
 
 ### Next Steps
 

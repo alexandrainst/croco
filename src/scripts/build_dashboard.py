@@ -1031,6 +1031,29 @@ function drawCurve(metric) {
   Plotly.newPlot("curve", traces, layout(`${ds} - ${m}`, "checkpoint step", m), CFG);
 }
 
+function getSelectedCurveMetric() {
+  // Prefer URL hash if present and valid
+  const hash = window.location.hash.slice(1); // strip '#'
+  const metrics = curveMetrics();
+  const validMetrics = new Set(metrics);
+  if (hash && hash.startsWith("metric=")) {
+    const hashMetric = decodeURIComponent(hash.slice(7));
+    if (validMetrics.has(hashMetric)) return hashMetric;
+  }
+  // Fall back to localStorage
+  const stored = localStorage.getItem("croco_curve_metric");
+  if (stored && validMetrics.has(stored)) return stored;
+  // Default to first metric
+  return metrics[0];
+}
+
+function setSelectedCurveMetric(metric) {
+  // Persist to URL hash
+  window.location.hash = "metric=" + encodeURIComponent(metric);
+  // Also persist to localStorage for sessions without hash
+  localStorage.setItem("croco_curve_metric", metric);
+}
+
 function curves() {
   const metrics = curveMetrics();
   const controls = document.getElementById("curveControls");
@@ -1044,9 +1067,13 @@ function curves() {
   const sel = document.createElement("select");
   metrics.forEach(m => { const o = document.createElement("option");
     o.value = m; o.textContent = m.replace("||", "  /  "); sel.appendChild(o); });
-  sel.onchange = () => drawCurve(sel.value);
+  sel.value = getSelectedCurveMetric();
+  sel.addEventListener('change', (e) => {
+    setSelectedCurveMetric(e.target.value);
+    drawCurve(e.target.value);
+  });
   controls.innerHTML = "Dataset / metric: "; controls.appendChild(sel);
-  drawCurve(metrics[0]);
+  drawCurve(sel.value);
 }
 
 function finals() {

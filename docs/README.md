@@ -2,7 +2,7 @@
 title: CroCo Research Experiments
 description: Overview of all preference optimisation ablation studies
 created: 2026-07-02
-updated: 2026-07-15
+updated: 2026-07-16
 status: active
 ---
 
@@ -135,22 +135,25 @@ diagnosed bottleneck is **preference-pair quality**, not the loss.
   comparable to `max_reward` baseline, no significant wins/degradations.
 - **GRPO baseline** — Training + final eval complete 2026-07-13. Online RL paradigm
   comparison: ~60h training vs ~6.5h for DPO, but $0 dataset build cost.
-- **GRPO checkpoint evals** — Learning-curve evaluation complete 2026-07-15. All
+- **GRPO checkpoint evals** — Learning-curve evaluation complete 2026-07-15 06:21. All
   checkpoints (100–1249) evaluated across 10 Danish benchmarks.
+- **SimPO-tuned checkpoint evals** — Completed 2026-07-15 23:54:47. Checkpoints 100,
+  200, 300, 400, 500, 600, 625 evaluated. `checkpoint-600` completed all 10 benchmarks
+  at 21:19:43; `checkpoint-625` completed all 10 at 23:51:57. Final SimPO-tuned adapter
+  had no benchmarks left (already evaluated on all selected datasets).
 
 ### In Progress
 
-- **SimPO-tuned checkpoint evals** — Running on sparkie, currently evaluating
-  checkpoint-600. Expected completion: ~2026-07-15 evening.
+- _None._ All checkpoint evaluations completed 2026-07-15.
 
 ### Next Steps
 
-After SimPO-tuned checkpoint evals complete:
+Pending follow-up (no GPU work):
 
-1. **Dashboard update & learning-curve comparison** — Export new plots, compare
-   checkpoint-by-checkpoint trajectories across all experiments.
+1. **Dashboard update & learning-curve comparison** — Rebuild dashboard, export new
+   plots, compare checkpoint-by-checkpoint trajectories across all experiments.
 
-Later (not immediate GPU work):
+Later research (to be scoped):
 
 2. **Recipe-quality fix at 5k** — RM-margin filtering (or K≥8) + LR→1e-5 + 2 epochs.
 3. **Data-scaling ladder: 5k → 25k → 100k** on winning recipe.
@@ -292,22 +295,24 @@ All configs in `config/` directory:
 
 ## Timeline
 
-| Date             | Milestone                                            |
-| ---------------- | ---------------------------------------------------- |
-| 2026-06-26       | Micro ablation runs (debug)                          |
-| 2026-06-28       | Initial CroCo runs (main, gold, generated)           |
-| 2026-06-29       | RM ablation started (Llama vs Skywork)               |
-| 2026-06-30       | Loss ablations started (ls, simpo)                   |
-| 2026-07-01       | SimPO (β=0.1) complete                               |
-| 2026-07-02       | SimPO ablations queued (tuned, full)                 |
-| 2026-07-03       | Llama RM training complete                           |
-| 2026-07-04       | Llama RM evals complete                              |
-| 2026-07-05       | SimPO-tuned training started                         |
-| 2026-07-06       | SimPO-tuned training complete                        |
-| 2026-07-08       | Label smoothing evals complete                       |
-| 2026-07-09 16:20 | SimPO Full training started (→ SimPO-tuned evals)    |
-| 2026-07-10       | SimPO Full complete; GRPO training started           |
-| 2026-07-13       | GRPO + SimPO-tuned final evals complete              |
-| 2026-07-13+      | Checkpoint evals started (one GPU workload at a time) |
-| 2026-07-15 06:21 | GRPO checkpoint evals complete (13 checkpoints)       |
-| 2026-07-15+      | SimPO-tuned checkpoint evals in progress             |
+| Date             | Milestone                                               |
+| ---------------- | ------------------------------------------------------- |
+| 2026-06-26       | Micro ablation runs (debug)                             |
+| 2026-06-28       | Initial CroCo runs (main, gold, generated)              |
+| 2026-06-29       | RM ablation started (Llama vs Skywork)                  |
+| 2026-06-30       | Loss ablations started (ls, simpo)                      |
+| 2026-07-01       | SimPO (β=0.1) complete                                  |
+| 2026-07-02       | SimPO ablations queued (tuned, full)                    |
+| 2026-07-03       | Llama RM training complete                              |
+| 2026-07-04       | Llama RM evals complete                                 |
+| 2026-07-05       | SimPO-tuned training started                            |
+| 2026-07-06       | SimPO-tuned training complete                           |
+| 2026-07-08       | Label smoothing evals complete                          |
+| 2026-07-09 16:20 | SimPO Full training started (→ SimPO-tuned evals)       |
+| 2026-07-10       | SimPO Full complete; GRPO training started              |
+| 2026-07-13       | GRPO + SimPO-tuned final evals complete                 |
+| 2026-07-13+      | Checkpoint evals started (one GPU workload at a time)   |
+| 2026-07-15 06:21 | GRPO checkpoint evals complete (13 checkpoints)         |
+| 2026-07-15 21:19 | SimPO-tuned checkpoint-600 complete (all 10 benchmarks) |
+| 2026-07-15 23:51 | SimPO-tuned checkpoint-625 complete (all 10 benchmarks) |
+| 2026-07-15 23:54 | SimPO-tuned checkpoint eval queue complete              |

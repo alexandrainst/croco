@@ -101,10 +101,11 @@ ssh sparkie 'tmux ls | grep -v dr_scraper'
 - Loss functions: `label_smoothing`, `simpo` (β=0.1), `simpo_tuned` (β=2.0),
   `simpo_full` (ref-free)
 - Reward model: `llamarm`
-- Online RL: `grpo` (final eval complete)
+- Online RL: `grpo` (final eval complete 2026-07-15)
 
-**In progress:** SimPO-tuned checkpoint learning-curve evals (running on sparkie, one GPU
-workload at a time). GRPO checkpoint evals completed 2026-07-15.
+**Checkpoint evals:** All complete as of 2026-07-16. GRPO checkpoint evals completed
+2026-07-15 06:21. SimPO-tuned checkpoint evals (checkpoints 100–625) completed
+2026-07-15 23:54:47.
 
 ## Testing
 
@@ -217,6 +218,10 @@ Update docs when:
   collisions.
 - **EuroEval cache** — Results cached in `.euroeval_cache/`. Old 3-iteration checkpoint
   re-evals completed 2026-07-09; scripts deleted.
+- **Checkpoint eval queue complete** — As of 2026-07-16 11:56 CEST, Sparkie has no GPU
+  compute processes. The `ckpt_evals_grpo_simpo_tuned` tmux session exists but its queue
+  completed 2026-07-15 23:54:47. Do not use stale `auto_launch_*.sh` monitors — they can
+  spawn duplicate workloads.
 - **GPU memory** — vLLM needs ~20GB VRAM for 8B models at `max_model_len=4096`. Reduce
   length or use `--tensor-parallel-size` if OOM.
 - **Significance markers** — ▲▼ in tables = non-overlapping 95% CIs (bootstrap, 1000

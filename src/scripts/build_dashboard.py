@@ -326,28 +326,58 @@ def _training_series(*, reader: "_Reader", model_dir: str) -> dict[str, t.Any] |
     return series
 
 
-
 def _hf_repo_for_model_dir(*, model_dir: str, reader: "_Reader") -> str | None:
-    """Look up the HF repo ID for a model directory by parsing configs."""
+    """Look up the HF repo ID for a model directory by parsing configs.
+
+    Args:
+        model_dir:
+          Model directory name.
+        reader:
+          File reader (local or ssh-backed).
+
+    Returns:
+        HF repo ID string, or None if not found.
+    """
     try:
         if reader.ssh_host:
-            remote_cmd = f"cd {reader.root} && grep -lE 'output_dir:.*{model_dir}$' config/*.yaml 2>/dev/null"
-            result = subprocess.run(["ssh", reader.ssh_host, remote_cmd], capture_output=True, text=True, check=False)
+            remote_cmd = (
+                f"cd {reader.root} && "
+                f"grep -lE 'output_dir:.*{model_dir}$' config/*.yaml 2>/dev/null"
+            )
+            result = subprocess.run(
+                ["ssh", reader.ssh_host, remote_cmd],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
             if result.returncode != 0 or not result.stdout.strip():
                 return None
             config_file = result.stdout.strip().split("\n")[0]
-            parse_cmd = f"cd {reader.root} && grep 'hf_repo_id:' {config_file} | awk '{{print $2}}'"
-            result = subprocess.run(["ssh", reader.ssh_host, parse_cmd], capture_output=True, text=True, check=False)
+            parse_cmd = (
+                f"cd {reader.root} && "
+                f"grep 'hf_repo_id:' {config_file} | awk '{{print $2}}'"
+            )
+            result = subprocess.run(
+                ["ssh", reader.ssh_host, parse_cmd],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
             if result.returncode == 0 and result.stdout.strip():
                 val = result.stdout.strip()
                 return None if val.lower() == "null" else val
             return None
         else:
             import glob
+
             for config_path in glob.glob("config/*.yaml"):
                 with open(config_path) as f:
                     content = f.read()
-                    if f"output_dir: {model_dir}\n" in content or f"output_dir: {model_dir} " in content or content.strip().endswith(f"output_dir: {model_dir}"):
+                    if (
+                        f"output_dir: {model_dir}\n" in content
+                        or f"output_dir: {model_dir} " in content
+                        or content.strip().endswith(f"output_dir: {model_dir}")
+                    ):
                         for line in content.split("\n"):
                             if line.strip().startswith("hf_repo_id:"):
                                 val = line.split(":", 1)[1].strip()
@@ -362,7 +392,10 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
     try:
         result = subprocess.run(
             ["hf", "models", "ls", "-R", repo_id],
-            capture_output=True, text=True, check=False, timeout=30,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
         )
         if result.returncode != 0:
             return None
@@ -374,8 +407,20 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
         if not steps:
             with tempfile.TemporaryDirectory() as tmpdir:
                 dl = subprocess.run(
-                    ["hf", "download", "--type", "model", "--local-dir", tmpdir, repo_id, "trainer_state.json"],
-                    capture_output=True, text=True, check=False, timeout=300,
+                    [
+                        "hf",
+                        "download",
+                        "--type",
+                        "model",
+                        "--local-dir",
+                        tmpdir,
+                        repo_id,
+                        "trainer_state.json",
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    timeout=300,
                 )
                 path = os.path.join(tmpdir, "trainer_state.json")
                 if dl.returncode == 0 and os.path.exists(path):
@@ -385,8 +430,20 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
         max_step = max(steps)
         with tempfile.TemporaryDirectory() as tmpdir:
             dl = subprocess.run(
-                ["hf", "download", "--type", "model", "--local-dir", tmpdir, repo_id, f"checkpoint-{max_step}/trainer_state.json"],
-                capture_output=True, text=True, check=False, timeout=300,
+                [
+                    "hf",
+                    "download",
+                    "--type",
+                    "model",
+                    "--local-dir",
+                    tmpdir,
+                    repo_id,
+                    f"checkpoint-{max_step}/trainer_state.json",
+                ],
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=300,
             )
             path = os.path.join(tmpdir, f"checkpoint-{max_step}/trainer_state.json")
             if dl.returncode == 0 and os.path.exists(path):
@@ -396,6 +453,7 @@ def _latest_hf_trainer_state(*, repo_id: str) -> dict[str, t.Any] | None:
     except Exception as e:
         logger.debug("Error reading HF repo %s: %s", repo_id, e)
         return None
+
 
 def _latest_trainer_state(
     *, reader: "_Reader", model_dir: str
@@ -864,7 +922,7 @@ const DATA = __DATA__;
 const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f",
   generated: "#ff7f0e", label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd",
   grpo: "#8c564b", simpo_tuned: "#e377c2", simpo_full: "#17becf",
-  simpo_full_50k: "#1f77b4", llama_rm: "#bcbd22"};
+  simpo_full_50k: "#ff9896", llama_rm: "#bcbd22"};
 const MODE_LABELS = {
   max_reward: "max_reward",
   gold_chosen: "gold_chosen",

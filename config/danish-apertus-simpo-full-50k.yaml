@@ -17,12 +17,23 @@
 # over the larger dataset. With 50k samples, batch_size=8, 1 epoch ≈ 6250 steps;
 # save_steps=1000 yields ~6 checkpoints instead of ~62.
 #
-# Usage:
-#   uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full-50k.yaml \
-#     --dataset-output data/pairs_apertus_50k.jsonl
+# Usage (FUTURE LAUNCH COMMAND — do not run during preparation):
+#   # Set Sparkie-safe env vars before launch (required for large datasets):
+#   export TMPDIR=~/croco/.tmp
+#   export HF_DATASETS_CACHE=~/croco/.hf_datasets_cache
+#   mkdir -p "$TMPDIR" "$HF_DATASETS_CACHE"
 #
-# Note: Do not launch training yet — this config is prepared for future runs.
-# When ready, ensure sparkie has sufficient storage for the larger dataset cache.
+#   uv run src/scripts/run_pipeline.py \
+#     --config config/danish-apertus-simpo-full-50k.yaml \
+#     --dataset-output data/pairs_apertus_50k.jsonl \
+#     --candidate-cache data/candidates_apertus_50k_cache.jsonl
+#
+# Note: This config is prepared for future runs — not yet launched.
+# The --candidate-cache flag uses a distinct 50k cache to avoid mixing
+# with 5k-scored candidates (the candidate scorer does not key by num_samples).
+# Ensure sparkie has sufficient storage for the larger dataset cache before launching.
+# The --candidate-cache flag points to a distinct 50k cache to avoid mixing
+# with 5k-scored candidates (the candidate scorer does not key by num_samples).
 
 construction_mode: max_reward
 language: da

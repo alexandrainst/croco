@@ -2,7 +2,7 @@
 title: SimPO Tuned Ablation (β=2.0)
 description: Raises beta to SimPO-recommended 2.0, keeps sigmoid_norm loss
 created: 2026-07-02
-updated: 2026-07-13
+updated: 2026-07-16
 status: complete
 config: config/danish-apertus-simpo-tuned.yaml
 output: models/croco-munin-apertus-8b-da-simpo-tuned
@@ -53,12 +53,14 @@ We chose **2.0** (conservative, matches base models).
 
 ## Training Timeline
 
-| Date             | Milestone                         |
-| ---------------- | --------------------------------- |
-| 2026-07-05 10:44 | Training started (step 0/625)     |
-| 2026-07-06 01:54 | Training completed (step 625/625) |
+| Date             | Milestone                                     |
+| ---------------- | --------------------------------------------- |
+| 2026-07-05 10:44 | Training started (step 0/625)                 |
+| 2026-07-06 01:54 | Training completed (step 625/625)             |
+| 2026-07-13       | Final evaluation complete (all 10 benchmarks) |
+| 2026-07-15 23:54 | Checkpoint learning-curve evals complete      |
 
-**Runtime:** ~15 hours (training complete; evals complete)
+**Runtime:** ~15 hours training; checkpoint evals completed 2026-07-15.
 
 **Training metrics** (checkpoint-625):
 
@@ -72,8 +74,12 @@ We chose **2.0** (conservative, matches base models).
 ✅ **Training complete** (2026-07-06 01:54). 625 steps, checkpoints 100–625 saved.
 
 ✅ **Final evaluation complete** (2026-07-13). All 10 Danish benchmarks evaluated with
-10 iterations each (bootstrap 95% CIs). Checkpoint learning-curve evals are being
-started on sparkie (one GPU workload at a time).
+10 iterations each (bootstrap 95% CIs).
+
+✅ **Checkpoint learning-curve evals complete** (2026-07-15 23:54:47). Evaluated
+checkpoints 100, 200, 300, 400, 500, 600, 625 across all 10 benchmarks. `checkpoint-600`
+completed all 10 benchmarks at 21:19:43; `checkpoint-625` completed all 10 at 23:51:57.
+Final adapter had no benchmarks left (already evaluated on all selected datasets).
 
 ## Single Variable Tested
 

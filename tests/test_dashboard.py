@@ -53,16 +53,11 @@ def _result_record(
     result: dict[str, object] = {
         "source_data": {"dataset_name": dataset},
         "evaluation_name": metric,
-        "score_details": {
-            "score": score,
-            "uncertainty": uncertainty,
-        },
+        "score_details": {"score": score, "uncertainty": uncertainty},
         "metric_config": {"lower_is_better": False},
     }
     if raw_results is not None:
-        result["eval_library"] = {
-            "additional_details": {"raw_results": raw_results}
-        }
+        result["eval_library"] = {"additional_details": {"raw_results": raw_results}}
     record: dict[str, object] = {
         "model_info": {"id": model_id},
         "evaluation_results": [result],
@@ -101,6 +96,7 @@ class TestResultMode:
             "models/croco-munin-apertus-8b-da-generated": "generated",
             "models/croco-munin-apertus-8b-da-ls": "label_smoothing",
             "models/croco-munin-apertus-8b-da-simpo-tuned": "simpo_tuned",
+            "models/croco-munin-apertus-8b-da-simpo-full-50k": "simpo_full_50k",
             "models/croco-munin-apertus-8b-da-simpo-full": "simpo_full",
             "models/croco-munin-apertus-8b-da-simpo": "sigmoid_norm",
             "models/croco-munin-apertus-8b-da-grpo": "grpo",
@@ -141,6 +137,21 @@ class TestResultMode:
             == "sigmoid_norm"
         )
 
+    def test_simpo_full_50k_not_swallowed_by_simpo_full(self) -> None:
+        """The -simpo-full-50k suffix must not be swallowed by -simpo-full."""
+        # Regression guard: the `-simpo-full-50k` marker must come before
+        # `-simpo-full` in _MODE_MARKERS for correct suffix matching.
+        assert (
+            build_dashboard._result_mode(
+                model_id="models/croco-munin-apertus-8b-da-simpo-full-50k"
+            )
+            == "simpo_full_50k"
+        )
+        assert (
+            build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-full-50k")
+            == "simpo_full_50k"
+        )
+
     def test_micro_and_smoke_result_ids_are_ignored(self) -> None:
         """Micro/smoke result ids do not fall through to real modes."""
         assert (
@@ -178,6 +189,10 @@ class TestModeLabel:
         assert (
             build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-tuned")
             == "simpo_tuned"
+        )
+        assert (
+            build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-full-50k")
+            == "simpo_full_50k"
         )
         assert (
             build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-full")
@@ -225,8 +240,7 @@ class TestEvalSeries:
                 ),
                 _result_record(model_id="models/croco-munin-apertus-8b-da", score=0.50),
                 _result_record(
-                    model_id="models/croco-munin-apertus-8b-da-micro",
-                    score=0.99,
+                    model_id="models/croco-munin-apertus-8b-da-micro", score=0.99
                 ),
             )
         )
@@ -256,8 +270,7 @@ class TestEvalSeries:
                     score=0.96,
                 ),
                 _result_record(
-                    model_id="models/croco-munin-apertus-8b-da-simpo-tuned",
-                    score=0.80,
+                    model_id="models/croco-munin-apertus-8b-da-simpo-tuned", score=0.80
                 ),
                 _result_record(
                     model_id="models/croco-munin-apertus-8b-da-simpo-tuned-smoke",
@@ -331,14 +344,10 @@ class TestEvalSeries:
             num_samples=3,
         )
         ten_final = _result_record(
-            model_id="models/croco-munin-apertus-8b-da",
-            score=0.50,
-            num_samples=10,
+            model_id="models/croco-munin-apertus-8b-da", score=0.50, num_samples=10
         )
         three_final = _result_record(
-            model_id="models/croco-munin-apertus-8b-da",
-            score=0.70,
-            num_samples=3,
+            model_id="models/croco-munin-apertus-8b-da", score=0.70, num_samples=3
         )
 
         series = _eval_series(

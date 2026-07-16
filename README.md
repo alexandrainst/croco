@@ -189,20 +189,23 @@ vLLM itself installs on both platforms via `make install` (CUDA wheels on Linux,
 
 ## Research Status
 
-As of 2026-07-13, final EuroEval runs are complete for all primary ablation experiments:
-`max_reward`, `gold_chosen`, `generated`, `label_smoothing`, SimPO low-beta, SimPO full,
-SimPO tuned, Llama RM, and GRPO.
+As of 2026-07-16, all primary ablation experiments and checkpoint evaluations are
+complete: `max_reward`, `gold_chosen`, `generated`, `label_smoothing`, SimPO low-beta,
+SimPO full, SimPO tuned, Llama RM, and GRPO.
 
 **SimPO-tuned** (β=2.0, γ=0.5): Evaluated on 10 Danish benchmarks. Key results: IFEval
 instruction accuracy 54.28, Citizen Tests accuracy 85.00, MultiWikiQA F1 73.85, ValEU
-near zero (0.067). Broadly similar performance to `max_reward`.
+near zero (0.067). Broadly similar performance to `max_reward`. Checkpoint
+learning-curve evals (checkpoints 100–625) completed 2026-07-15 23:54:47.
 
 **GRPO**: Final evaluation completed after 1249 steps (59h48m runtime). MultiWikiQA F1
 75.65 / EM 59.05, IFEval 52.40. Final checkpoint at
-`models/croco-munin-apertus-8b-da-grpo/checkpoint-1249/`.
+`models/croco-munin-apertus-8b-da-grpo/checkpoint-1249/`. Checkpoint learning-curve
+evals completed 2026-07-15 06:21.
 
-Checkpoint learning-curve evaluations: GRPO complete (2026-07-15), SimPO-tuned in
-progress on Sparkie (one GPU workload at a time).
+**Sparkie status:** As of 2026-07-16 11:56 CEST, no GPU compute processes running.
+Checkpoint eval queue completed 2026-07-15 23:54:47. Disk usage: 3.7T total, 2.5T used,
+1.1T free (71%).
 
 Detailed tables and analysis live in `docs/README.md`, `docs/07-simpo-tuned.md`, and
 `docs/09-grpo.md`.

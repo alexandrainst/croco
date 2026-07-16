@@ -2,7 +2,7 @@
 title: CroCo Research Experiments
 description: Overview of all preference optimisation ablation studies
 created: 2026-07-02
-updated: 2026-07-15
+updated: 2026-07-16
 status: active
 ---
 
@@ -47,6 +47,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | [**SimPO (β=0.1)**](06-simpo.md)              | Length-normalised loss, low β ablation  | ✅ Complete |
 | [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | β=2.0, `sigmoid_norm` loss              | ✅ Complete |
 | [**SimPO Full (ref-free)**](08-simpo-full.md) | Ref-free SimPO loss, γ=0.5              | ✅ Complete |
+| **SimPO Full 50k**                            | SimPO-full at 50k scale                 | 🕐 Planned  |
 
 ### Online RL Baseline
 
@@ -135,26 +136,34 @@ diagnosed bottleneck is **preference-pair quality**, not the loss.
   comparable to `max_reward` baseline, no significant wins/degradations.
 - **GRPO baseline** — Training + final eval complete 2026-07-13. Online RL paradigm
   comparison: ~60h training vs ~6.5h for DPO, but $0 dataset build cost.
-- **GRPO checkpoint evals** — Learning-curve evaluation complete 2026-07-15. All
+- **GRPO checkpoint evals** — Learning-curve evaluation complete 2026-07-15 06:21. All
   checkpoints (100–1249) evaluated across 10 Danish benchmarks.
+- **SimPO-tuned checkpoint evals** — Completed 2026-07-15 23:54:47. Checkpoints 100,
+  200, 300, 400, 500, 600, 625 evaluated. `checkpoint-600` completed all 10 benchmarks
+  at 21:19:43; `checkpoint-625` completed all 10 at 23:51:57. Final SimPO-tuned adapter
+  had no benchmarks left (already evaluated on all selected datasets).
 
 ### In Progress
 
-- **SimPO-tuned checkpoint evals** — Running on sparkie, currently evaluating
-  checkpoint-600. Expected completion: ~2026-07-15 evening.
+- **SimPO-full checkpoint evals** — Pending; next in queue.
+
+### Planned
+
+- **SimPO-full 50k** (`config/danish-apertus-simpo-full-50k.yaml`) — Not launched. Tests
+  whether scaling data (5k → 50k) unlocks the potential of ref-free SimPO.
 
 ### Next Steps
 
-After SimPO-tuned checkpoint evals complete:
+Pending follow-up (no GPU work):
 
-1. **Dashboard update & learning-curve comparison** — Export new plots, compare
-   checkpoint-by-checkpoint trajectories across all experiments.
+1. **Dashboard update & learning-curve comparison** — Rebuild dashboard, export new
+   plots, compare checkpoint-by-checkpoint trajectories across all experiments.
 
-Later (not immediate GPU work):
+Later research (to be scoped):
 
-2. **Recipe-quality fix at 5k** — RM-margin filtering (or K≥8) + LR→1e-5 + 2 epochs.
-3. **Data-scaling ladder: 5k → 25k → 100k** on winning recipe.
-4. **5M only if** recipe beats baseline **and** 5k→100k curve still climbing.
+1. **Recipe-quality fix at 5k** — RM-margin filtering (or K≥8) + LR→1e-5 + 2 epochs.
+2. **Data-scaling ladder: 5k → 25k → 100k** on winning recipe.
+3. **5M only if** recipe beats baseline **and** 5k→100k curve still climbing.
 
 ---
 
@@ -276,38 +285,41 @@ visibility._
 
 All configs in `config/` directory:
 
-| Config                            | Construction Mode | Description                                    |
-| --------------------------------- | ----------------- | ---------------------------------------------- |
-| `danish-apertus.yaml`             | `max_reward`      | Select best-scoring candidate                  |
-| `danish-apertus-gold.yaml`        | `gold_chosen`     | Use Qwen3-235B outputs as chosen               |
-| `danish-apertus-generated.yaml`   | `generated`       | Keep all candidates, score all                 |
-| `danish-apertus-ls.yaml`          | `max_reward`      | DPO with label smoothing (α=0.05)              |
-| `danish-apertus-simpo.yaml`       | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=0.1) |
-| `danish-apertus-simpo-tuned.yaml` | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=2.0) |
-| `danish-apertus-simpo-full.yaml`  | `max_reward`      | Ref-free SimPO (`simpo`, β=2.0, γ=0.5)         |
-| `danish-apertus-llama-rm.yaml`    | `max_reward`      | Llama-3.1-based reward model                   |
-| `danish-apertus-grpo.yaml`        | — (online RL)     | GRPO online RL baseline                        |
+| Config                              | Construction Mode | Description                                     |
+| ----------------------------------- | ----------------- | ----------------------------------------------- |
+| `danish-apertus.yaml`               | `max_reward`      | Select best-scoring candidate                   |
+| `danish-apertus-gold.yaml`          | `gold_chosen`     | Use Qwen3-235B outputs as chosen                |
+| `danish-apertus-generated.yaml`     | `generated`       | Keep all candidates, score all                  |
+| `danish-apertus-ls.yaml`            | `max_reward`      | DPO with label smoothing (α=0.05)               |
+| `danish-apertus-simpo.yaml`         | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=0.1)  |
+| `danish-apertus-simpo-tuned.yaml`   | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=2.0)  |
+| `danish-apertus-simpo-full.yaml`    | `max_reward`      | Ref-free SimPO (`simpo`, β=2.0, γ=0.5)          |
+| `danish-apertus-simpo-full-50k.yaml`| `max_reward`      | Ref-free SimPO, 50k samples (_planned_)         |
+| `danish-apertus-llama-rm.yaml`      | `max_reward`      | Llama-3.1-based reward model                    |
+| `danish-apertus-grpo.yaml`          | — (online RL)     | GRPO online RL baseline                         |
 
 ---
 
 ## Timeline
 
-| Date             | Milestone                                            |
-| ---------------- | ---------------------------------------------------- |
-| 2026-06-26       | Micro ablation runs (debug)                          |
-| 2026-06-28       | Initial CroCo runs (main, gold, generated)           |
-| 2026-06-29       | RM ablation started (Llama vs Skywork)               |
-| 2026-06-30       | Loss ablations started (ls, simpo)                   |
-| 2026-07-01       | SimPO (β=0.1) complete                               |
-| 2026-07-02       | SimPO ablations queued (tuned, full)                 |
-| 2026-07-03       | Llama RM training complete                           |
-| 2026-07-04       | Llama RM evals complete                              |
-| 2026-07-05       | SimPO-tuned training started                         |
-| 2026-07-06       | SimPO-tuned training complete                        |
-| 2026-07-08       | Label smoothing evals complete                       |
-| 2026-07-09 16:20 | SimPO Full training started (→ SimPO-tuned evals)    |
-| 2026-07-10       | SimPO Full complete; GRPO training started           |
-| 2026-07-13       | GRPO + SimPO-tuned final evals complete              |
-| 2026-07-13+      | Checkpoint evals started (one GPU workload at a time) |
-| 2026-07-15 06:21 | GRPO checkpoint evals complete (13 checkpoints)       |
-| 2026-07-15+      | SimPO-tuned checkpoint evals in progress             |
+| Date             | Milestone                                               |
+| ---------------- | ------------------------------------------------------- |
+| 2026-06-26       | Micro ablation runs (debug)                             |
+| 2026-06-28       | Initial CroCo runs (main, gold, generated)              |
+| 2026-06-29       | RM ablation started (Llama vs Skywork)                  |
+| 2026-06-30       | Loss ablations started (ls, simpo)                      |
+| 2026-07-01       | SimPO (β=0.1) complete                                  |
+| 2026-07-02       | SimPO ablations queued (tuned, full)                    |
+| 2026-07-03       | Llama RM training complete                              |
+| 2026-07-04       | Llama RM evals complete                                 |
+| 2026-07-05       | SimPO-tuned training started                            |
+| 2026-07-06       | SimPO-tuned training complete                           |
+| 2026-07-08       | Label smoothing evals complete                          |
+| 2026-07-09 16:20 | SimPO Full training started (→ SimPO-tuned evals)       |
+| 2026-07-10       | SimPO Full complete; GRPO training started              |
+| 2026-07-13       | GRPO + SimPO-tuned final evals complete                 |
+| 2026-07-13+      | Checkpoint evals started (one GPU workload at a time)   |
+| 2026-07-15 06:21 | GRPO checkpoint evals complete (13 checkpoints)         |
+| 2026-07-15 21:19 | SimPO-tuned checkpoint-600 complete (all 10 benchmarks) |
+| 2026-07-15 23:51 | SimPO-tuned checkpoint-625 complete (all 10 benchmarks) |
+| 2026-07-15 23:54 | SimPO-tuned checkpoint eval queue complete              |

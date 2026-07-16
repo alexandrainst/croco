@@ -47,6 +47,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | [**SimPO (β=0.1)**](06-simpo.md)              | Length-normalised loss, low β ablation  | ✅ Complete |
 | [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | β=2.0, `sigmoid_norm` loss              | ✅ Complete |
 | [**SimPO Full (ref-free)**](08-simpo-full.md) | Ref-free SimPO loss, γ=0.5              | ✅ Complete |
+| **SimPO Full 50k**                            | SimPO-full at 50k scale                 | 🕐 Planned  |
 
 ### Online RL Baseline
 
@@ -145,6 +146,11 @@ diagnosed bottleneck is **preference-pair quality**, not the loss.
 ### In Progress
 
 - **SimPO-full checkpoint evals** — Pending; next in queue.
+
+### Planned
+
+- **SimPO-full 50k** (`config/danish-apertus-simpo-full-50k.yaml`) — Not launched. Tests
+  whether scaling data (5k → 50k) unlocks the potential of ref-free SimPO.
 
 ### Next Steps
 

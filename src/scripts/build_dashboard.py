@@ -49,6 +49,7 @@ _MODE_MARKERS = (
     ("croco-munin-apertus-8b-da-generated", "generated"),
     ("croco-munin-apertus-8b-da-ls", "label_smoothing"),
     ("croco-munin-apertus-8b-da-simpo-tuned", "simpo_tuned"),
+    ("croco-munin-apertus-8b-da-simpo-full-50k", "simpo_full_50k"),
     ("croco-munin-apertus-8b-da-simpo-full", "simpo_full"),
     ("croco-munin-apertus-8b-da-simpo", "sigmoid_norm"),
     ("croco-munin-apertus-8b-da-grpo", "grpo"),

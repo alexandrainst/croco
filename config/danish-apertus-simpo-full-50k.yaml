@@ -1,0 +1,93 @@
+# config/danish-apertus-simpo-full-50k.yaml
+# CroCo ablation - Munin-Apertus-8B (Danish), true reference-free SimPO at 50k samples
+#
+# Scaled-up version of config/danish-apertus-simpo-full.yaml: same algorithm
+# settings (loss_type: simpo, beta: 2.0, target_margin: 0.5) but trained on
+# 50,000 samples instead of 5,000. This tests whether the SimPO-full approach
+# continues to improve with more data or plateaus.
+#
+# Dataset: 50k samples from danish-foundation-models/laerebogen (evolved split)
+#   - Dataset output: data/pairs_apertus_50k.jsonl
+#   - Candidate cache: data/candidates_apertus_50k_cache.jsonl
+#     (distinct 50k cache to avoid mixing with 5k runs; the candidate scorer
+#     does not key by num_samples, so a separate cache prevents accidental reuse
+#     of 5k-scored candidates on 50k data)
+#
+# save_steps set to 1000 (vs 100 in the 5k run) to avoid creating ~60 checkpoints
+# over the larger dataset. With 50k samples, batch_size=8, 1 epoch ≈ 6250 steps;
+# save_steps=1000 yields ~6 checkpoints instead of ~62.
+#
+# Usage:
+#   uv run src/scripts/run_pipeline.py --config config/danish-apertus-simpo-full-50k.yaml \
+#     --dataset-output data/pairs_apertus_50k.jsonl
+#
+# Note: Do not launch training yet — this config is prepared for future runs.
+# When ready, ensure sparkie has sufficient storage for the larger dataset cache.
+
+construction_mode: max_reward
+language: da
+
+policy:
+  model_id: danish-foundation-models/munin-apertus-8b
+  attn_implementation: sdpa
+  max_model_len: 4096
+
+reward:
+  model_id: Skywork/Skywork-Reward-V2-Qwen3-8B
+  max_model_len: 32768
+  gpu_memory_utilization: 0.35
+
+generation:
+  num_candidates: 4
+  max_tokens: 2048
+  temperature: 0.7
+  top_p: 1.0
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.45
+  batch_size: 64
+  enable_prefix_caching: true
+  enable_chunked_prefill: true
+  language_model_only: false
+
+data:
+  dataset_id: danish-foundation-models/laerebogen
+  subset: evolved
+  split: train
+  num_samples: 50000
+  stratify_by_evolution: true
+  evolution_min: null
+  evolution_max: null
+  max_prompt_tokens: 2048
+  seed: 42
+
+dpo:
+  output_dir: models/croco-munin-apertus-8b-da-simpo-full-50k
+  learning_rate: 5.0e-6
+  lr_scheduler_type: cosine
+  warmup_ratio: 0.05
+  weight_decay: 0.01
+  beta: 2.0
+  per_device_train_batch_size: 1
+  gradient_accumulation_steps: 8
+  num_train_epochs: 1
+  max_length: 4096
+  bf16: true
+  gradient_checkpointing: true
+  curriculum: true
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  seed: 42
+  hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da-simpo-full-50k
+  save_steps: 1000
+  # TRUE reference-free SimPO (fixed bug in src/croco/dpo.py).
+  loss_type: simpo
+  target_margin: 0.5
+  # Ref-free SimPO has no reference model, so precompute_ref_log_probs does not
+  # apply.
+
+eval:
+  language: da
+  tasks: null
+  skip: true
+  gpu_memory_utilization: 0.5

@@ -47,6 +47,7 @@ Dataset: Laerebogen (evolved subset), stratified by evolution score
 | [**SimPO (β=0.1)**](06-simpo.md)              | Length-normalised loss, low β ablation  | ✅ Complete |
 | [**SimPO Tuned (β=2.0)**](07-simpo-tuned.md)  | β=2.0, `sigmoid_norm` loss              | ✅ Complete |
 | [**SimPO Full (ref-free)**](08-simpo-full.md) | Ref-free SimPO loss, γ=0.5              | ✅ Complete |
+| **SimPO Full 50k**                            | SimPO-full at 50k scale                 | 🕐 Planned  |
 
 ### Online RL Baseline
 
@@ -145,6 +146,11 @@ diagnosed bottleneck is **preference-pair quality**, not the loss.
 ### In Progress
 
 - **SimPO-full checkpoint evals** — Pending; next in queue.
+
+### Planned
+
+- **SimPO-full 50k** (`config/danish-apertus-simpo-full-50k.yaml`) — Not launched. Tests
+  whether scaling data (5k → 50k) unlocks the potential of ref-free SimPO.
 
 ### Next Steps
 
@@ -279,17 +285,18 @@ visibility._
 
 All configs in `config/` directory:
 
-| Config                            | Construction Mode | Description                                    |
-| --------------------------------- | ----------------- | ---------------------------------------------- |
-| `danish-apertus.yaml`             | `max_reward`      | Select best-scoring candidate                  |
-| `danish-apertus-gold.yaml`        | `gold_chosen`     | Use Qwen3-235B outputs as chosen               |
-| `danish-apertus-generated.yaml`   | `generated`       | Keep all candidates, score all                 |
-| `danish-apertus-ls.yaml`          | `max_reward`      | DPO with label smoothing (α=0.05)              |
-| `danish-apertus-simpo.yaml`       | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=0.1) |
-| `danish-apertus-simpo-tuned.yaml` | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=2.0) |
-| `danish-apertus-simpo-full.yaml`  | `max_reward`      | Ref-free SimPO (`simpo`, β=2.0, γ=0.5)         |
-| `danish-apertus-llama-rm.yaml`    | `max_reward`      | Llama-3.1-based reward model                   |
-| `danish-apertus-grpo.yaml`        | — (online RL)     | GRPO online RL baseline                        |
+| Config                              | Construction Mode | Description                                     |
+| ----------------------------------- | ----------------- | ----------------------------------------------- |
+| `danish-apertus.yaml`               | `max_reward`      | Select best-scoring candidate                   |
+| `danish-apertus-gold.yaml`          | `gold_chosen`     | Use Qwen3-235B outputs as chosen                |
+| `danish-apertus-generated.yaml`     | `generated`       | Keep all candidates, score all                  |
+| `danish-apertus-ls.yaml`            | `max_reward`      | DPO with label smoothing (α=0.05)               |
+| `danish-apertus-simpo.yaml`         | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=0.1)  |
+| `danish-apertus-simpo-tuned.yaml`   | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=2.0)  |
+| `danish-apertus-simpo-full.yaml`    | `max_reward`      | Ref-free SimPO (`simpo`, β=2.0, γ=0.5)          |
+| `danish-apertus-simpo-full-50k.yaml`| `max_reward`      | Ref-free SimPO, 50k samples (_planned_)         |
+| `danish-apertus-llama-rm.yaml`      | `max_reward`      | Llama-3.1-based reward model                    |
+| `danish-apertus-grpo.yaml`          | — (online RL)     | GRPO online RL baseline                         |
 
 ---
 

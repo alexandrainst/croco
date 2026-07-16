@@ -49,6 +49,7 @@ _MODE_MARKERS = (
     ("croco-munin-apertus-8b-da-generated", "generated"),
     ("croco-munin-apertus-8b-da-ls", "label_smoothing"),
     ("croco-munin-apertus-8b-da-simpo-tuned", "simpo_tuned"),
+    ("croco-munin-apertus-8b-da-simpo-full-50k", "simpo_full_50k"),
     ("croco-munin-apertus-8b-da-simpo-full", "simpo_full"),
     ("croco-munin-apertus-8b-da-simpo", "sigmoid_norm"),
     ("croco-munin-apertus-8b-da-grpo", "grpo"),
@@ -863,7 +864,7 @@ const DATA = __DATA__;
 const COLOURS = {max_reward: "#1f77b4", gold_chosen: "#d62728", base: "#7f7f7f",
   generated: "#ff7f0e", label_smoothing: "#2ca02c", sigmoid_norm: "#9467bd",
   grpo: "#8c564b", simpo_tuned: "#e377c2", simpo_full: "#17becf",
-  llama_rm: "#bcbd22"};
+  simpo_full_50k: "#1f77b4", llama_rm: "#bcbd22"};
 const MODE_LABELS = {
   max_reward: "max_reward",
   gold_chosen: "gold_chosen",
@@ -874,7 +875,8 @@ const MODE_LABELS = {
   llama_rm: "Llama RM",
   grpo: "GRPO",
   simpo_tuned: "SimPO-tuned",
-  simpo_full: "SimPO-full"
+  simpo_full: "SimPO-full",
+  simpo_full_50k: "SimPO-full-50k"
 };
 
 function getSelectedModes() {

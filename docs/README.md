@@ -144,7 +144,7 @@ diagnosed bottleneck is **preference-pair quality**, not the loss.
 
 ### In Progress
 
-- _None._ All checkpoint evaluations completed 2026-07-15.
+- **SimPO-full checkpoint evals** — Pending; next in queue.
 
 ### Next Steps
 
@@ -155,9 +155,9 @@ Pending follow-up (no GPU work):
 
 Later research (to be scoped):
 
-2. **Recipe-quality fix at 5k** — RM-margin filtering (or K≥8) + LR→1e-5 + 2 epochs.
-3. **Data-scaling ladder: 5k → 25k → 100k** on winning recipe.
-4. **5M only if** recipe beats baseline **and** 5k→100k curve still climbing.
+1. **Recipe-quality fix at 5k** — RM-margin filtering (or K≥8) + LR→1e-5 + 2 epochs.
+2. **Data-scaling ladder: 5k → 25k → 100k** on winning recipe.
+3. **5M only if** recipe beats baseline **and** 5k→100k curve still climbing.
 
 ---
 

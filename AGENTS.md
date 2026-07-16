@@ -101,11 +101,11 @@ ssh sparkie 'tmux ls | grep -v dr_scraper'
 - Loss functions: `label_smoothing`, `simpo` (β=0.1), `simpo_tuned` (β=2.0),
   `simpo_full` (ref-free)
 - Reward model: `llamarm`
-- Online RL: `grpo` (final eval complete 2026-07-15)
+- Online RL: `grpo` (final eval complete 2026-07-13)
 
-**Checkpoint evals:** All complete as of 2026-07-16. GRPO checkpoint evals completed
-2026-07-15 06:21. SimPO-tuned checkpoint evals (checkpoints 100–625) completed
-2026-07-15 23:54:47.
+**Checkpoint evals:** GRPO and SimPO-tuned complete as of 2026-07-16. GRPO checkpoint
+evals completed 2026-07-15 06:21. SimPO-tuned checkpoint evals (checkpoints 100–625)
+completed 2026-07-15 23:54:47. SimPO-full checkpoint evals pending.
 
 ## Testing
 

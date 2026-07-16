@@ -285,17 +285,18 @@ visibility._
 
 All configs in `config/` directory:
 
-| Config                            | Construction Mode | Description                                    |
-| --------------------------------- | ----------------- | ---------------------------------------------- |
-| `danish-apertus.yaml`             | `max_reward`      | Select best-scoring candidate                  |
-| `danish-apertus-gold.yaml`        | `gold_chosen`     | Use Qwen3-235B outputs as chosen               |
-| `danish-apertus-generated.yaml`   | `generated`       | Keep all candidates, score all                 |
-| `danish-apertus-ls.yaml`          | `max_reward`      | DPO with label smoothing (α=0.05)              |
-| `danish-apertus-simpo.yaml`       | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=0.1) |
-| `danish-apertus-simpo-tuned.yaml` | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=2.0) |
-| `danish-apertus-simpo-full.yaml`  | `max_reward`      | Ref-free SimPO (`simpo`, β=2.0, γ=0.5)         |
-| `danish-apertus-llama-rm.yaml`    | `max_reward`      | Llama-3.1-based reward model                   |
-| `danish-apertus-grpo.yaml`        | — (online RL)     | GRPO online RL baseline                        |
+| Config                              | Construction Mode | Description                                     |
+| ----------------------------------- | ----------------- | ----------------------------------------------- |
+| `danish-apertus.yaml`               | `max_reward`      | Select best-scoring candidate                   |
+| `danish-apertus-gold.yaml`          | `gold_chosen`     | Use Qwen3-235B outputs as chosen                |
+| `danish-apertus-generated.yaml`     | `generated`       | Keep all candidates, score all                  |
+| `danish-apertus-ls.yaml`            | `max_reward`      | DPO with label smoothing (α=0.05)               |
+| `danish-apertus-simpo.yaml`         | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=0.1)  |
+| `danish-apertus-simpo-tuned.yaml`   | `max_reward`      | Length-normalised loss (`sigmoid_norm`, β=2.0)  |
+| `danish-apertus-simpo-full.yaml`    | `max_reward`      | Ref-free SimPO (`simpo`, β=2.0, γ=0.5)          |
+| `danish-apertus-simpo-full-50k.yaml`| `max_reward`      | Ref-free SimPO, 50k samples (_planned_)         |
+| `danish-apertus-llama-rm.yaml`      | `max_reward`      | Llama-3.1-based reward model                    |
+| `danish-apertus-grpo.yaml`          | — (online RL)     | GRPO online RL baseline                         |
 
 ---
 

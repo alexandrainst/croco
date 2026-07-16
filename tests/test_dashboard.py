@@ -101,6 +101,7 @@ class TestResultMode:
             "models/croco-munin-apertus-8b-da-generated": "generated",
             "models/croco-munin-apertus-8b-da-ls": "label_smoothing",
             "models/croco-munin-apertus-8b-da-simpo-tuned": "simpo_tuned",
+            "models/croco-munin-apertus-8b-da-simpo-full-50k": "simpo_full_50k",
             "models/croco-munin-apertus-8b-da-simpo-full": "simpo_full",
             "models/croco-munin-apertus-8b-da-simpo": "sigmoid_norm",
             "models/croco-munin-apertus-8b-da-grpo": "grpo",
@@ -141,6 +142,24 @@ class TestResultMode:
             == "sigmoid_norm"
         )
 
+    def test_simpo_full_50k_not_swallowed_by_simpo_full(self) -> None:
+        """The ``-simpo-full-50k`` dir must classify to ``simpo_full_50k``, not ``simpo_full``.
+
+        Regression guard for the most-specific-first marker ordering: the
+        ``-simpo-full-50k`` marker must come before ``-simpo-full`` so it does
+        not get swallowed by the shorter suffix.
+        """
+        assert (
+            build_dashboard._result_mode(
+                model_id="models/croco-munin-apertus-8b-da-simpo-full-50k"
+            )
+            == "simpo_full_50k"
+        )
+        assert (
+            build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-full-50k")
+            == "simpo_full_50k"
+        )
+
     def test_micro_and_smoke_result_ids_are_ignored(self) -> None:
         """Micro/smoke result ids do not fall through to real modes."""
         assert (
@@ -178,6 +197,10 @@ class TestModeLabel:
         assert (
             build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-tuned")
             == "simpo_tuned"
+        )
+        assert (
+            build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-full-50k")
+            == "simpo_full_50k"
         )
         assert (
             build_dashboard._mode_label("croco-munin-apertus-8b-da-simpo-full")

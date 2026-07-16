@@ -9,7 +9,7 @@
 # Dataset: 50k samples from danish-foundation-models/laerebogen (evolved split)
 #   - Dataset output: data/pairs_apertus_50k.jsonl
 #   - Candidate cache: data/candidates_apertus_50k_cache.jsonl
-#     (distinct 50k cache to isolate this scaling run from the existing/shared 5k cache)
+#     (separate from the shared 5k cache to avoid overwriting it with this larger scaling run)
 #
 # save_steps set to 1000 (vs 100 in the 5k run) to avoid creating ~60 checkpoints
 # over the larger dataset. With 50k samples, batch_size=8, 1 epoch ≈ 6250 steps;

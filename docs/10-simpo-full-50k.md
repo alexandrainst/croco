@@ -7,7 +7,7 @@ updated: 2026-07-24
 status: eval-running
 config: config/danish-apertus-simpo-full-50k.yaml
 output: models/croco-munin-apertus-8b-da-simpo-full-50k
-started: 2026-07-?? ??:??
+started: 2026-07-16 21:33
 completed: 2026-07-24 06:09
 ---
 
@@ -49,18 +49,26 @@ Identical to [`08-simpo-full.md`](08-simpo-full.md):
 
 ### Runtime
 
-training completed 2026-07-24 06:09 CEST after 6,249 steps (1 epoch).
+Training completed 2026-07-24 06:09 CEST after 6,249 steps (1 epoch).
+Total runtime: ~7 days 9 hours (2026-07-16 21:33 → 2026-07-24 06:09).
 
 ### Status
 
-✅ **Training complete** (2026-07-24 06:09 CEST). 6,249 steps in ~??h ??m. 🔄 **Final
-evaluation running** in tmux session `ckpt_evals_simpo_full_50k` on Sparkie. ⏳
-**Checkpoint evaluation pending** — 6 checkpoints (1000–6000) + final to evaluate.
+✅ **Training complete** (2026-07-24 06:09 CEST)
+🔄 **Final evaluation running** (10 Danish benchmarks, 10 iterations)
+⏳ **Checkpoint evaluation pending** (will run after final eval completes)
+
+Final evaluation running in tmux session `simpo_full_50k_final_eval` on Sparkie.
+Log: `~/croco/simpo_full_50k_final_eval.log`.
 
 ## Results
 
 Final EuroEval (Danish) scores vs the 5k `simpo_full` baseline. Scores 0–100, higher is
 better; **bold** = significant vs simpo_full (non-overlapping 95% bootstrap CIs).
+
+**Note:** Final evaluation results will populate here once complete.
+Currently running in tmux session `simpo_full_50k_final_eval` on Sparkie.
+Log: `~/croco/simpo_full_50k_final_eval.log`.
 
 | Dataset / metric         | simpo_full (5k) | simpo_full_50k | Δ   |
 | ------------------------ | --------------: | -------------: | --- |

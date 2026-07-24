@@ -65,10 +65,10 @@ def _simpo_sequence_loss(
 
 
 class SimPOLossMixin:
-    """Mixin adding ref-free SimPO loss with target margin to DPOTrainer.
+    """Mixin adding SimPO loss with target margin to DPOTrainer.
 
     Overrides ``compute_loss`` to intercept ``loss_type == 'simpo'`` and compute
-    the SimPO loss (length-normalised policy log-probs, no reference subtraction,
+    the SimPO loss (length-normalised log-probs with optional reference subtraction,
     with target margin γ). Falls through to super() for other loss types.
     """
 
@@ -110,14 +110,14 @@ class SimPOLossMixin:
         return_outputs: bool = False,
         num_items_in_batch: int | None = None,
     ) -> tuple[torch.Tensor, dict[str, torch.Tensor]] | torch.Tensor:
-        """Compute ref-free SimPO loss with length normalisation and target margin.
+        """Compute SimPO loss with length normalisation, target margin, and optional reference model.
 
         Returns:
             Loss tensor, optionally with model outputs dict if return_outputs is True.
         """
         from trl.trainer.utils import selective_log_softmax
 
-        # Forward pass through policy (no reference model)
+        # Forward pass through policy
         outputs = model(
             input_ids=inputs["input_ids"],
             attention_mask=inputs["attention_mask"],
@@ -127,26 +127,50 @@ class SimPOLossMixin:
         shift_labels = inputs["input_ids"][..., 1:]
         completion_mask = inputs["completion_mask"][..., 1:]
 
-        # Compute per-token log-probs for policy
+        # Compute per-token log-probs for policy (length-normalized)
         per_token_logps = selective_log_softmax(shift_logits, shift_labels)
         per_token_logps[completion_mask == 0] = 0.0
-
-        # Sum over completion length (ld_alpha=None path only)
-        logps = per_token_logps.sum(dim=1)
-        chosen_logps, rejected_logps = logps.chunk(2, dim=0)
-        chosen_lengths = completion_mask.sum(dim=1).chunk(2, dim=0)[0]
-        rejected_lengths = completion_mask.sum(dim=1).chunk(2, dim=0)[1]
+        
+        # Compute length-normalized average log-probs per token
+        lengths = completion_mask.sum(dim=1).clamp(min=1.0)
+        avg_logps = per_token_logps.sum(dim=1) / lengths
+        chosen_avg_logps, rejected_avg_logps = avg_logps.chunk(2, dim=0)
+        
+        # Subtract reference model log-probs if available (anchors policy, prevents drift)
+        if getattr(self, "ref_model", None) is not None:
+            with torch.no_grad():
+                ref_outputs = self.ref_model(
+                    input_ids=inputs["input_ids"],
+                    attention_mask=inputs["attention_mask"],
+                    use_cache=False,
+                )
+            ref_per_token_logps = selective_log_softmax(
+                ref_outputs.logits[..., :-1, :], shift_labels
+            )
+            ref_per_token_logps[completion_mask == 0] = 0.0
+            ref_avg_logps = ref_per_token_logps.sum(dim=1) / lengths
+            ref_chosen, ref_rejected = ref_avg_logps.chunk(2, dim=0)
+            # Policy minus reference (both length-normalized)
+            chosen_logps = chosen_avg_logps - ref_chosen
+            rejected_logps = rejected_avg_logps - ref_rejected
+            # For logging, also track raw policy logprobs
+            policy_chosen_logps = chosen_avg_logps
+            policy_rejected_logps = rejected_avg_logps
+        else:
+            # Reference-free SimPO (original behaviour)
+            chosen_logps = chosen_avg_logps
+            rejected_logps = rejected_avg_logps
+            policy_chosen_logps = chosen_avg_logps
+            policy_rejected_logps = rejected_avg_logps
 
         # Compute SimPO loss
-        loss, chosen_rewards, rejected_rewards, reward_accuracies = (
-            _simpo_sequence_loss(
-                chosen_logps=chosen_logps,
-                rejected_logps=rejected_logps,
-                chosen_lengths=chosen_lengths,
-                rejected_lengths=rejected_lengths,
-                beta=self.beta,  # type: ignore[attr-defined]
-                target_margin=getattr(self, "target_margin", 0.0),
-            )
+        loss, chosen_rewards, rejected_rewards, reward_accuracies = _simpo_sequence_loss(
+            chosen_logps=chosen_logps,
+            rejected_logps=rejected_logps,
+            chosen_lengths=lengths.chunk(2, dim=0)[0],  # Only used for gamma scaling if needed
+            rejected_lengths=lengths.chunk(2, dim=0)[1],
+            beta=self.beta,  # type: ignore[attr-defined]
+            target_margin=getattr(self, "target_margin", 0.0),
         )
 
         # Log metrics using TRL's dict-based mechanism (not per-key with on_step etc.)
@@ -167,11 +191,11 @@ class SimPOLossMixin:
                 ).mean()
             ),  # type: ignore
             "logps/chosen": float(
-                self.accelerator.gather(chosen_logps.detach()).mean()
-            ),  # type: ignore
+                self.accelerator.gather(policy_chosen_logps.detach()).mean()
+            ),  # Raw policy, not diff  # type: ignore
             "logps/rejected": float(
-                self.accelerator.gather(rejected_logps.detach()).mean()
-            ),  # type: ignore
+                self.accelerator.gather(policy_rejected_logps.detach()).mean()
+            ),  # Raw policy, not diff  # type: ignore
             "loss": float(loss.detach().mean()),
         }
         # Accumulate metrics for later logging (TRL's log() is called periodically)
@@ -300,12 +324,23 @@ def train_dpo(*, config: PipelineConfig, dataset_path: Path) -> Path:
         use_cache=not dpo_config.gradient_checkpointing,
     )
 
+    # Load reference model for SimPO (anchors policy, prevents logprob drift at scale)
+    ref_model = None
+    is_simpo = dpo_config.loss_type == "simpo"
+    if is_simpo:
+        logger.info("Loading reference model for SimPO (anchors policy at scale)")
+        ref_model = AutoModelForCausalLM.from_pretrained(
+            config.policy.model_id,
+            attn_implementation=config.policy.attn_implementation,
+            dtype="auto",
+            use_cache=False,  # Don't need cache for ref model
+        )
+        ref_model.eval()
+        ref_model.requires_grad_(False)
+
     # Build LoRA and DPO configs
     peft_config = build_lora_config(config=dpo_config)
     dpo_cfg = build_dpo_config(config=dpo_config)
-
-    # Select trainer based on curriculum and loss_type
-    is_simpo = dpo_config.loss_type == "simpo"
     if is_simpo and dpo_config.curriculum:
         logger.info("Using CurriculumSimPODPOTrainer for SimPO with curriculum")
         trainer_class: type[DPOTrainer] = CurriculumSimPODPOTrainer
@@ -327,7 +362,7 @@ def train_dpo(*, config: PipelineConfig, dataset_path: Path) -> Path:
     # Initialise trainer
     trainer = trainer_class(
         model=model,
-        ref_model=None,
+        ref_model=ref_model,
         args=dpo_cfg,
         train_dataset=dataset,
         processing_class=tokenizer,

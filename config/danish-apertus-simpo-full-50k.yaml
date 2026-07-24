@@ -1,10 +1,10 @@
 # config/danish-apertus-simpo-full-50k.yaml
-# CroCo ablation - Munin-Apertus-8B (Danish), true reference-free SimPO at 50k samples
+# CroCo ablation - Munin-Apertus-8B (Danish), SimPO with reference anchor at 50k samples
 #
-# Scaled-up version of config/danish-apertus-simpo-full.yaml: same algorithm
-# settings (loss_type: simpo, beta: 2.0, target_margin: 0.5) but trained on
-# 50,000 samples instead of 5,000. This tests whether the SimPO-full approach
-# continues to improve with more data or plateaus.
+# Scaled-up version of config/danish-apertus-simpo-full.yaml: SimPO loss with
+# length normalization, target margin, AND reference model anchoring (prevents
+# logprob drift at scale). Tests whether anchored SimPO scales to 50k samples
+# without the collapse seen in pure ref-free SimPO.
 #
 # Dataset: 50k samples from danish-foundation-models/laerebogen (evolved split)
 #   - Dataset output: data/pairs_apertus_50k.jsonl
@@ -85,11 +85,10 @@ dpo:
   seed: 42
   hf_repo_id: danish-foundation-models/croco-munin-apertus-8b-da-simpo-full-50k
   save_steps: 1000
-  # TRUE reference-free SimPO (fixed bug in src/croco/dpo.py).
+  # SimPO with reference model anchor (prevents logprob drift at scale).
   loss_type: simpo
   target_margin: 0.5
-  # Ref-free SimPO has no reference model, so precompute_ref_log_probs does not
-  # apply.
+  precompute_ref_log_probs: true  # Cache ref forward passes (~30-50% speedup)
 
 eval:
   language: da

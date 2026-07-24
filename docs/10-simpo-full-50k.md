@@ -4,7 +4,7 @@ description: Reference-free SimPO at 50k samples to test data scaling effects
 description-short: SimPO-full scaling study (5k → 50k)
 created: 2026-07-24
 updated: 2026-07-24
-status: eval-running
+status: eval-complete
 config: config/danish-apertus-simpo-full-50k.yaml
 output: models/croco-munin-apertus-8b-da-simpo-full-50k
 started: 2026-07-16 21:33
@@ -55,53 +55,60 @@ Total runtime: ~7 days 9 hours (2026-07-16 21:33 → 2026-07-24 06:09).
 ### Status
 
 ✅ **Training complete** (2026-07-24 06:09 CEST)
-🔄 **Final evaluation running** (10 Danish benchmarks, 10 iterations)
-⏳ **Checkpoint evaluation pending** (will run after final eval completes)
+✅ **Final evaluation complete** (2026-07-24 10:59 CEST)
+🔄 **Checkpoint evaluation running** (checkpoints 1000–6000 + final)
 
-Final evaluation running in tmux session `simpo_full_50k_final_eval` on Sparkie.
-Log: `~/croco/simpo_full_50k_final_eval.log`.
+Final evaluation completed across 10 Danish benchmarks. Results show substantial
+degradation vs the 5k baseline (mean: 31.65 vs 52.56). Checkpoint evaluation in progress
+to determine if earlier checkpoints show better performance, which would suggest the
+model degraded during training rather than the algorithm being fundamentally limited.
 
 ## Results
 
 Final EuroEval (Danish) scores vs the 5k `simpo_full` baseline. Scores 0–100, higher is
 better; **bold** = significant vs simpo_full (non-overlapping 95% bootstrap CIs).
 
-**Note:** Final evaluation results will populate here once complete.
-Currently running in tmux session `simpo_full_50k_final_eval` on Sparkie.
-Log: `~/croco/simpo_full_50k_final_eval.log`.
+**Note:** The 50k scaling run shows substantial performance degradation across most
+benchmarks compared to the 5k baseline, suggesting the ref-free SimPO approach is
+algorithm-limited rather than data-limited. Checkpoint evaluation is running to identify
+if earlier checkpoints show better performance.
 
-| Dataset / metric         | simpo_full (5k) | simpo_full_50k | Δ   |
-| ------------------------ | --------------: | -------------: | --- |
-| angry-tweets · macro_f1  |            64.0 |            TBD |     |
-| angry-tweets · mcc       |            46.5 |            TBD |     |
-| citizen-tests · accuracy |            85.3 |            TBD |     |
-| citizen-tests · mcc      |            78.7 |            TBD |     |
-| dansk · micro_f1         |            31.0 |            TBD |     |
-| dansk · micro_f1_no_misc |            46.4 |            TBD |     |
-| talemaader · accuracy    |            70.6 |            TBD |     |
-| talemaader · mcc         |            63.8 |            TBD |     |
-| hellaswag · accuracy     |            54.7 |            TBD |     |
-| hellaswag · mcc          |            42.4 |            TBD |     |
-| ifeval · instruction_acc |            62.4 |            TBD |     |
-| multi-wiki-qa · em       |            57.1 |            TBD |     |
-| multi-wiki-qa · f1       |            73.9 |            TBD |     |
-| nordjylland · chr_f3pp   |            37.2 |            TBD |     |
-| nordjylland · chr_f4pp   |            39.9 |            TBD |     |
-| scala · macro_f1         |            59.4 |            TBD |     |
-| scala · mcc              |            32.7 |            TBD |     |
-| valeu · european_values  |             0.2 |            TBD |     |
-| **Mean**                 |       **52.56** |            TBD |     |
+| Dataset / metric           | simpo_full (5k) | simpo_full_50k      | Δ      |
+| -------------------------- | --------------: | ------------------: | ------ |
+| angry-tweets · macro_f1    |            64.0 | 55.49% ± 2.38%      | −8.51  |
+| angry-tweets · mcc         |            46.5 | 36.75% ± 3.55%      | −9.75  |
+| scala-da · macro_f1        |            59.4 | 61.17% ± 4.75%      | +1.77  |
+| scala-da · mcc             |            32.7 | 33.22% ± 6.01%      | +0.52  |
+| dansk-test · micro_f1      |            31.0 | 0.00%               | −31.00 |
+| dansk-test · micro_f1_misc |            46.4 | 0.00%               | −46.40 |
+| multi-wiki-qa-da · f1      |            73.9 | 1.33% ± 0.27%       | −72.57 |
+| multi-wiki-qa-da · em      |            57.1 | 0.00%               | −57.10 |
+| nordjylland-news · chr_f3pp |         37.2 | 1.78% ± 1.20%       | −35.42 |
+| nordjylland-news · chr_f4pp |         39.9 | 2.09% ± 1.41%       | −37.81 |
+| danske-talemaader · mcc    |            63.8 | 57.18% ± 5.80%      | −6.62  |
+| danske-talemaader · acc    |            70.6 | 67.50% ± 4.65%      | −3.10  |
+| danish-citizen-tests · mcc |            78.7 | 59.15% ± 5.16%      | −19.55 |
+| danish-citizen-tests · acc |            85.3 | 66.78% ± 5.42%      | −18.52 |
+| hellaswag-da · mcc         |            42.4 | 32.04% ± 4.49%      | −10.36 |
+| hellaswag-da · acc         |            54.7 | 47.11% ± 4.20%      | −7.59  |
+| ifeval-da · instr_acc      |            62.4 | 26.68% ± 0.97%      | −35.72 |
+| valeu-da · european_values |             0.2 | 19.17% ± 13.83%     | +18.97 |
+| **Mean**                   |       **52.56** | **31.65**           | −20.91 |
 
-_Table to be filled after final evaluation completes._
+_Table: Final evaluation results for simpo_full_50k vs the 5k baseline. The 50k run
+shows significant degradation on most benchmarks, with only ScaLA-da and valeu-da showing
+improvement. The `dansk-test` scores of 0.00 indicate complete evaluation failure (JSON
+parse errors in model output). `valeu-da` improvement is from a near-zero baseline and
+should be interpreted cautiously._
 
 ### Hypothesis Check
 
-| Outcome                             | Status |
-| ----------------------------------- | ------ |
-| 50k beats 5k on aggregate mean      | ?      |
-| Gains on instruction-following      | ?      |
-| Improved reward margin separation   | ?      |
-| Better early-checkpoint performance | ?      |
+| Outcome                             | Status             |
+| ----------------------------------- | ------------------ |
+| 50k beats 5k on aggregate mean      | ❌ No (−20.9 pts)  |
+| Gains on instruction-following      | ❌ No (−35.7 pts)  |
+| Improved reward margin separation   | TBD (checkpoint analysis pending) |
+| Better early-checkpoint performance | ⏳ Running         |
 
 ## Checkpoint Evaluation
 
